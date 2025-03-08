@@ -13,6 +13,9 @@ return new class extends Migration
     {
         Schema::create('face_data', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('student_id')->constrained();
+            $table->string('face_id'); // Reference to stored face embedding in Flask
+            $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
     }
