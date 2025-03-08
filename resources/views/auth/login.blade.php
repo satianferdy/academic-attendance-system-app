@@ -106,6 +106,13 @@
         .forgot-password a span {
             color: #22538a;
         }
+
+        .login-info {
+            text-align: left;
+            margin-bottom: 15px;
+            font-size: 13px;
+            color: #666;
+        }
     </style>
 @endpush
 
@@ -133,8 +140,11 @@
         <form action="{{ route('login.submit') }}" method="POST">
             @csrf
             <div class="input-group">
-                <input type="email" class="form-control" id="email" name="email" placeholder="Enter your email"
-                    value="{{ old('email') }}" required>
+                <input type="text" class="form-control" id="username" name="username"
+                    placeholder="Enter your NIM/NIP/Email" value="{{ old('username') }}" required>
+            </div>
+            <div class="login-info">
+                <small>* Students use NIM, Lecturers use NIP, Admins use Email</small>
             </div>
 
             <div class="input-group">

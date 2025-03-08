@@ -21,7 +21,7 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email',
+            'username' => 'required|string',
             'password' => 'required',
         ]);
 
@@ -31,13 +31,35 @@ class AuthController extends Controller
                 ->withInput();
         }
 
-        $credentials = $request->only('email', 'password');
+        $username = $request->username;
+        $password = $request->password;
+        $user = null;
 
-        if (Auth::attempt($credentials)) {
+        // First try to find a student with matching NIM
+        $student = Student::where('nim', $username)->first();
+        if ($student) {
+            $user = User::find($student->user_id);
+        }
+
+        // If not found, try to find a lecturer with matching NIP
+        if (!$user) {
+            $lecturer = Lecturer::where('nip', $username)->first();
+            if ($lecturer) {
+                $user = User::find($lecturer->user_id);
+            }
+        }
+
+        // If still not found, try to find a user with matching email (for admins)
+        if (!$user) {
+            $user = User::where('email', $username)->first();
+        }
+
+        // If user is found and password matches, log them in
+        if ($user && Hash::check($password, $user->password)) {
+            Auth::login($user);
             $request->session()->regenerate();
 
             // Redirect based on user role
-            $user = Auth::user();
             $role = $user->role;
 
             if ($role === 'admin') {
@@ -47,18 +69,11 @@ class AuthController extends Controller
             } else {
                 return redirect()->route('student.dashboard');
             }
-
-            // if ($user->isAdmin()) {
-            //     return redirect()->route('admin.dashboard');
-            // } elseif ($user->isLecturer()) {
-            //     return redirect()->route('lecturer.dashboard');
-            // } else {
-            //     return redirect()->route('student.dashboard');
-            // }
         }
 
+        // Authentication failed
         return back()->withErrors([
-            'email' => 'The provided credentials do not match our records.',
+            'username' => 'The provided credentials do not match our records.',
         ])->withInput();
     }
 
