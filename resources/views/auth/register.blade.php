@@ -1,36 +1,210 @@
-<!DOCTYPE html>
-<html lang="en">
+@extends('layouts.auth')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - LMS</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+@section('title', 'Register')
+
+@push('styles')
     <style>
         body {
-            background-color: #f8f9fa;
-            padding: 40px 0;
+            background-color: #f0f5ff;
+            font-family: 'Roboto', sans-serif;
         }
 
-        .register-form {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .register-container {
+            max-width: 900px;
+            width: 100%;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
             background-color: white;
         }
-    </style>
-</head>
 
-<body>
+        .logo-container {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo-container img {
+            width: 80px;
+            height: auto;
+        }
+
+        h2 {
+            color: #22538a;
+            font-size: 28px;
+            text-align: center;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .subtitle {
+            color: #777;
+            font-size: 16px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .form-layout {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+
+        .main-form {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .role-details {
+            flex: 1;
+            min-width: 300px;
+            padding-left: 30px;
+            border-left: 1px solid #eee;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: border-color 0.3s;
+        }
+
+        .form-control:focus {
+            border-color: #22538a;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(34, 83, 138, 0.1);
+        }
+
+        .form-text {
+            display: block;
+            margin-top: 5px;
+            font-size: 13px;
+            color: #888;
+        }
+
+        .role-section {
+            margin-bottom: 25px;
+        }
+
+        .role-options {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+        }
+
+        .role-option {
+            display: flex;
+            align-items: center;
+        }
+
+        .role-option input {
+            margin-right: 8px;
+        }
+
+        .role-fields h3 {
+            color: #22538a;
+            font-size: 20px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .btn-register {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            background-color: #22538a;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 30px;
+        }
+
+        .btn-register:hover {
+            background-color: #1a4270;
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 15px;
+        }
+
+        .login-link a {
+            color: #22538a;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+
+        .alert {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .form-layout {
+                flex-direction: column;
+            }
+
+            .role-details {
+                padding-left: 0;
+                border-left: none;
+                border-top: 1px solid #eee;
+                padding-top: 20px;
+                margin-top: 10px;
+            }
+        }
+    </style>
+@endpush
+
+@section('content')
     <div class="container">
-        <div class="register-form">
-            <h2 class="text-center mb-4">Register</h2>
+        <div class="register-container">
+            <div class="logo-container">
+                <img src="{{ asset('assets/images/logo.png') }}" alt="Logo">
+            </div>
+
+            <h2>Create Account</h2>
+            <p class="subtitle">Fill in the details below to register.</p>
 
             @if ($errors->any())
-                <div class="alert alert-danger">
-                    <ul class="mb-0">
+                <div class="alert">
+                    <ul>
                         @foreach ($errors->all() as $error)
                             <li>{{ $error }}</li>
                         @endforeach
@@ -40,97 +214,107 @@
 
             <form action="{{ route('register.submit') }}" method="POST">
                 @csrf
-                <div class="mb-3">
-                    <label for="name" class="form-label">Full Name</label>
-                    <input type="text" class="form-control" id="name" name="name" value="{{ old('name') }}"
-                        required>
-                </div>
-                <div class="mb-3">
-                    <label for="email" class="form-label">Email address</label>
-                    <input type="email" class="form-control" id="email" name="email" value="{{ old('email') }}"
-                        required>
-                </div>
-                <div class="mb-3">
-                    <label for="password" class="form-label">Password</label>
-                    <input type="password" class="form-control" id="password" name="password" required>
-                    <div class="form-text">Password must be at least 8 characters.</div>
-                </div>
-                <div class="mb-3">
-                    <label for="password_confirmation" class="form-label">Confirm Password</label>
-                    <input type="password" class="form-control" id="password_confirmation" name="password_confirmation"
-                        required>
+                <div class="form-layout">
+                    <!-- Left Side - Main Registration Form -->
+                    <div class="main-form">
+                        <div class="form-group">
+                            <label for="name" class="form-label">Full Name</label>
+                            <input type="text" class="form-control" id="name" name="name"
+                                value="{{ old('name') }}" placeholder="Enter your full name" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email" class="form-label">Email address</label>
+                            <input type="email" class="form-control" id="email" name="email"
+                                value="{{ old('email') }}" placeholder="Enter your email" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password" name="password"
+                                placeholder="Enter your password" required>
+                            <span class="form-text">Password must be at least 8 characters.</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="password_confirmation" class="form-label">Confirm Password</label>
+                            <input type="password" class="form-control" id="password_confirmation"
+                                name="password_confirmation" placeholder="Confirm your password" required>
+                        </div>
+
+                        <div class="role-section">
+                            <label class="form-label">Role</label>
+                            <div class="role-options">
+                                <div class="role-option">
+                                    <input type="radio" id="roleStudent" name="role" value="student"
+                                        {{ old('role') == 'student' ? 'checked' : '' }} required>
+                                    <label for="roleStudent">Student</label>
+                                </div>
+                                <div class="role-option">
+                                    <input type="radio" id="roleLecturer" name="role" value="lecturer"
+                                        {{ old('role') == 'lecturer' ? 'checked' : '' }}>
+                                    <label for="roleLecturer">Lecturer</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Side - Role Information -->
+                    <div class="role-details">
+                        <!-- Student Fields -->
+                        <div id="studentFields" class="role-fields">
+                            <h3>Student Information</h3>
+                            <div class="form-group">
+                                <label for="nim" class="form-label">NIM (Student ID)</label>
+                                <input type="text" class="form-control" id="nim" name="nim"
+                                    placeholder="Enter your student ID" value="{{ old('nim') }}">
+                            </div>
+                            <div class="form-group">
+                                <label for="student_department" class="form-label">Department</label>
+                                <input type="text" class="form-control" id="student_department" name="student_department"
+                                    placeholder="Enter your department" value="{{ old('student_department') }}">
+                            </div>
+                            <div class="form-group">
+                                <label for="student_faculty" class="form-label">Faculty</label>
+                                <input type="text" class="form-control" id="student_faculty" name="student_faculty"
+                                    placeholder="Enter your faculty" value="{{ old('student_faculty') }}">
+                            </div>
+                        </div>
+
+                        <!-- Lecturer Fields -->
+                        <div id="lecturerFields" class="role-fields" style="display: none;">
+                            <h3>Lecturer Information</h3>
+                            <div class="form-group">
+                                <label for="nip" class="form-label">NIP (Lecturer ID)</label>
+                                <input type="text" class="form-control" id="nip" name="nip"
+                                    placeholder="Enter your lecturer ID" value="{{ old('nip') }}">
+                            </div>
+                            <div class="form-group">
+                                <label for="lecturer_department" class="form-label">Department</label>
+                                <input type="text" class="form-control" id="lecturer_department"
+                                    placeholder="Enter your department" name="lecturer_department"
+                                    value="{{ old('lecturer_department') }}">
+                            </div>
+                            <div class="form-group">
+                                <label for="lecturer_faculty" class="form-label">Faculty</label>
+                                <input type="text" class="form-control" id="lecturer_faculty" name="lecturer_faculty"
+                                    placeholder="Enter your faculty" value="{{ old('lecturer_faculty') }}">
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Role</label>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="role" id="roleStudent" value="student"
-                            {{ old('role') == 'student' ? 'checked' : '' }} required>
-                        <label class="form-check-label" for="roleStudent">
-                            Student
-                        </label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="role" id="roleLecturer" value="lecturer"
-                            {{ old('role') == 'lecturer' ? 'checked' : '' }}>
-                        <label class="form-check-label" for="roleLecturer">
-                            Lecturer
-                        </label>
-                    </div>
-                </div>
+                <button type="submit" class="btn-register">Register</button>
 
-                <!-- Student Fields -->
-                <div id="studentFields" class="role-fields">
-                    <h5 class="mt-4 mb-3">Student Information</h5>
-                    <div class="mb-3">
-                        <label for="nim" class="form-label">NIM (Student ID)</label>
-                        <input type="text" class="form-control" id="nim" name="nim"
-                            value="{{ old('nim') }}">
-                    </div>
-                    <div class="mb-3">
-                        <label for="student_department" class="form-label">Department</label>
-                        <input type="text" class="form-control" id="student_department" name="student_department"
-                            value="{{ old('student_department') }}">
-                    </div>
-                    <div class="mb-3">
-                        <label for="student_faculty" class="form-label">Faculty</label>
-                        <input type="text" class="form-control" id="student_faculty" name="student_faculty"
-                            value="{{ old('student_faculty') }}">
-                    </div>
-                </div>
-
-                <!-- Lecturer Fields -->
-                <div id="lecturerFields" class="role-fields" style="display: none;">
-                    <h5 class="mt-4 mb-3">Lecturer Information</h5>
-                    <div class="mb-3">
-                        <label for="nip" class="form-label">NIP (Lecturer ID)</label>
-                        <input type="text" class="form-control" id="nip" name="nip"
-                            value="{{ old('nip') }}">
-                    </div>
-                    <div class="mb-3">
-                        <label for="lecturer_department" class="form-label">Department</label>
-                        <input type="text" class="form-control" id="lecturer_department"
-                            name="lecturer_department" value="{{ old('lecturer_department') }}">
-                    </div>
-                    <div class="mb-3">
-                        <label for="lecturer_faculty" class="form-label">Faculty</label>
-                        <input type="text" class="form-control" id="lecturer_faculty" name="lecturer_faculty"
-                            value="{{ old('lecturer_faculty') }}">
-                    </div>
-                </div>
-
-                <div class="d-grid gap-2 mt-4">
-                    <button type="submit" class="btn btn-primary">Register</button>
+                <div class="login-link">
+                    Already have an account? <a href="{{ route('login') }}">Sign in</a>
                 </div>
             </form>
-
-            <div class="mt-3 text-center">
-                <p>Already have an account? <a href="{{ route('login') }}">Login</a></p>
-                <p><a href="/">Back to home</a></p>
-            </div>
         </div>
     </div>
+@endsection
 
+@push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const roleStudent = document.getElementById('roleStudent');
@@ -155,6 +339,4 @@
             toggleFields();
         });
     </script>
-</body>
-
-</html>
+@endpush
