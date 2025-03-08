@@ -4,76 +4,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Learning Management System')</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        .sidebar {
-            min-height: 100vh;
-            background-color: #212529;
-            color: white;
-            padding-top: 20px;
-        }
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="description" content="Responsive HTML Admin Dashboard Template based on Bootstrap 5">
+    <meta name="author" content="NobleUI">
+    <meta name="keywords"
+        content="nobleui, bootstrap, bootstrap 5, bootstrap5, admin, dashboard, template, responsive, css, sass, html, theme, front-end, ui kit, web">
 
-        .sidebar-link {
-            color: #adb5bd;
-            text-decoration: none;
-            display: block;
-            padding: 8px 16px;
-            margin: 4px 0;
-            border-radius: 4px;
-        }
+    <title>@yield('title', 'Dashboard')</title>
 
-        .sidebar-link:hover,
-        .sidebar-link.active {
-            color: white;
-            background-color: rgba(255, 255, 255, 0.1);
-        }
+    {{-- <meta name="csrf-token" content="{{ csrf_token() }}"> --}}
 
-        .content {
-            padding: 20px;
-        }
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <!-- End fonts -->
 
-        .navbar {
-            border-bottom: 1px solid #dee2e6;
-        }
-    </style>
+    <!-- core:css -->
+    <link rel="stylesheet" href="{{ asset('assets/vendors/core/core.css') }}">
+    <!-- endinject -->
+
+    <!-- Plugin css for this page -->
+    {{-- <link rel="stylesheet" href="{{ asset('assets/vendors/bootstrap-datepicker/bootstrap-datepicker.min.css') }}"> --}}
+    <link rel="stylesheet" href="{{ asset('assets/vendors/sweetalert2/sweetalert2.min.css') }}">
+    <!-- End plugin css for this page -->
+
+    <!-- inject:css -->
+    <link rel="stylesheet" href="{{ asset('assets/fonts/feather-font/css/iconfont.css') }}">
+    <!-- endinject -->
+
+    <!-- Layout styles -->
+    <link rel="stylesheet" href="{{ asset('assets/css/demo1/style.css') }}">
+    <!-- End layout styles -->
+
+    <link rel="shortcut icon" href="{{ asset('assets/images/logo/logo.png') }}" />
+
+    @stack('styles')
 </head>
 
 <body>
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Sidebar -->
-            <div class="col-md-3 col-lg-2 px-0 sidebar">
-                <h4 class="text-center mb-4">LMS</h4>
-                <div class="px-3">
-                    <h6 class="text-uppercase text-muted mb-2 px-2">Menu</h6>
-                    @yield('sidebar')
-                </div>
+    <div class="main-wrapper">
+
+        @include('layouts.sidebar')
+        <div class="page-wrapper">
+
+            @include('layouts.navbar')
+
+            <div class="page-content">
+                @yield('content')
             </div>
 
-            <!-- Main content -->
-            <div class="col-md-9 col-lg-10 ms-sm-auto px-0">
-                <!-- Navbar -->
-                <nav class="navbar navbar-expand-lg navbar-light bg-light px-3">
-                    <span class="navbar-brand">@yield('page-title', 'Dashboard')</span>
-                    <div class="ms-auto">
-                        <span class="me-3">{{ Auth::user()->name }}</span>
-                        <form action="{{ route('logout') }}" method="POST" class="d-inline">
-                            @csrf
-                            <button type="submit" class="btn btn-sm btn-outline-secondary">Logout</button>
-                        </form>
-                    </div>
-                </nav>
+            @include('layouts.footer')
 
-                <!-- Content -->
-                <div class="content">
-                    @yield('content')
-                </div>
-            </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- core:js -->
+    <script src="{{ asset('assets/vendors/core/core.js') }}"></script>
+    <!-- endinject -->
+
+    <!-- Plugin js for this page -->
+    {{-- <script src="{{ asset('assets/vendors/chartjs/Chart.min.js') }}"></script> --}}
+    <script src="{{ asset('assets/vendors/jquery.flot/jquery.flot.js') }}"></script>
+    <script src="{{ asset('assets/vendors/jquery.flot/jquery.flot.resize.js') }}"></script>
+    {{-- <script src="{{ asset('assets/vendors/bootstrap-datepicker/bootstrap-datepicker.min.js') }}"></script> --}}
+    {{-- <script src="{{ asset('assets/vendors/apexcharts/apexcharts.min.js') }}"></script> --}}
+    <script src="{{ asset('assets/vendors/sweetalert2/sweetalert2.min.js') }}"></script>
+
+    <!-- End plugin js for this page -->
+
+    <!-- inject:js -->
+    <script src="{{ asset('assets/vendors/feather-icons/feather.min.js') }}"></script>
+    <script src="{{ asset('assets/js/template.js') }}"></script>
+    <!-- endinject -->
+
+    <!-- Custom js for this page -->
+    {{-- <script src="{{ asset('assets/js/lms-pw-update.js') }}"></script>
+    <script src="{{ asset('assets/js/dashboard-light.js') }}"></script>
+    <script src="{{ asset('assets/js/datepicker.js') }}"></script> --}}
+    {{-- <script src="{{ asset('assets/js/sweet-alert.js') }}"></script> --}}
+    <!-- End custom js for this page -->
+    @stack('scripts')
 </body>
 
 </html>

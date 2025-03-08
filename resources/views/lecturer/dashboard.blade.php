@@ -36,7 +36,7 @@
                         <div class="list-group">
                             <a href="#" class="list-group-item list-group-item-action">
                                 <div class="d-flex w-100 justify-content-between">
-                                    <h5 class="mb-1">Introduction to Programming</h5>
+                                    <h5 class="mb-1">Introduction to Programming Taek Gede</h5>
                                     <small>Code: CS101</small>
                                 </div>
                                 <p class="mb-1">Monday, 08:00 - 10:00</p>
