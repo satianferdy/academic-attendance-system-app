@@ -31,6 +31,7 @@
 
     <!-- inject:css -->
     <link rel="stylesheet" href="{{ asset('assets/fonts/feather-font/css/iconfont.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/vendors/datatables.net-bs5/dataTables.bootstrap5.css') }}">
     <!-- endinject -->
 
     <!-- Layout styles -->
@@ -42,7 +43,7 @@
     @stack('styles')
 </head>
 
-<body>
+<body data-session-success="{{ session('success') }}" data-session-error="{{ session('error') }}">
     <div class="main-wrapper">
 
         @include('layouts.sidebar')
@@ -70,6 +71,8 @@
     {{-- <script src="{{ asset('assets/vendors/bootstrap-datepicker/bootstrap-datepicker.min.js') }}"></script> --}}
     {{-- <script src="{{ asset('assets/vendors/apexcharts/apexcharts.min.js') }}"></script> --}}
     <script src="{{ asset('assets/vendors/sweetalert2/sweetalert2.min.js') }}"></script>
+    <script src="{{ asset('assets/vendors/datatables.net/jquery.dataTables.js') }}"></script>
+    <script src="{{ asset('assets/vendors/datatables.net-bs5/dataTables.bootstrap5.js') }}"></script>
 
     <!-- End plugin js for this page -->
 
@@ -79,10 +82,11 @@
     <!-- endinject -->
 
     <!-- Custom js for this page -->
+    <script src="{{ asset('assets/js/data-table.js') }}"></script>
     {{-- <script src="{{ asset('assets/js/lms-pw-update.js') }}"></script>
     <script src="{{ asset('assets/js/dashboard-light.js') }}"></script>
     <script src="{{ asset('assets/js/datepicker.js') }}"></script> --}}
-    {{-- <script src="{{ asset('assets/js/sweet-alert.js') }}"></script> --}}
+    <script src="{{ asset('assets/js/sweet-alert.js') }}"></script>
     <!-- End custom js for this page -->
     @stack('scripts')
 </body>
