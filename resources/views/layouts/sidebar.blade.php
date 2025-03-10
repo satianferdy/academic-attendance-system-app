@@ -13,6 +13,7 @@
         <ul class="nav">
             @auth
                 {{-- Common Dashboard for all users --}}
+                <li class="nav-item nav-category">Main</li>
                 <li class="nav-item">
                     <a href="{{ route(auth()->user()->role . '.dashboard') }}"
                         class="nav-link {{ request()->routeIs(auth()->user()->role . '.dashboard') ? 'active' : '' }}">
@@ -22,33 +23,29 @@
                 </li>
 
                 {{-- Admin Only Menus --}}
+                <li class="nav-item nav-category">Admin</li>
                 @if (auth()->user()->role === 'admin')
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('admin.users.*') || request()->routeIs('admin.roles.*') ? 'active' : '' }}"
-                            data-bs-toggle="collapse" href="#user" role="button"
-                            aria-expanded="{{ request()->routeIs('admin.users.*') || request()->routeIs('admin.roles.*') ? 'true' : 'false' }}"
-                            aria-controls="user">
+                        <a href="{{ route('admin.users.index') }}"
+                            class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
                             <i class="link-icon" data-feather="users"></i>
                             <span class="link-title">User Management</span>
-                            <i class="link-arrow" data-feather="chevron-down"></i>
                         </a>
-                        <div class="collapse {{ request()->routeIs('admin.users.*') || request()->routeIs('admin.roles.*') ? 'show' : '' }}"
-                            id="user">
-                            <ul class="nav sub-menu">
-                                <li class="nav-item">
-                                    <a href="{{ route('admin.users.index') }}"
-                                        class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">Users</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="{{ route('admin.schedules.index') }}" class="nav-link">Schedules</a>
-                                </li>
-                            </ul>
-                        </div>
+                    </li>
+
+                    <li class="nav-item">
+                        <a href="{{ route('admin.schedules.index') }}"
+                            class="nav-link {{ request()->routeIs('admin.schedules.*') ? 'active' : '' }}">
+                            <i class="link-icon" data-feather="calendar"></i>
+                            <span class="link-title">Class Schedule</span>
+                        </a>
                     </li>
                 @endif
 
+
                 {{-- Student Only Menus --}}
                 @if (auth()->user()->role === 'student')
+                    <li class="nav-item nav-category">General</li>
                     <li class="nav-item">
                         <a class="nav-link" data-bs-toggle="collapse" href="#general" role="button" aria-expanded="false"
                             aria-controls="general">
@@ -118,6 +115,7 @@
 
                 {{-- Lecturer Only Menus --}}
                 @if (auth()->user()->role === 'lecturer')
+                    <li class="nav-item nav-category">General</li>
                     <li class="nav-item">
                         <a class="nav-link" data-bs-toggle="collapse" href="#akademik" role="button"
                             aria-expanded="false" aria-controls="akademik">
