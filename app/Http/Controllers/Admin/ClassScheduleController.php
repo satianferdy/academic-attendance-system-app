@@ -49,26 +49,39 @@ class ClassScheduleController extends Controller
         // Check if all selected time slots are available
         $allSlotsAvailable = true;
         $unavailableSlots = [];
+        $conflictType = '';
 
         foreach ($request->time_slots as $timeSlot) {
             // Parse the selected time slot
             list($startTime, $endTime) = explode(' - ', $timeSlot);
 
-            if (!ClassSchedule::isTimeSlotAvailable(
+            [$available, $conflict] = ClassSchedule::isTimeSlotAvailable(
                 $request->room,
                 $request->day,
                 $startTime,
-                $endTime
-            )) {
+                $endTime,
+                $request->lecturer_id
+            );
+
+            if (!$available) {
                 $allSlotsAvailable = false;
                 $unavailableSlots[] = $timeSlot;
+                $conflictType = $conflict;
             }
         }
 
         // If any time slots are unavailable, return with errors
         if (!$allSlotsAvailable) {
+            $errorMessage = 'The following time slots are already booked';
+            if ($conflictType == 'room') {
+                $errorMessage .= ' for this room';
+            } else if ($conflictType == 'lecturer') {
+                $errorMessage .= ' for this lecturer';
+            }
+            $errorMessage .= ': ' . implode(', ', $unavailableSlots);
+
             return redirect()->back()
-                ->withErrors(['time_slots' => 'The following time slots are already booked: ' . implode(', ', $unavailableSlots)])
+                ->withErrors(['time_slots' => $errorMessage])
                 ->withInput();
         }
 
@@ -140,27 +153,40 @@ class ClassScheduleController extends Controller
         // Check if all selected time slots are available
         $allSlotsAvailable = true;
         $unavailableSlots = [];
+        $conflictType = '';
 
         foreach ($request->time_slots as $timeSlot) {
             // Parse the selected time slot
             list($startTime, $endTime) = explode(' - ', $timeSlot);
 
-            if (!ClassSchedule::isTimeSlotAvailable(
+            [$available, $conflict] = ClassSchedule::isTimeSlotAvailable(
                 $request->room,
                 $request->day,
                 $startTime,
                 $endTime,
+                $request->lecturer_id,
                 $schedule->id
-            )) {
+            );
+
+            if (!$available) {
                 $allSlotsAvailable = false;
                 $unavailableSlots[] = $timeSlot;
+                $conflictType = $conflict;
             }
         }
 
         // If any time slots are unavailable, return with errors
         if (!$allSlotsAvailable) {
+            $errorMessage = 'The following time slots are already booked';
+            if ($conflictType == 'room') {
+                $errorMessage .= ' for this room';
+            } else if ($conflictType == 'lecturer') {
+                $errorMessage .= ' for this lecturer';
+            }
+            $errorMessage .= ': ' . implode(', ', $unavailableSlots);
+
             return redirect()->back()
-                ->withErrors(['time_slots' => 'The following time slots are already booked: ' . implode(', ', $unavailableSlots)])
+                ->withErrors(['time_slots' => $errorMessage])
                 ->withInput();
         }
 
@@ -203,28 +229,71 @@ class ClassScheduleController extends Controller
     {
         $room = $request->room;
         $day = $request->day;
+        $lecturer_id = $request->lecturer_id;
         $excludeId = $request->schedule_id;
-
-        $schedules = ClassSchedule::where('room', $room)
-            ->where('day', $day);
-
-        if ($excludeId) {
-            $schedules->where('id', '!=', $excludeId);
-        }
-
-        $schedules = $schedules->with(['timeSlots', 'lecturer.user'])->get();
 
         $bookedSlots = [];
 
-        foreach ($schedules as $schedule) {
-            $lecturerName = $schedule->lecturer ? ($schedule->lecturer->user ? $schedule->lecturer->user->name : 'Unknown') : 'Unknown';
+        // Check room availability
+        if ($room && $day) {
+            $roomSchedules = ClassSchedule::where('room', $room)
+                ->where('day', $day);
 
-            foreach ($schedule->timeSlots as $timeSlot) {
-                $bookedSlots[] = [
-                    'start_time' => $timeSlot->start_time->format('H:i'),
-                    'end_time' => $timeSlot->end_time->format('H:i'),
-                    'lecturer_name' => $lecturerName
-                ];
+            if ($excludeId) {
+                $roomSchedules->where('id', '!=', $excludeId);
+            }
+
+            $roomSchedules = $roomSchedules->with(['timeSlots', 'lecturer.user'])->get();
+
+            foreach ($roomSchedules as $schedule) {
+                $lecturerName = $schedule->lecturer ? ($schedule->lecturer->user ? $schedule->lecturer->user->name : 'Unknown') : 'Unknown';
+
+                foreach ($schedule->timeSlots as $timeSlot) {
+                    $bookedSlots[] = [
+                        'start_time' => $timeSlot->start_time->format('H:i'),
+                        'end_time' => $timeSlot->end_time->format('H:i'),
+                        'lecturer_name' => $lecturerName,
+                        'type' => 'room'
+                    ];
+                }
+            }
+        }
+
+        // Check lecturer availability
+        if ($lecturer_id && $day) {
+            $lecturerSchedules = ClassSchedule::where('lecturer_id', $lecturer_id)
+                ->where('day', $day);
+
+            if ($excludeId) {
+                $lecturerSchedules->where('id', '!=', $excludeId);
+            }
+
+            $lecturerSchedules = $lecturerSchedules->with(['timeSlots'])->get();
+
+            foreach ($lecturerSchedules as $schedule) {
+                $lecturerName = $schedule->lecturer ? ($schedule->lecturer->user ? $schedule->lecturer->user->name : 'Unknown') : 'Unknown';
+
+                foreach ($schedule->timeSlots as $timeSlot) {
+                    // Check if this slot isn't already in booked slots (to avoid duplicates)
+                    $exists = false;
+                    foreach ($bookedSlots as $slot) {
+                        if ($slot['start_time'] === $timeSlot->start_time->format('H:i') &&
+                            $slot['end_time'] === $timeSlot->end_time->format('H:i')) {
+                            $exists = true;
+                            break;
+                        }
+                    }
+
+                    if (!$exists) {
+                        $bookedSlots[] = [
+                            'start_time' => $timeSlot->start_time->format('H:i'),
+                            'end_time' => $timeSlot->end_time->format('H:i'),
+                            'lecturer_name' => $lecturerName,
+                            'type' => 'lecturer',
+                            'room' => $schedule->room
+                        ];
+                    }
+                }
             }
         }
 
