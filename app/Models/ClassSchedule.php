@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class ClassSchedule extends Model
 {
@@ -36,8 +36,31 @@ class ClassSchedule extends Model
         return $this->hasMany(Attendance::class);
     }
 
-    // public function sessions()
-    // {
-    //     return $this->hasMany(Session::class);
-    // }
+    // Check if a time slot is available for the specific room and day
+    public static function isTimeSlotAvailable($room, $day, $startTime, $endTime, $excludeId = null)
+    {
+        $query = self::where('room', $room)
+            ->where('day', $day)
+            ->where(function ($query) use ($startTime, $endTime) {
+                // Check for overlapping time slots
+                $query->where(function ($q) use ($startTime, $endTime) {
+                    $q->where('start_time', '>=', $startTime)
+                      ->where('start_time', '<', $endTime);
+                })->orWhere(function ($q) use ($startTime, $endTime) {
+                    $q->where('end_time', '>', $startTime)
+                      ->where('end_time', '<=', $endTime);
+                })->orWhere(function ($q) use ($startTime, $endTime) {
+                    $q->where('start_time', '<=', $startTime)
+                      ->where('end_time', '>=', $endTime);
+                });
+            });
+
+        // Exclude current schedule when updating
+        if ($excludeId) {
+            $query->where('id', '!=', $excludeId);
+        }
+
+        // If any record found, time slot is not available
+        return $query->count() === 0;
+    }
 }

@@ -34,7 +34,7 @@ class ClassScheduleController extends Controller
             'lecturer_id' => 'required|exists:lecturers,id',
             'room' => 'required|string|max:50',
             'day' => 'required|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
-            'time_slot' => 'required|string',
+            'time_slots' => 'required|array|min:1',
             'semester' => 'required|string|max:20',
             'academic_year' => 'required|string|max:20',
         ]);
@@ -45,36 +45,57 @@ class ClassScheduleController extends Controller
                 ->withInput();
         }
 
-        // Parse the selected time slot
-        list($startTime, $endTime) = explode(' - ', $request->time_slot);
+        $createdSchedules = [];
+        $errors = [];
 
-        // Check if the time slot is available
-        if (!ClassSchedule::isTimeSlotAvailable(
-            $request->room,
-            $request->day,
-            $startTime,
-            $endTime
-        )) {
+        // Process each selected time slot
+        foreach ($request->time_slots as $timeSlot) {
+            // Parse the selected time slot
+            list($startTime, $endTime) = explode(' - ', $timeSlot);
+
+            // Check if the time slot is available
+            if (!ClassSchedule::isTimeSlotAvailable(
+                $request->room,
+                $request->day,
+                $startTime,
+                $endTime
+            )) {
+                $errors[] = "Time slot $timeSlot is already booked for the selected room and day.";
+                continue;
+            }
+
+            // Create the schedule
+            $schedule = ClassSchedule::create([
+                'course_code' => $request->course_code,
+                'course_name' => $request->course_name,
+                'lecturer_id' => $request->lecturer_id,
+                'room' => $request->room,
+                'day' => $request->day,
+                'start_time' => $startTime,
+                'end_time' => $endTime,
+                'semester' => $request->semester,
+                'academic_year' => $request->academic_year,
+            ]);
+
+            $createdSchedules[] = $schedule;
+        }
+
+        // If there were errors but some schedules were created
+        if (!empty($errors) && !empty($createdSchedules)) {
+            return redirect()->route('admin.schedules.index')
+                ->with('warning', 'Some schedules were created, but the following errors occurred: ' . implode(' ', $errors));
+        }
+
+        // If all schedules failed
+        if (empty($createdSchedules)) {
             return redirect()->back()
-                ->withErrors(['time_slot' => 'This time slot is already booked for the selected room and day.'])
+                ->withErrors(['time_slots' => $errors])
                 ->withInput();
         }
 
-        // Create the schedule
-        ClassSchedule::create([
-            'course_code' => $request->course_code,
-            'course_name' => $request->course_name,
-            'lecturer_id' => $request->lecturer_id,
-            'room' => $request->room,
-            'day' => $request->day,
-            'start_time' => $startTime,
-            'end_time' => $endTime,
-            'semester' => $request->semester,
-            'academic_year' => $request->academic_year,
-        ]);
-
+        // If all schedules were created successfully
         return redirect()->route('admin.schedules.index')
-            ->with('success', 'Class schedule created successfully.');
+            ->with('success', count($createdSchedules) . ' class schedule(s) created successfully.');
     }
 
     public function show(ClassSchedule $schedule)

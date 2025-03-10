@@ -40,7 +40,7 @@
                                         class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">Users</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="#" class="nav-link">Roles</a>
+                                    <a href="{{ route('admin.schedules.index') }}" class="nav-link">Schedules</a>
                                 </li>
                             </ul>
                         </div>

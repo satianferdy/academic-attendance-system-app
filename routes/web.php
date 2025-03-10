@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Admin\UserManagementController;
+use App\Http\Controllers\Admin\ClassScheduleController;
 
 Route::get('/', function () {
     return view('auth.login');
@@ -23,6 +24,12 @@ Route::group(['middleware' => ['auth', 'role:admin'], 'prefix' => 'admin', 'as' 
     Route::get('/dashboard', function () {
         return view('admin.dashboard');
     })->name('dashboard');
+
+    // Class schedules
+    Route::resource('schedules', ClassScheduleController::class);
+
+    // schedule check availability
+    Route::post('schedules/check-availability', [ClassScheduleController::class, 'checkAvailability'])->name('schedules.check-availability');
 
     // User management routes
     Route::resource('users', UserManagementController::class);
