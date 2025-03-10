@@ -87,10 +87,6 @@
                                             <th>Created At</th>
                                             <td>{{ $schedule->created_at->format('d M Y, H:i') }}</td>
                                         </tr>
-                                        <tr>
-                                            <th>Last Update</th>
-                                            <td>{{ $schedule->updated_at->format('d M Y, H:i') }}</td>
-                                        </tr>
                                     </table>
                                 </div>
                             </div>

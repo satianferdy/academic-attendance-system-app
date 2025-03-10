@@ -40,37 +40,63 @@ class ClassSchedule extends Model
         return $this->hasMany(ScheduleTimeSlot::class);
     }
 
-     // Static method to check for time slot availability
-     public static function isTimeSlotAvailable($room, $day, $startTime, $endTime, $excludeId = null)
-     {
-         // Get all schedules for this room and day
-         $schedules = self::where('room', $room)
-             ->where('day', $day);
+    // Static method to check for time slot availability
+    public static function isTimeSlotAvailable($room, $day, $startTime, $endTime, $lecturer_id = null, $excludeId = null)
+    {
+        // First check for room conflicts
+        $roomConflicts = self::where('room', $room)
+            ->where('day', $day);
 
-         // Exclude current schedule when updating
-         if ($excludeId) {
-             $schedules->where('id', '!=', $excludeId);
-         }
+        if ($excludeId) {
+            $roomConflicts->where('id', '!=', $excludeId);
+        }
 
-         $schedules = $schedules->with('timeSlots')->get();
+        $roomConflicts = $roomConflicts->with('timeSlots')->get();
 
-         // Check each schedule's time slots for conflicts
-         foreach ($schedules as $schedule) {
-             foreach ($schedule->timeSlots as $timeSlot) {
-                 // Check for overlapping time slots
-                 if (
-                     // Start time is within an existing slot
-                     ($startTime >= $timeSlot->start_time && $startTime < $timeSlot->end_time) ||
-                     // End time is within an existing slot
-                     ($endTime > $timeSlot->start_time && $endTime <= $timeSlot->end_time) ||
-                     // Selected time encloses an existing slot
-                     ($startTime <= $timeSlot->start_time && $endTime >= $timeSlot->end_time)
-                 ) {
-                     return false; // Time slot is not available
-                 }
-             }
-         }
+        foreach ($roomConflicts as $schedule) {
+            foreach ($schedule->timeSlots as $timeSlot) {
+                // Check for overlapping time slots
+                if (
+                    // Start time is within an existing slot
+                    ($startTime >= $timeSlot->start_time->format('H:i') && $startTime < $timeSlot->end_time->format('H:i')) ||
+                    // End time is within an existing slot
+                    ($endTime > $timeSlot->start_time->format('H:i') && $endTime <= $timeSlot->end_time->format('H:i')) ||
+                    // Selected time encloses an existing slot
+                    ($startTime <= $timeSlot->start_time->format('H:i') && $endTime >= $timeSlot->end_time->format('H:i'))
+                ) {
+                    return [false, 'room']; // Room conflict
+                }
+            }
+        }
 
-         return true; // Time slot is available
-     }
+        // If lecturer_id is provided, check for lecturer conflicts
+        if ($lecturer_id) {
+            $lecturerConflicts = self::where('lecturer_id', $lecturer_id)
+                ->where('day', $day);
+
+            if ($excludeId) {
+                $lecturerConflicts->where('id', '!=', $excludeId);
+            }
+
+            $lecturerConflicts = $lecturerConflicts->with('timeSlots')->get();
+
+            foreach ($lecturerConflicts as $schedule) {
+                foreach ($schedule->timeSlots as $timeSlot) {
+                    // Check for overlapping time slots
+                    if (
+                        // Start time is within an existing slot
+                        ($startTime >= $timeSlot->start_time->format('H:i') && $startTime < $timeSlot->end_time->format('H:i')) ||
+                        // End time is within an existing slot
+                        ($endTime > $timeSlot->start_time->format('H:i') && $endTime <= $timeSlot->end_time->format('H:i')) ||
+                        // Selected time encloses an existing slot
+                        ($startTime <= $timeSlot->start_time->format('H:i') && $endTime >= $timeSlot->end_time->format('H:i'))
+                    ) {
+                        return [false, 'lecturer']; // Lecturer conflict
+                    }
+                }
+            }
+        }
+
+        return [true, null]; // Time slot is available
+    }
 }

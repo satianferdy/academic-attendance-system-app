@@ -15,15 +15,6 @@
                 <div class="card-body">
                     <h6 class="card-title">Class Schedule Management</h6>
 
-                    @if (session('success'))
-                        <div class="alert alert-success" role="alert">
-                            {{ session('success') }}
-                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                    @endif
-
                     <div class="d-flex justify-content-end mb-3">
                         <div>
                             <a href="{{ route('admin.schedules.create') }}"

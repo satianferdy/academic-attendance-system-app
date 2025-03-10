@@ -103,13 +103,31 @@
                                     <i class="icon-info-circle"></i> You can select multiple time slots for this class.
                                     Click on each slot you want to select.
                                 </div>
+                                <div class="d-flex gap-3 mb-2">
+                                    <div class="d-flex align-items-center">
+                                        <div class="btn btn-outline-secondary me-2" style="width: 40px; height: 20px;">
+                                        </div>
+                                        <small>Available</small>
+                                    </div>
+                                    <div class="d-flex align-items-center">
+                                        <div class="btn btn-secondary me-2" style="width: 40px; height: 20px;"></div>
+                                        <small>Selected</small>
+                                    </div>
+                                    <div class="d-flex align-items-center">
+                                        <div class="btn booked me-2"
+                                            style="width: 40px; height: 20px; background-color: #ffebee; border-color: #ffcdd2;">
+                                        </div>
+                                        <small>Unavailable</small>
+                                    </div>
+                                </div>
                             </div>
                             <div class="card">
                                 <div class="card-body p-3">
                                     <div class="row g-2 time-slots">
                                         @foreach ($timeSlots as $slot)
                                             <div class="col-md-3 col-sm-4 col-6 mb-2">
-                                                <button type="button" class="btn btn-outline-secondary time-slot-btn w-100"
+                                                <button type="button"
+                                                    class="btn btn-outline-secondary time-slot-btn w-100"
                                                     data-slot="{{ $slot }}">
                                                     {{ $slot }}
                                                 </button>
@@ -293,14 +311,18 @@
 
             // Room or day change handler
             roomInput.addEventListener('change', checkAvailability);
+            // Add this after roomInput event listener
+            const lecturerSelect = document.getElementById('lecturer_id');
+            lecturerSelect.addEventListener('change', checkAvailability);
 
             function checkAvailability() {
                 const room = roomInput.value;
                 const day = selectedDayInput.value;
+                const lecturer_id = document.getElementById('lecturer_id').value;
 
                 if (!room || !day) return;
 
-                fetch(`{{ route('admin.schedules.check-availability') }}?room=${room}&day=${day}`, {
+                fetch(`{{ route('admin.schedules.check-availability') }}?room=${room}&day=${day}&lecturer_id=${lecturer_id}`, {
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest',
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute(
@@ -318,16 +340,27 @@
 
                         // Mark booked slots
                         data.bookedSlots.forEach(slot => {
+                            console.log(slot);
                             const startTime = slot.start_time;
                             const endTime = slot.end_time;
                             const slotString = `${startTime} - ${endTime}`;
+                            const conflictType = slot.type || 'room';
 
                             timeSlotButtons.forEach(btn => {
                                 if (btn.dataset.slot === slotString) {
                                     btn.classList.add('booked');
                                     btn.disabled = true;
+
+                                    let infoText = '';
+                                    if (conflictType === 'room') {
+                                        infoText =
+                                            ` Room booked`;
+                                    } else {
+                                        infoText = ` Lecturer booked`;
+                                    }
+
                                     btn.innerHTML =
-                                        `<span>${slotString}</span><br><small>Booked by ${slot.lecturer_name}</small>`;
+                                        `<span>${slotString}</span>&nbsp;|&nbsp;<small>${infoText}</small>`;
                                 }
                             });
                         });
@@ -368,10 +401,31 @@
         }
 
         .time-slot-btn.booked {
-            background-color: #e9ecef;
-            color: #6c757d;
+            background-color: #ffebee;
+            /* Light red background */
+            color: #d32f2f;
+            /* Dark red text */
+            border-color: #ffcdd2;
+            /* Red border */
             cursor: not-allowed;
             font-size: 0.8rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .time-slot-btn.booked::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: repeating-linear-gradient(-45deg,
+                    transparent,
+                    transparent 5px,
+                    rgba(255, 0, 0, 0.1) 5px,
+                    rgba(255, 0, 0, 0.1) 10px);
+            pointer-events: none;
         }
 
         .time-slot-btn small {
