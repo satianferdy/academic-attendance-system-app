@@ -1,20 +1,20 @@
 @extends('layouts.app')
 
-@section('title', 'Create Class Schedule')
+@section('title', 'Edit Class Schedule')
 
 @section('content')
     <nav class="page-breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="#">Data</a></li>
             <li class="breadcrumb-item"><a href="{{ route('admin.schedules.index') }}">Class Schedule</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Create</li>
+            <li class="breadcrumb-item active" aria-current="page">Edit</li>
         </ol>
     </nav>
     <div class="row">
         <div class="col-md-12 grid-margin stretch-card">
             <div class="card">
                 <div class="card-body">
-                    <h6 class="card-title">Create Class Schedule</h6>
+                    <h6 class="card-title">Edit Class Schedule</h6>
 
                     @if ($errors->any())
                         <div class="alert alert-danger" role="alert">
@@ -26,20 +26,21 @@
                         </div>
                     @endif
 
-                    <form method="POST" action="{{ route('admin.schedules.store') }}">
+                    <form method="POST" action="{{ route('admin.schedules.update', $schedule->id) }}">
                         @csrf
+                        @method('PUT')
 
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label for="course_code" class="form-label">Course Code</label>
                                 <input type="text" class="form-control" id="course_code" name="course_code"
-                                    value="{{ old('course_code') }}" required>
+                                    value="{{ old('course_code', $schedule->course_code) }}" required>
                             </div>
 
                             <div class="col-md-6">
                                 <label for="course_name" class="form-label">Course Name</label>
                                 <input type="text" class="form-control" id="course_name" name="course_name"
-                                    value="{{ old('course_name') }}" required>
+                                    value="{{ old('course_name', $schedule->course_name) }}" required>
                             </div>
                         </div>
 
@@ -50,7 +51,7 @@
                                     <option value="">Select Lecturer</option>
                                     @foreach ($lecturers as $lecturer)
                                         <option value="{{ $lecturer->id }}"
-                                            {{ old('lecturer_id') == $lecturer->id ? 'selected' : '' }}>
+                                            {{ old('lecturer_id', $schedule->lecturer_id) == $lecturer->id ? 'selected' : '' }}>
                                             {{ $lecturer->user ? $lecturer->user->name : 'Unknown' }}
                                         </option>
                                     @endforeach
@@ -60,7 +61,7 @@
                             <div class="col-md-6">
                                 <label for="room" class="form-label">Room</label>
                                 <input type="text" class="form-control" id="room" name="room"
-                                    value="{{ old('room') }}" required>
+                                    value="{{ old('room', $schedule->room) }}" required>
                             </div>
                         </div>
 
@@ -68,13 +69,13 @@
                             <div class="col-md-6">
                                 <label for="semester" class="form-label">Semester</label>
                                 <input type="text" class="form-control" id="semester" name="semester"
-                                    value="{{ old('semester') }}" required>
+                                    value="{{ old('semester', $schedule->semester) }}" required>
                             </div>
 
                             <div class="col-md-6">
                                 <label for="academic_year" class="form-label">Academic Year</label>
                                 <input type="text" class="form-control" id="academic_year" name="academic_year"
-                                    value="{{ old('academic_year') }}" required>
+                                    value="{{ old('academic_year', $schedule->academic_year) }}" required>
                             </div>
                         </div>
 
@@ -84,19 +85,21 @@
                                 <div class="card-body p-3">
                                     <div class="d-flex flex-wrap gap-2">
                                         @foreach ($days as $day)
-                                            <button type="button" class="btn btn-outline-primary day-btn"
+                                            <button type="button"
+                                                class="btn {{ old('day', $schedule->day) == $day ? 'btn-primary' : 'btn-outline-primary' }} day-btn"
                                                 data-day="{{ $day }}">
                                                 {{ $day }}
                                             </button>
                                         @endforeach
                                     </div>
-                                    <input type="hidden" name="day" id="selected_day" value="{{ old('day') }}"
-                                        required>
+                                    <input type="hidden" name="day" id="selected_day"
+                                        value="{{ old('day', $schedule->day) }}" required>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="mb-3 time-slots-container" style="display: none;">
+                        <div class="mb-3 time-slots-container"
+                            style="{{ old('day', $schedule->day) ? 'display: block;' : 'display: none;' }}">
                             <label class="form-label">Select Time Slots (Multiple Allowed)</label>
                             <div class="mb-2">
                                 <div class="alert alert-info">
@@ -109,16 +112,26 @@
                                     <div class="row g-2 time-slots">
                                         @foreach ($timeSlots as $slot)
                                             <div class="col-md-3 col-sm-4 col-6 mb-2">
-                                                <button type="button" class="btn btn-outline-secondary time-slot-btn w-100"
+                                                <button type="button"
+                                                    class="btn {{ in_array($slot, $selectedTimeSlots) ? 'btn-secondary' : 'btn-outline-secondary' }} time-slot-btn w-100"
                                                     data-slot="{{ $slot }}">
                                                     {{ $slot }}
                                                 </button>
                                             </div>
                                         @endforeach
                                     </div>
-                                    <div class="selected-slots-container mt-3" style="display: none;">
+                                    <div class="selected-slots-container mt-3"
+                                        style="{{ count($selectedTimeSlots) > 0 ? 'display: block;' : 'display: none;' }}">
                                         <p class="fw-bold">Selected Time Slots:</p>
-                                        <div class="selected-slots-list d-flex flex-wrap gap-2"></div>
+                                        <div class="selected-slots-list d-flex flex-wrap gap-2">
+                                            @foreach ($selectedTimeSlots as $slot)
+                                                <div class="badge bg-primary p-2 d-flex align-items-center">
+                                                    <span>{{ $slot }}</span>
+                                                    <button type="button" class="btn-close btn-close-white ms-2"
+                                                        data-slot="{{ $slot }}" aria-label="Remove"></button>
+                                                </div>
+                                            @endforeach
+                                        </div>
                                     </div>
                                     <div id="time_slots_error" class="text-danger mt-2" style="display: none;"></div>
                                 </div>
@@ -126,11 +139,15 @@
                         </div>
 
                         <!-- This is the container where the hidden time_slots inputs will be added -->
-                        <div id="time_slots_inputs"></div>
+                        <div id="time_slots_inputs">
+                            @foreach ($selectedTimeSlots as $slot)
+                                <input type="hidden" name="time_slots[]" value="{{ $slot }}">
+                            @endforeach
+                        </div>
 
                         <div class="d-flex justify-content-end">
                             <a href="{{ route('admin.schedules.index') }}" class="btn btn-secondary me-2">Cancel</a>
-                            <button type="submit" class="btn btn-primary">Create Schedule</button>
+                            <button type="submit" class="btn btn-primary">Update Schedule</button>
                         </div>
                     </form>
                 </div>
@@ -153,18 +170,7 @@
             const timeSlotInputsContainer = document.getElementById('time_slots_inputs');
 
             // Store selected time slots
-            let selectedTimeSlots = [];
-
-            // Restore selected day if any
-            if (selectedDayInput.value) {
-                dayButtons.forEach(btn => {
-                    if (btn.dataset.day === selectedDayInput.value) {
-                        btn.classList.remove('btn-outline-primary');
-                        btn.classList.add('btn-primary');
-                        timeSlotsContainer.style.display = 'block';
-                    }
-                });
-            }
+            let selectedTimeSlots = @json($selectedTimeSlots);
 
             // Day button click handler
             dayButtons.forEach(button => {
@@ -297,10 +303,11 @@
             function checkAvailability() {
                 const room = roomInput.value;
                 const day = selectedDayInput.value;
+                const scheduleId = '{{ $schedule->id }}';
 
                 if (!room || !day) return;
 
-                fetch(`{{ route('admin.schedules.check-availability') }}?room=${room}&day=${day}`, {
+                fetch(`{{ route('admin.schedules.check-availability') }}?room=${room}&day=${day}&schedule_id=${scheduleId}`, {
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest',
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute(
@@ -311,6 +318,15 @@
                     .then(data => {
                         // Reset all time slots first
                         timeSlotButtons.forEach(btn => {
+                            // If this slot is in our selected slots, keep it selected
+                            if (selectedTimeSlots.includes(btn.dataset.slot)) {
+                                btn.classList.add('btn-secondary');
+                                btn.classList.remove('btn-outline-secondary');
+                            } else {
+                                btn.classList.remove('btn-secondary');
+                                btn.classList.add('btn-outline-secondary');
+                            }
+
                             btn.classList.remove('booked');
                             btn.disabled = false;
                             btn.innerHTML = btn.dataset.slot;
@@ -323,7 +339,8 @@
                             const slotString = `${startTime} - ${endTime}`;
 
                             timeSlotButtons.forEach(btn => {
-                                if (btn.dataset.slot === slotString) {
+                                if (btn.dataset.slot === slotString && !selectedTimeSlots
+                                    .includes(slotString)) {
                                     btn.classList.add('booked');
                                     btn.disabled = true;
                                     btn.innerHTML =
@@ -346,7 +363,30 @@
                 return true;
             });
 
-            // Initial check if values are already set
+            // Add event listeners to close buttons that were created server-side
+            document.querySelectorAll('.selected-slots-list .btn-close').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const slotToRemove = this.dataset.slot;
+                    const index = selectedTimeSlots.indexOf(slotToRemove);
+
+                    if (index !== -1) {
+                        selectedTimeSlots.splice(index, 1);
+
+                        // Update button state
+                        timeSlotButtons.forEach(btn => {
+                            if (btn.dataset.slot === slotToRemove) {
+                                btn.classList.remove('btn-secondary');
+                                btn.classList.add('btn-outline-secondary');
+                            }
+                        });
+
+                        // Update the list
+                        updateSelectedSlotsList();
+                    }
+                });
+            });
+
+            // Initial check for availability
             if (roomInput.value && selectedDayInput.value) {
                 checkAvailability();
             }
@@ -354,7 +394,6 @@
     </script>
 
     <style>
-        /* Styles remain the same */
         .day-btn {
             min-width: 100px;
         }

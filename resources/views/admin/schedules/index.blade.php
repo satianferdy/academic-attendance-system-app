@@ -5,7 +5,7 @@
 @section('content')
     <nav class="page-breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="#">Data</a></li>
+            <li class="breadcrumb-item"><a href="#">Admin</a></li>
             <li class="breadcrumb-item active" aria-current="page">Class Schedule</li>
         </ol>
     </nav>
@@ -14,6 +14,15 @@
             <div class="card">
                 <div class="card-body">
                     <h6 class="card-title">Class Schedule Management</h6>
+
+                    @if (session('success'))
+                        <div class="alert alert-success" role="alert">
+                            {{ session('success') }}
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    @endif
 
                     <div class="d-flex justify-content-end mb-3">
                         <div>
@@ -34,7 +43,8 @@
                                     <th>Lecturer</th>
                                     <th>Room</th>
                                     <th>Day</th>
-                                    <th>Time</th>
+                                    <th>Time Slots</th>
+                                    <th>Semester/Year</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -49,8 +59,17 @@
                                         <td>{{ $schedule->lecturer->user->name ?? 'Unknown' }}</td>
                                         <td>{{ $schedule->room }}</td>
                                         <td>{{ $schedule->day }}</td>
-                                        <td>{{ $schedule->start_time->format('H:i') }} -
-                                            {{ $schedule->end_time->format('H:i') }}</td>
+                                        <td>
+                                            @if ($schedule->timeSlots->count() > 0)
+                                                @foreach ($schedule->timeSlots as $timeSlot)
+                                                    <div>{{ $timeSlot->start_time->format('H:i') }} -
+                                                        {{ $timeSlot->end_time->format('H:i') }}</div>
+                                                @endforeach
+                                            @else
+                                                <span class="text-muted">No time slots</span>
+                                            @endif
+                                        </td>
+                                        <td>{{ $schedule->semester }} / {{ $schedule->academic_year }}</td>
                                         <td>
                                             <a href="{{ route('admin.schedules.show', $schedule->id) }}"
                                                 class="btn btn-sm btn-info btn-icon">
@@ -64,7 +83,8 @@
                                                 method="post" class="d-inline">
                                                 @csrf
                                                 @method('delete')
-                                                <button class="btn btn-delete btn-sm btn-danger btn-icon">
+                                                <button type="submit" class="btn btn-delete btn-sm btn-danger btn-icon"
+                                                    onclick="return confirm('Are you sure you want to delete this schedule?')">
                                                     <i class="btn-icon-prepend" data-feather="trash-2"></i>
                                                 </button>
                                             </form>
@@ -72,15 +92,11 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="7" class="text-center">No schedules found</td>
+                                        <td colspan="8" class="text-center">No schedules found</td>
                                     </tr>
                                 @endforelse
                             </tbody>
                         </table>
-                    </div>
-
-                    <div class="mt-3">
-                        {{ $schedules->links() }}
                     </div>
                 </div>
             </div>

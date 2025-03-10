@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\ClassSchedule;
 use App\Models\Lecturer;
+use App\Models\ScheduleTimeSlot;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -45,72 +46,76 @@ class ClassScheduleController extends Controller
                 ->withInput();
         }
 
-        $createdSchedules = [];
-        $errors = [];
+        // Check if all selected time slots are available
+        $allSlotsAvailable = true;
+        $unavailableSlots = [];
 
-        // Process each selected time slot
         foreach ($request->time_slots as $timeSlot) {
             // Parse the selected time slot
             list($startTime, $endTime) = explode(' - ', $timeSlot);
 
-            // Check if the time slot is available
             if (!ClassSchedule::isTimeSlotAvailable(
                 $request->room,
                 $request->day,
                 $startTime,
                 $endTime
             )) {
-                $errors[] = "Time slot $timeSlot is already booked for the selected room and day.";
-                continue;
+                $allSlotsAvailable = false;
+                $unavailableSlots[] = $timeSlot;
             }
-
-            // Create the schedule
-            $schedule = ClassSchedule::create([
-                'course_code' => $request->course_code,
-                'course_name' => $request->course_name,
-                'lecturer_id' => $request->lecturer_id,
-                'room' => $request->room,
-                'day' => $request->day,
-                'start_time' => $startTime,
-                'end_time' => $endTime,
-                'semester' => $request->semester,
-                'academic_year' => $request->academic_year,
-            ]);
-
-            $createdSchedules[] = $schedule;
         }
 
-        // If there were errors but some schedules were created
-        if (!empty($errors) && !empty($createdSchedules)) {
-            return redirect()->route('admin.schedules.index')
-                ->with('warning', 'Some schedules were created, but the following errors occurred: ' . implode(' ', $errors));
-        }
-
-        // If all schedules failed
-        if (empty($createdSchedules)) {
+        // If any time slots are unavailable, return with errors
+        if (!$allSlotsAvailable) {
             return redirect()->back()
-                ->withErrors(['time_slots' => $errors])
+                ->withErrors(['time_slots' => 'The following time slots are already booked: ' . implode(', ', $unavailableSlots)])
                 ->withInput();
         }
 
-        // If all schedules were created successfully
+        // Create a single class schedule
+        $schedule = ClassSchedule::create([
+            'course_code' => $request->course_code,
+            'course_name' => $request->course_name,
+            'lecturer_id' => $request->lecturer_id,
+            'room' => $request->room,
+            'day' => $request->day,
+            'semester' => $request->semester,
+            'academic_year' => $request->academic_year,
+        ]);
+
+        // Create all the time slots for this schedule
+        foreach ($request->time_slots as $timeSlot) {
+            list($startTime, $endTime) = explode(' - ', $timeSlot);
+
+            $schedule->timeSlots()->create([
+                'start_time' => $startTime,
+                'end_time' => $endTime,
+            ]);
+        }
+
         return redirect()->route('admin.schedules.index')
-            ->with('success', count($createdSchedules) . ' class schedule(s) created successfully.');
+            ->with('success', 'Class schedule created successfully with ' . count($request->time_slots) . ' time slots.');
     }
 
     public function show(ClassSchedule $schedule)
     {
+        $schedule->load('timeSlots');
         return view('admin.schedules.show', compact('schedule'));
     }
 
     public function edit(ClassSchedule $schedule)
     {
+        $schedule->load('timeSlots');
         $lecturers = Lecturer::with('user')->get();
         $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
         $timeSlots = $this->generateTimeSlots();
-        $selectedTimeSlot = $schedule->start_time->format('H:i') . ' - ' . $schedule->end_time->format('H:i');
 
-        return view('admin.schedules.edit', compact('schedule', 'lecturers', 'days', 'timeSlots', 'selectedTimeSlot'));
+        // Get the selected time slots
+        $selectedTimeSlots = $schedule->timeSlots->map(function($slot) {
+            return $slot->start_time->format('H:i') . ' - ' . $slot->end_time->format('H:i');
+        })->toArray();
+
+        return view('admin.schedules.edit', compact('schedule', 'lecturers', 'days', 'timeSlots', 'selectedTimeSlots'));
     }
 
     public function update(Request $request, ClassSchedule $schedule)
@@ -121,7 +126,7 @@ class ClassScheduleController extends Controller
             'lecturer_id' => 'required|exists:lecturers,id',
             'room' => 'required|string|max:50',
             'day' => 'required|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
-            'time_slot' => 'required|string',
+            'time_slots' => 'required|array|min:1',
             'semester' => 'required|string|max:20',
             'academic_year' => 'required|string|max:20',
         ]);
@@ -132,33 +137,56 @@ class ClassScheduleController extends Controller
                 ->withInput();
         }
 
-        // Parse the selected time slot
-        list($startTime, $endTime) = explode(' - ', $request->time_slot);
+        // Check if all selected time slots are available
+        $allSlotsAvailable = true;
+        $unavailableSlots = [];
 
-        // Check if the time slot is available (excluding the current schedule)
-        if (!ClassSchedule::isTimeSlotAvailable(
-            $request->room,
-            $request->day,
-            $startTime,
-            $endTime,
-            $schedule->id
-        )) {
+        foreach ($request->time_slots as $timeSlot) {
+            // Parse the selected time slot
+            list($startTime, $endTime) = explode(' - ', $timeSlot);
+
+            if (!ClassSchedule::isTimeSlotAvailable(
+                $request->room,
+                $request->day,
+                $startTime,
+                $endTime,
+                $schedule->id
+            )) {
+                $allSlotsAvailable = false;
+                $unavailableSlots[] = $timeSlot;
+            }
+        }
+
+        // If any time slots are unavailable, return with errors
+        if (!$allSlotsAvailable) {
             return redirect()->back()
-                ->withErrors(['time_slot' => 'This time slot is already booked for the selected room and day.'])
+                ->withErrors(['time_slots' => 'The following time slots are already booked: ' . implode(', ', $unavailableSlots)])
                 ->withInput();
         }
 
+        // Update the schedule
         $schedule->update([
             'course_code' => $request->course_code,
             'course_name' => $request->course_name,
             'lecturer_id' => $request->lecturer_id,
             'room' => $request->room,
             'day' => $request->day,
-            'start_time' => $startTime,
-            'end_time' => $endTime,
             'semester' => $request->semester,
             'academic_year' => $request->academic_year,
         ]);
+
+        // Delete all existing time slots
+        $schedule->timeSlots()->delete();
+
+        // Create new time slots
+        foreach ($request->time_slots as $timeSlot) {
+            list($startTime, $endTime) = explode(' - ', $timeSlot);
+
+            $schedule->timeSlots()->create([
+                'start_time' => $startTime,
+                'end_time' => $endTime,
+            ]);
+        }
 
         return redirect()->route('admin.schedules.index')
             ->with('success', 'Class schedule updated successfully.');
@@ -177,28 +205,30 @@ class ClassScheduleController extends Controller
         $day = $request->day;
         $excludeId = $request->schedule_id;
 
-        $bookedSlots = ClassSchedule::where('room', $room)
+        $schedules = ClassSchedule::where('room', $room)
             ->where('day', $day);
 
         if ($excludeId) {
-            $bookedSlots->where('id', '!=', $excludeId);
+            $schedules->where('id', '!=', $excludeId);
         }
 
-        $bookedSlots = $bookedSlots->get(['start_time', 'end_time', 'lecturer_id']);
+        $schedules = $schedules->with(['timeSlots', 'lecturer.user'])->get();
 
-        // Get lecturer names for displaying booked slots
-        $bookedSlotsWithLecturer = $bookedSlots->map(function($slot) {
-            $lecturer = Lecturer::find($slot->lecturer_id);
-            $lecturerName = $lecturer ? ($lecturer->user ? $lecturer->user->name : 'Unknown') : 'Unknown';
+        $bookedSlots = [];
 
-            return [
-                'start_time' => $slot->start_time->format('H:i'),
-                'end_time' => $slot->end_time->format('H:i'),
-                'lecturer_name' => $lecturerName
-            ];
-        });
+        foreach ($schedules as $schedule) {
+            $lecturerName = $schedule->lecturer ? ($schedule->lecturer->user ? $schedule->lecturer->user->name : 'Unknown') : 'Unknown';
 
-        return response()->json(['bookedSlots' => $bookedSlotsWithLecturer]);
+            foreach ($schedule->timeSlots as $timeSlot) {
+                $bookedSlots[] = [
+                    'start_time' => $timeSlot->start_time->format('H:i'),
+                    'end_time' => $timeSlot->end_time->format('H:i'),
+                    'lecturer_name' => $lecturerName
+                ];
+            }
+        }
+
+        return response()->json(['bookedSlots' => $bookedSlots]);
     }
 
     private function generateTimeSlots()

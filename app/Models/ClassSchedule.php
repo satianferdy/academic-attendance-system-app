@@ -15,8 +15,6 @@ class ClassSchedule extends Model
         'lecturer_id',
         'room',
         'day',
-        'start_time',
-        'end_time',
         'semester',
         'academic_year',
     ];
@@ -36,31 +34,43 @@ class ClassSchedule extends Model
         return $this->hasMany(Attendance::class);
     }
 
-    // Check if a time slot is available for the specific room and day
-    public static function isTimeSlotAvailable($room, $day, $startTime, $endTime, $excludeId = null)
+    // Add the relationship to time slots
+    public function timeSlots()
     {
-        $query = self::where('room', $room)
-            ->where('day', $day)
-            ->where(function ($query) use ($startTime, $endTime) {
-                // Check for overlapping time slots
-                $query->where(function ($q) use ($startTime, $endTime) {
-                    $q->where('start_time', '>=', $startTime)
-                      ->where('start_time', '<', $endTime);
-                })->orWhere(function ($q) use ($startTime, $endTime) {
-                    $q->where('end_time', '>', $startTime)
-                      ->where('end_time', '<=', $endTime);
-                })->orWhere(function ($q) use ($startTime, $endTime) {
-                    $q->where('start_time', '<=', $startTime)
-                      ->where('end_time', '>=', $endTime);
-                });
-            });
-
-        // Exclude current schedule when updating
-        if ($excludeId) {
-            $query->where('id', '!=', $excludeId);
-        }
-
-        // If any record found, time slot is not available
-        return $query->count() === 0;
+        return $this->hasMany(ScheduleTimeSlot::class);
     }
+
+     // Static method to check for time slot availability
+     public static function isTimeSlotAvailable($room, $day, $startTime, $endTime, $excludeId = null)
+     {
+         // Get all schedules for this room and day
+         $schedules = self::where('room', $room)
+             ->where('day', $day);
+
+         // Exclude current schedule when updating
+         if ($excludeId) {
+             $schedules->where('id', '!=', $excludeId);
+         }
+
+         $schedules = $schedules->with('timeSlots')->get();
+
+         // Check each schedule's time slots for conflicts
+         foreach ($schedules as $schedule) {
+             foreach ($schedule->timeSlots as $timeSlot) {
+                 // Check for overlapping time slots
+                 if (
+                     // Start time is within an existing slot
+                     ($startTime >= $timeSlot->start_time && $startTime < $timeSlot->end_time) ||
+                     // End time is within an existing slot
+                     ($endTime > $timeSlot->start_time && $endTime <= $timeSlot->end_time) ||
+                     // Selected time encloses an existing slot
+                     ($startTime <= $timeSlot->start_time && $endTime >= $timeSlot->end_time)
+                 ) {
+                     return false; // Time slot is not available
+                 }
+             }
+         }
+
+         return true; // Time slot is available
+     }
 }
