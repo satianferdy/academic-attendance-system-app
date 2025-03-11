@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Student;
 use App\Models\Lecturer;
+use App\Models\ClassRoom;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
@@ -26,7 +27,8 @@ class UserManagementController extends Controller
      */
     public function create()
     {
-        return view('admin.user.create');
+        $classrooms = ClassRoom::all();
+        return view('admin.user.create', compact('classrooms'));
     }
 
     /**
@@ -57,37 +59,40 @@ class UserManagementController extends Controller
 
         // Create role-specific profile
         if ($request->role === 'student') {
-            $validator = Validator::make($request->all(), [
+            $studentValidator = Validator::make($request->all(), [
                 'nim' => 'required|string|max:20|unique:students',
                 'department' => 'required|string|max:100',
                 'faculty' => 'required|string|max:100',
+                'classroom_id' => 'required|exists:classrooms,id',
             ]);
 
-            if ($validator->fails()) {
+            if ($studentValidator->fails()) {
                 $user->delete();
                 return redirect()->back()
-                    ->withErrors($validator)
+                    ->withErrors($studentValidator)
                     ->withInput();
             }
 
+            // Create student record
             Student::create([
                 'user_id' => $user->id,
                 'nim' => $request->nim,
                 'department' => $request->department,
                 'faculty' => $request->faculty,
-                'face_registered' => false,
+                'classroom_id' => $request->classroom_id,
             ]);
+
         } elseif ($request->role === 'lecturer') {
-            $validator = Validator::make($request->all(), [
+            $lecturerValidator = Validator::make($request->all(), [
                 'nip' => 'required|string|max:20|unique:lecturers',
                 'department' => 'required|string|max:100',
                 'faculty' => 'required|string|max:100',
             ]);
 
-            if ($validator->fails()) {
+            if ($lecturerValidator->fails()) {
                 $user->delete();
                 return redirect()->back()
-                    ->withErrors($validator)
+                    ->withErrors($lecturerValidator)
                     ->withInput();
             }
 
@@ -101,8 +106,6 @@ class UserManagementController extends Controller
 
         return redirect()->route('admin.users.index')
             ->with('success', 'User created successfully.');
-
-
     }
 
     /**
@@ -110,9 +113,13 @@ class UserManagementController extends Controller
      */
     public function edit(User $user)
     {
-        return view('admin.user.edit', compact('user'));
+        $classrooms = ClassRoom::all();
+        return view('admin.user.edit', compact('user', 'classrooms'));
     }
 
+    /**
+     * Update the specified resource in storage.
+     */
     public function update(Request $request, User $user)
     {
         $validator = Validator::make($request->all(), [
@@ -145,6 +152,50 @@ class UserManagementController extends Controller
 
             $user->update([
                 'password' => Hash::make($request->password),
+            ]);
+        }
+
+        // Update student-specific fields if user is a student
+        if ($user->role === 'student' && $user->student) {
+            $validator = Validator::make($request->all(), [
+                'nim' => 'required|string|max:20|unique:students,nim,' . $user->student->id,
+                'department' => 'required|string|max:100',
+                'faculty' => 'required|string|max:100',
+                'classroom_id' => 'required|exists:classrooms,id',
+            ]);
+
+            if ($validator->fails()) {
+                return redirect()->back()
+                    ->withErrors($validator)
+                    ->withInput();
+            }
+
+            $user->student->update([
+                'nim' => $request->nim,
+                'department' => $request->department,
+                'faculty' => $request->faculty,
+                'classroom_id' => $request->classroom_id,
+            ]);
+        }
+
+        // Update lecturer-specific fields if user is a lecturer
+        if ($user->role === 'lecturer' && $user->lecturer) {
+            $validator = Validator::make($request->all(), [
+                'nip' => 'required|string|max:20|unique:lecturers,nip,' . $user->lecturer->id,
+                'department' => 'required|string|max:100',
+                'faculty' => 'required|string|max:100',
+            ]);
+
+            if ($validator->fails()) {
+                return redirect()->back()
+                    ->withErrors($validator)
+                    ->withInput();
+            }
+
+            $user->lecturer->update([
+                'nip' => $request->nip,
+                'department' => $request->department,
+                'faculty' => $request->faculty,
             ]);
         }
 

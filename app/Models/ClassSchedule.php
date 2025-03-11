@@ -13,6 +13,7 @@ class ClassSchedule extends Model
         'course_code',
         'course_name',
         'lecturer_id',
+        'classroom_id',
         'room',
         'day',
         'semester',
@@ -27,6 +28,11 @@ class ClassSchedule extends Model
     public function lecturer()
     {
         return $this->belongsTo(Lecturer::class);
+    }
+
+    public function classroom()
+    {
+        return $this->belongsTo(ClassRoom::class);
     }
 
     public function attendances()

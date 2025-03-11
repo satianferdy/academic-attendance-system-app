@@ -107,9 +107,9 @@
                                 </div>
                                 <div class="col-md-4">
                                     <div class="mb-3">
-                                        <label for="student_department" class="form-label">Department</label>
+                                        <label for="department" class="form-label">Department</label>
                                         <input type="text" class="form-control @error('department') is-invalid @enderror"
-                                            id="student_department" name="department" value="{{ old('department') }}"
+                                            id="department" name="department" value="{{ old('department') }}"
                                             placeholder="Enter Department">
                                         @error('department')
                                             <div class="invalid-feedback">{{ $message }}</div>
@@ -118,11 +118,31 @@
                                 </div>
                                 <div class="col-md-4">
                                     <div class="mb-3">
-                                        <label for="student_faculty" class="form-label">Faculty</label>
+                                        <label for="faculty" class="form-label">Faculty</label>
                                         <input type="text" class="form-control @error('faculty') is-invalid @enderror"
-                                            id="student_faculty" name="faculty" value="{{ old('faculty') }}"
+                                            id="faculty" name="faculty" value="{{ old('faculty') }}"
                                             placeholder="Enter Faculty">
                                         @error('faculty')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="classroom_id" class="form-label">Classroom</label>
+                                        <select class="form-select @error('classroom_id') is-invalid @enderror"
+                                            id="classroom_id" name="classroom_id">
+                                            <option value="">Select Classroom</option>
+                                            @foreach ($classrooms as $classroom)
+                                                <option value="{{ $classroom->id }}"
+                                                    {{ old('classroom_id') == $classroom->id ? 'selected' : '' }}>
+                                                    {{ $classroom->name }} ({{ $classroom->department }})
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @error('classroom_id')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </div>
@@ -190,6 +210,19 @@
             // Toggle role-specific fields based on selected role
             $('#role').on('change', function() {
                 toggleRoleFields();
+            });
+
+            // Add this to your script section
+            $('form').on('submit', function() {
+                const role = $('#role').val();
+
+                if (role === 'student') {
+                    // Disable lecturer fields to prevent them from being submitted
+                    $('#lecturer-fields input').prop('disabled', true);
+                } else if (role === 'lecturer') {
+                    // Disable student fields to prevent them from being submitted
+                    $('#student-fields input, #student-fields select').prop('disabled', true);
+                }
             });
 
             function toggleRoleFields() {

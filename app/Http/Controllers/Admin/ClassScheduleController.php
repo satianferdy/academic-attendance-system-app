@@ -5,8 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\ClassSchedule;
 use App\Models\Lecturer;
-use App\Models\ScheduleTimeSlot;
-use Carbon\Carbon;
+use App\Models\ClassRoom;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -20,11 +19,12 @@ class ClassScheduleController extends Controller
 
     public function create()
     {
+        $classrooms = ClassRoom::all();
         $lecturers = Lecturer::with('user')->get();
         $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
         $timeSlots = $this->generateTimeSlots();
 
-        return view('admin.schedules.create', compact('lecturers', 'days', 'timeSlots'));
+        return view('admin.schedules.create', compact('lecturers', 'days', 'timeSlots', 'classrooms'));
     }
 
     public function store(Request $request)
@@ -33,6 +33,7 @@ class ClassScheduleController extends Controller
             'course_code' => 'required|string|max:20',
             'course_name' => 'required|string|max:100',
             'lecturer_id' => 'required|exists:lecturers,id',
+            'classroom_id' => 'required|exists:classrooms,id',
             'room' => 'required|string|max:50',
             'day' => 'required|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
             'time_slots' => 'required|array|min:1',
@@ -90,6 +91,7 @@ class ClassScheduleController extends Controller
             'course_code' => $request->course_code,
             'course_name' => $request->course_name,
             'lecturer_id' => $request->lecturer_id,
+            'classroom_id' => $request->classroom_id,
             'room' => $request->room,
             'day' => $request->day,
             'semester' => $request->semester,
@@ -127,8 +129,9 @@ class ClassScheduleController extends Controller
         $selectedTimeSlots = $schedule->timeSlots->map(function($slot) {
             return $slot->start_time->format('H:i') . ' - ' . $slot->end_time->format('H:i');
         })->toArray();
+        $classrooms = ClassRoom::all();
 
-        return view('admin.schedules.edit', compact('schedule', 'lecturers', 'days', 'timeSlots', 'selectedTimeSlots'));
+        return view('admin.schedules.edit', compact('schedule', 'lecturers', 'days', 'timeSlots', 'selectedTimeSlots', 'classrooms'));
     }
 
     public function update(Request $request, ClassSchedule $schedule)
@@ -137,6 +140,7 @@ class ClassScheduleController extends Controller
             'course_code' => 'required|string|max:20',
             'course_name' => 'required|string|max:100',
             'lecturer_id' => 'required|exists:lecturers,id',
+            'classroom_id' => 'required|exists:classrooms,id',
             'room' => 'required|string|max:50',
             'day' => 'required|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
             'time_slots' => 'required|array|min:1',
@@ -195,6 +199,7 @@ class ClassScheduleController extends Controller
             'course_code' => $request->course_code,
             'course_name' => $request->course_name,
             'lecturer_id' => $request->lecturer_id,
+            'classroom_id' => $request->classroom_id,
             'room' => $request->room,
             'day' => $request->day,
             'semester' => $request->semester,

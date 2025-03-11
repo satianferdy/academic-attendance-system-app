@@ -27,6 +27,7 @@
                     <form action="{{ route('admin.users.update', $user->id) }}" method="POST" class="forms-sample">
                         @csrf
                         @method('PUT')
+
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
@@ -55,7 +56,7 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="password" class="form-label">Password (Leave blank to keep current)</label>
+                                    <label for="password" class="form-label">Password (leave blank to keep current)</label>
                                     <input type="password" class="form-control @error('password') is-invalid @enderror"
                                         id="password" name="password" placeholder="Enter new password">
                                     @error('password')
@@ -76,13 +77,125 @@
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label for="role" class="form-label">Role</label>
-                                    <input type="text" class="form-control" value="{{ ucfirst($user->role) }}" disabled>
+                                    <input type="text" class="form-control" value="{{ ucfirst($user->role) }}" readonly>
+                                    <input type="hidden" name="role" value="{{ $user->role }}">
                                 </div>
                             </div>
                         </div>
 
+                        <!-- Student specific fields -->
+                        @if ($user->role === 'student')
+                            <div id="student-fields">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="nim" class="form-label">Student ID (NIM)</label>
+                                            <input type="text" class="form-control @error('nim') is-invalid @enderror"
+                                                id="nim" name="nim"
+                                                value="{{ old('nim', $user->student->nim ?? '') }}" placeholder="Enter NIM"
+                                                required>
+                                            @error('nim')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="department" class="form-label">Department</label>
+                                            <input type="text"
+                                                class="form-control @error('department') is-invalid @enderror"
+                                                id="department" name="department"
+                                                value="{{ old('department', $user->student->department ?? '') }}"
+                                                placeholder="Enter Department" required>
+                                            @error('department')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="faculty" class="form-label">Faculty</label>
+                                            <input type="text"
+                                                class="form-control @error('faculty') is-invalid @enderror" id="faculty"
+                                                name="faculty" value="{{ old('faculty', $user->student->faculty ?? '') }}"
+                                                placeholder="Enter Faculty" required>
+                                            @error('faculty')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="classroom_id" class="form-label">Classroom</label>
+                                            <select class="form-select @error('classroom_id') is-invalid @enderror"
+                                                id="classroom_id" name="classroom_id" required>
+                                                <option value="">Select Classroom</option>
+                                                @foreach ($classrooms as $classroom)
+                                                    <option value="{{ $classroom->id }}"
+                                                        {{ old('classroom_id', $user->student->classroom_id ?? '') == $classroom->id ? 'selected' : '' }}>
+                                                        {{ $classroom->name }} ({{ $classroom->department }})
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                            @error('classroom_id')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
+                        <!-- Lecturer specific fields -->
+                        @if ($user->role === 'lecturer')
+                            <div id="lecturer-fields">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="nip" class="form-label">Lecturer ID (NIP)</label>
+                                            <input type="text" class="form-control @error('nip') is-invalid @enderror"
+                                                id="nip" name="nip"
+                                                value="{{ old('nip', $user->lecturer->nip ?? '') }}"
+                                                placeholder="Enter NIP" required>
+                                            @error('nip')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="department" class="form-label">Department</label>
+                                            <input type="text"
+                                                class="form-control @error('department') is-invalid @enderror"
+                                                id="department" name="department"
+                                                value="{{ old('department', $user->lecturer->department ?? '') }}"
+                                                placeholder="Enter Department" required>
+                                            @error('department')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="faculty" class="form-label">Faculty</label>
+                                            <input type="text"
+                                                class="form-control @error('faculty') is-invalid @enderror" id="faculty"
+                                                name="faculty"
+                                                value="{{ old('faculty', $user->lecturer->faculty ?? '') }}"
+                                                placeholder="Enter Faculty" required>
+                                            @error('faculty')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
                         <div class="mt-4">
-                            <button type="submit" class="btn btn-primary me-2">Submit</button>
+                            <button type="submit" class="btn btn-primary me-2">Update</button>
                             <a href="{{ route('admin.users.index') }}" class="btn btn-secondary">Cancel</a>
                         </div>
                     </form>

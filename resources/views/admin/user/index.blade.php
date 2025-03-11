@@ -15,27 +15,14 @@
                 <div class="card-body">
                     <h6 class="card-title">User Management</h6>
 
-                    {{-- <a href="{{ route('admin.users.create') }}" class="btn btn-primary">
-                            <i data-feather="plus"></i> Add New User
-                        </a>
-                        <a href="" class="btn btn-primary btn-icon-text mb-2 mb-md-0">
-                            <i class="btn-icon-prepend" data-feather="plus-square"></i>
-                            Tambah Data
-                        </a> --}}
                     <div class="d-flex justify-content-end mb-3">
                         <div>
                             <a href="{{ route('admin.users.create') }}" class="btn btn-primary btn-icon-text mb-2 mb-md-0">
                                 <i class="btn-icon-prepend" data-feather="plus-square"></i>
-                                Add Data
+                                Add User
                             </a>
                         </div>
                     </div>
-
-                    {{-- @if (session('success'))
-                        <div class="alert alert-success" role="alert">
-                            {{ session('success') }}
-                        </div>
-                    @endif --}}
 
                     <div class="table-responsive">
                         <table id="dataTableExample" class="table">

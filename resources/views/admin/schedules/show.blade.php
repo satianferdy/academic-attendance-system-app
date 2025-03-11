@@ -59,6 +59,11 @@
                                             <th>Academic Year</th>
                                             <td>{{ $schedule->academic_year }}</td>
                                         </tr>
+                                        {{-- classroom --}}
+                                        <tr>
+                                            <th>Classroom</th>
+                                            <td>{{ $schedule->classroom->name }}</td>
+                                        </tr>
                                     </table>
                                 </div>
                             </div>
@@ -86,6 +91,10 @@
                                         <tr>
                                             <th>Created At</th>
                                             <td>{{ $schedule->created_at->format('d M Y, H:i') }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Updated At</th>
+                                            <td>{{ $schedule->updated_at->format('d M Y, H:i') }}</td>
                                         </tr>
                                     </table>
                                 </div>
