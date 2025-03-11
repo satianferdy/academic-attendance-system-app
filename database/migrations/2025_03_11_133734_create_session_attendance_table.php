@@ -11,16 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('class_schedules', function (Blueprint $table) {
+        Schema::create('session_attendance', function (Blueprint $table) {
             $table->id();
-            $table->string('course_id');
-            $table->foreignId('lecturer_id')->constrained('lecturers');
-            $table->string('room');
-            $table->enum('day', ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']);
+            $table->foreignId('class_schedule_id')->constrained();
+            $table->date('session_date');
             $table->time('start_time');
             $table->time('end_time');
-            $table->string('semester');
-            $table->string('academic_year');
+            $table->string('qr_code');
+            $table->boolean('is_active')->default(false);
             $table->timestamps();
         });
     }
@@ -30,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('class_schedules');
+        Schema::dropIfExists('session_attendance');
     }
 };

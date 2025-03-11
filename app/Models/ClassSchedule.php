@@ -10,8 +10,7 @@ class ClassSchedule extends Model
     use HasFactory;
 
     protected $fillable = [
-        'course_code',
-        'course_name',
+        'course_id',
         'lecturer_id',
         'classroom_id',
         'room',
@@ -24,6 +23,11 @@ class ClassSchedule extends Model
         'start_time' => 'datetime:H:i',
         'end_time' => 'datetime:H:i',
     ];
+
+    public function course()
+    {
+        return $this->belongsTo(Course::class);
+    }
 
     public function lecturer()
     {

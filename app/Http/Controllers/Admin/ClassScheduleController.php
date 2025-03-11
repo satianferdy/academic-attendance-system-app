@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ClassSchedule;
 use App\Models\Lecturer;
 use App\Models\ClassRoom;
+use App\Models\Course;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -19,19 +20,19 @@ class ClassScheduleController extends Controller
 
     public function create()
     {
+        $courses = Course::all();
         $classrooms = ClassRoom::all();
         $lecturers = Lecturer::with('user')->get();
         $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
         $timeSlots = $this->generateTimeSlots();
 
-        return view('admin.schedules.create', compact('lecturers', 'days', 'timeSlots', 'classrooms'));
+        return view('admin.schedules.create', compact('lecturers', 'days', 'timeSlots', 'classrooms', 'courses'));
     }
 
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'course_code' => 'required|string|max:20',
-            'course_name' => 'required|string|max:100',
+            'course_id' => 'required|exists:courses,id',
             'lecturer_id' => 'required|exists:lecturers,id',
             'classroom_id' => 'required|exists:classrooms,id',
             'room' => 'required|string|max:50',
@@ -88,8 +89,7 @@ class ClassScheduleController extends Controller
 
         // Create a single class schedule
         $schedule = ClassSchedule::create([
-            'course_code' => $request->course_code,
-            'course_name' => $request->course_name,
+            'course_id' => $request->course_id,
             'lecturer_id' => $request->lecturer_id,
             'classroom_id' => $request->classroom_id,
             'room' => $request->room,
@@ -130,15 +130,15 @@ class ClassScheduleController extends Controller
             return $slot->start_time->format('H:i') . ' - ' . $slot->end_time->format('H:i');
         })->toArray();
         $classrooms = ClassRoom::all();
+        $courses = Course::all();
 
-        return view('admin.schedules.edit', compact('schedule', 'lecturers', 'days', 'timeSlots', 'selectedTimeSlots', 'classrooms'));
+        return view('admin.schedules.edit', compact('schedule', 'lecturers', 'days', 'timeSlots', 'selectedTimeSlots', 'classrooms', 'courses'));
     }
 
     public function update(Request $request, ClassSchedule $schedule)
     {
         $validator = Validator::make($request->all(), [
-            'course_code' => 'required|string|max:20',
-            'course_name' => 'required|string|max:100',
+            'course_id' => 'required|exists:courses,id',
             'lecturer_id' => 'required|exists:lecturers,id',
             'classroom_id' => 'required|exists:classrooms,id',
             'room' => 'required|string|max:50',
@@ -196,8 +196,7 @@ class ClassScheduleController extends Controller
 
         // Update the schedule
         $schedule->update([
-            'course_code' => $request->course_code,
-            'course_name' => $request->course_name,
+            'course_id' => $request->course_id,
             'lecturer_id' => $request->lecturer_id,
             'classroom_id' => $request->classroom_id,
             'room' => $request->room,

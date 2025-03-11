@@ -11,12 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('face_data', function (Blueprint $table) {
+        Schema::create('courses', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('student_id')->constrained();
-            $table->text('face_embedding');
-            $table->string('image_path');
-            $table->boolean('is_active')->default(true);
+            $table->string('name');
+            $table->string('code')->unique();
             $table->timestamps();
         });
     }
@@ -26,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('face_data');
+        Schema::dropIfExists('course');
     }
 };

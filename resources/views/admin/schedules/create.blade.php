@@ -30,18 +30,19 @@
                         @csrf
 
                         <div class="row mb-3">
-                            <div class="col-md-4">
-                                <label for="course_code" class="form-label">Course Code</label>
-                                <input type="text" class="form-control" id="course_code" name="course_code"
-                                    value="{{ old('course_code') }}" required>
+                            <div class="col-md-6">
+                                <label for="course_id" class="form-label">Course</label>
+                                <select class="form-select" id="course_id" name="course_id" required>
+                                    <option value="">Select Course</option>
+                                    @foreach ($courses as $course)
+                                        <option value="{{ $course->id }}"
+                                            {{ old('course_id') == $course->id ? 'selected' : '' }}>
+                                            {{ $course->code }} - {{ $course->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
                             </div>
-
-                            <div class="col-md-4">
-                                <label for="course_name" class="form-label">Course Name</label>
-                                <input type="text" class="form-control" id="course_name" name="course_name"
-                                    value="{{ old('course_name') }}" required>
-                            </div>
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <label for="classroom_id" class="form-label">Classroom</label>
                                 <select class="form-select" id="classroom_id" name="classroom_id" required>
                                     <option value="">Select Classroom</option>
