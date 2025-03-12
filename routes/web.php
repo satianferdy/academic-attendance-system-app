@@ -4,6 +4,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\Admin\ClassScheduleController;
+use App\Http\Controllers\Lecturer\LecturerAttendanceController;
+use App\Http\Controllers\Student\StudentAttendanceController;
+use App\Models\Lecturer;
 
 Route::get('/', function () {
     return view('auth.login');
@@ -40,6 +43,14 @@ Route::group(['middleware' => ['auth', 'role:lecturer'], 'prefix' => 'lecturer',
     Route::get('/dashboard', function () {
         return view('lecturer.dashboard');
     })->name('dashboard');
+
+    // Attendance Management
+    Route::get('/attendance', [LecturerAttendanceController::class, 'index'])->name('attendance.index');
+    Route::post('/attendance/create', [LecturerAttendanceController::class, 'create'])->name('attendance.create');
+    Route::get('/attendance/{id}', [LecturerAttendanceController::class, 'show'])->name('attendance.show');
+    Route::get('/attendance/{id}/edit', [LecturerAttendanceController::class, 'edit'])->name('attendance.edit');
+    Route::put('/attendance/{id}', [LecturerAttendanceController::class, 'update'])->name('attendance.update');
+    Route::post('/attendance/qr', [LecturerAttendanceController::class, 'generateQR'])->name('attendance.qr');
 });
 
 // Student routes
@@ -47,4 +58,9 @@ Route::group(['middleware' => ['auth', 'role:student'], 'prefix' => 'student', '
     Route::get('/dashboard', function () {
         return view('student.dashboard');
     })->name('dashboard');
+
+    // Attendance
+    Route::get('/attendance', [StudentAttendanceController::class, 'index'])->name('attendance.index');
+    Route::get('/attendance/{token}', [StudentAttendanceController::class, 'show'])->name('attendance.show');
+    Route::post('/attendance/verify', [StudentAttendanceController::class, 'verify'])->name('attendance.verify');
 });

@@ -8,6 +8,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class SessionAttendance extends Model
 {
     use HasFactory;
+
+    protected $table = 'session_attendance';
+
     protected $fillable = [
         'class_schedule_id',
         'session_date',
