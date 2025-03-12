@@ -37,4 +37,22 @@ class Student extends Model
     {
         return $this->hasOne(FaceData::class);
     }
+
+    /**
+     * Check if student is enrolled in a class schedule
+     *
+     * @param int $classScheduleId
+     * @return bool
+     */
+    public function isEnrolledInClass($classScheduleId)
+    {
+        $classSchedule = ClassSchedule::find($classScheduleId);
+
+        if (!$classSchedule) {
+            return false;
+        }
+
+        // Check if student belongs to the classroom assigned to this schedule
+        return $this->classroom_id === $classSchedule->classroom_id;
+    }
 }

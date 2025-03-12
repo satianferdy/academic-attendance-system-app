@@ -46,70 +46,15 @@
                 {{-- Student Only Menus --}}
                 @if (auth()->user()->role === 'student')
                     <li class="nav-item nav-category">General</li>
+                    {{-- attendance --}}
                     <li class="nav-item">
-                        <a class="nav-link" data-bs-toggle="collapse" href="#general" role="button" aria-expanded="false"
-                            aria-controls="general">
-                            <i class="link-icon" data-feather="inbox"></i>
-                            <span class="link-title">General</span>
-                            <i class="link-arrow" data-feather="chevron-down"></i>
+                        <a href="{{ route('student.attendance.index') }}"
+                            class="nav-link {{ request()->routeIs('student.attendance.*') ? 'active' : '' }}">
+                            <i class="link-icon" data-feather="calendar"></i>
+                            <span
+                                class="link-title
+                                {{ request()->routeIs('student.attendance.*') ? 'active' : '' }}">Attendance</span>
                         </a>
-                        <div class="collapse" id="general">
-                            <ul class="nav sub-menu">
-                                <li class="nav-item">
-                                    <a href="#" class="nav-link">Biodata Mahasiswa</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="#" class="nav-link">Unggah Foto KTM</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="#" class="nav-link">Register Wajah</a>
-                                </li>
-                            </ul>
-                        </div>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" data-bs-toggle="collapse" href="#akademik" role="button" aria-expanded="false"
-                            aria-controls="akademik">
-                            <i class="link-icon" data-feather="book"></i>
-                            <span class="link-title">Akademik</span>
-                            <i class="link-arrow" data-feather="chevron-down"></i>
-                        </a>
-                        <div class="collapse" id="akademik">
-                            <ul class="nav sub-menu">
-                                <li class="nav-item">
-                                    <a href="#" class="nav-link">Kartu Rencana Studi (KRS)</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="#" class="nav-link">Jadwal Perkuliahan</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="#" class="nav-link">Nilai Mahasiswa</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="#" class="nav-link">LMS</a>
-                                </li>
-                            </ul>
-                        </div>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" data-bs-toggle="collapse" href="#surat" role="button" aria-expanded="false"
-                            aria-controls="surat">
-                            <i class="link-icon" data-feather="mail"></i>
-                            <span class="link-title">Surat & Kuisioner</span>
-                            <i class="link-arrow" data-feather="chevron-down"></i>
-                        </a>
-                        <div class="collapse" id="surat">
-                            <ul class="nav sub-menu">
-                                <li class="nav-item">
-                                    <a href="#" class="nav-link">Permintaan Surat</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="#" class="nav-link">Riwayat Surat</a>
-                                </li>
-                            </ul>
-                        </div>
                     </li>
                 @endif
 
@@ -117,28 +62,11 @@
                 @if (auth()->user()->role === 'lecturer')
                     <li class="nav-item nav-category">General</li>
                     <li class="nav-item">
-                        <a class="nav-link" data-bs-toggle="collapse" href="#akademik" role="button"
-                            aria-expanded="false" aria-controls="akademik">
-                            <i class="link-icon" data-feather="book"></i>
-                            <span class="link-title">Akademik</span>
-                            <i class="link-arrow" data-feather="chevron-down"></i>
+                        <a href="{{ route('lecturer.attendance.index') }}"
+                            class="nav-link {{ request()->routeIs('lecturer.attendance.*') ? 'active' : '' }}">
+                            <i class="link-icon" data-feather="calendar"></i>
+                            <span class="link-title">Attendance</span>
                         </a>
-                        <div class="collapse" id="akademik">
-                            <ul class="nav sub-menu">
-                                <li class="nav-item">
-                                    <a href="#" class="nav-link">Jadwal Mengajar</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="#" class="nav-link">Memulai Kelas</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="#" class="nav-link">Entri Nilai</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="#" class="nav-link">LMS</a>
-                                </li>
-                            </ul>
-                        </div>
                     </li>
                 @endif
             @endauth

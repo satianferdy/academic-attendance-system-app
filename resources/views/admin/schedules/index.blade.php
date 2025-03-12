@@ -44,8 +44,8 @@
                                     <tr>
                                         <td>{{ $schedules->firstItem() + $key }}</td>
                                         <td>
-                                            <strong>{{ $schedule->course_code }}</strong><br>
-                                            <small>{{ $schedule->course_name }}</small>
+                                            <strong>{{ $schedule->course->code }}</strong><br>
+                                            <small>{{ $schedule->course->name }}</small>
                                         </td>
                                         <td>{{ $schedule->lecturer->user->name ?? 'Unknown' }}</td>
                                         <td>{{ $schedule->room }}</td>
