@@ -20,6 +20,13 @@ class SessionAttendance extends Model
         'is_active'
     ];
 
+    protected $casts = [
+        'session_date' => 'date',
+        'start_time' => 'datetime:H:i',
+        'end_time' => 'datetime:H:i',
+        'is_active' => 'boolean'
+    ];
+
     public function classSchedule()
     {
         return $this->belongsTo(ClassSchedule::class);
