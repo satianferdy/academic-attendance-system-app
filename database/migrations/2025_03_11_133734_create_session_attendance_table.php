@@ -17,7 +17,7 @@ return new class extends Migration
             $table->date('session_date');
             $table->time('start_time');
             $table->time('end_time');
-            $table->string('qr_code');
+            $table->text('qr_code')->nullable();
             $table->boolean('is_active')->default(false);
             $table->timestamps();
         });
