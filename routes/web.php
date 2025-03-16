@@ -50,7 +50,17 @@ Route::group(['middleware' => ['auth', 'role:lecturer'], 'prefix' => 'lecturer',
     Route::get('/attendance/{id}', [LecturerAttendanceController::class, 'show'])->name('attendance.show');
     Route::get('/attendance/{id}/edit', [LecturerAttendanceController::class, 'edit'])->name('attendance.edit');
     Route::put('/attendance/{id}', [LecturerAttendanceController::class, 'update'])->name('attendance.update');
-    Route::post('/attendance/qr', [LecturerAttendanceController::class, 'generateQR'])->name('attendance.qr');
+
+    // Ganti rute view_qr dan extend_time dengan:
+    Route::get('/attendance/view-qr/{classSchedule}/{date}', [LecturerAttendanceController::class, 'viewQR'])
+    ->name('attendance.view_qr')
+    ->where('date', '\d{4}-\d{2}-\d{2}'); // Validasi format tanggal YYYY-MM-DD
+
+    Route::post('/attendance/extend-time/{classSchedule}/{date}', [LecturerAttendanceController::class, 'extendTime'])
+    ->name('attendance.extend_time');
+
+    // Route::match(['get', 'post'], '/attendance/view-qr', [LecturerAttendanceController::class, 'viewQR'])->name('attendance.view_qr');
+    // Route::post('/attendance/extend-time', [LecturerAttendanceController::class, 'extendTime'])->name('attendance.extend_time');
 });
 
 // Student routes

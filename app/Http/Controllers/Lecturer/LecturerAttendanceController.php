@@ -50,7 +50,7 @@ class LecturerAttendanceController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'class_id' => 'required|exists:class_schedules,id',
-            'date' => 'required|date',
+            'date' => 'required|date|after_or_equal:today',
         ]);
 
         if ($validator->fails()) {
@@ -61,25 +61,29 @@ class LecturerAttendanceController extends Controller
 
         $classSchedule = ClassSchedule::findOrFail($request->class_id);
 
-        // Check if the lecturer owns this class
+        // Authorization check
         if ($classSchedule->lecturer_id != Auth::user()->lecturer->id) {
             return redirect()->back()
                 ->with('error', 'You do not have permission to manage this class.');
         }
 
-        // Generate attendances
-        $result = $this->attendanceService->generateSessionAttendance($classSchedule, $request->date);
+        // Generate attendance session
+        $result = $this->attendanceService->generateSessionAttendance(
+            $classSchedule,
+            $request->date
+        );
 
         if ($result['status'] === 'error') {
             return redirect()->back()
                 ->with('error', $result['message']);
         }
 
-        // Generate QR code
-        $qrCode = $this->qrCodeService->generateForAttendance($request->class_id, $request->date);
-
-        return view('lecturer.attendance.create', compact('classSchedule', 'qrCode', 'result'));
+        return redirect()->route('lecturer.attendance.view_qr', [
+            'classSchedule' => $classSchedule->id,  // Gunakan ID untuk model binding
+            'date' => $request->date
+        ]);
     }
+
 
     public function show(Request $request, $id)
     {
@@ -152,6 +156,77 @@ class LecturerAttendanceController extends Controller
             ])
             ->with('success', 'Attendance updated successfully.');
     }
+
+    /**
+     * View QR Code without resetting the session time.
+     */
+    public function viewQR(ClassSchedule $classSchedule, $date)
+    {
+        // Validasi format tanggal
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+            abort(400, 'Invalid date format');
+        }
+
+        // Check lecturer ownership
+        if ($classSchedule->lecturer_id != Auth::user()->lecturer->id) {
+            abort(403, 'Unauthorized');
+        }
+
+        // Get current session data
+        $session = SessionAttendance::where('class_schedule_id', $classSchedule->id)
+            ->where('session_date', $date)
+            ->firstOrFail();
+
+        // Generate QR code
+        $qrCode = $this->qrCodeService->generateForAttendance($classSchedule->id, $date);
+
+        return view('lecturer.attendance.view_qr', [
+            'classSchedule' => $classSchedule,
+            'qrCode' => $qrCode,
+            'sessionEndTime' => $session->end_time->format('H:i'),
+            'date' => $date // Pass date ke view untuk link
+        ]);
+    }
+
+    public function extendTime(Request $request, ClassSchedule $classSchedule, $date)
+    {
+        $validator = Validator::make($request->all(), [
+            'minutes' => 'required|in:10,20,30',
+        ]);
+
+        // Validasi format tanggal
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+            abort(400, 'Invalid date format');
+        }
+
+        // Check lecturer ownership
+        if ($classSchedule->lecturer_id != Auth::user()->lecturer->id) {
+            abort(403, 'Unauthorized');
+        }
+
+        $session = SessionAttendance::where('class_schedule_id', $classSchedule->id)
+            ->where('session_date', $date)
+            ->firstOrFail();
+
+        // Tambahkan validasi waktu
+        if (now() > $session->end_time) {
+            return redirect()->route('lecturer.attendance.view_qr', [
+                'classSchedule' => $classSchedule->id,
+                'date' => $date
+            ])->with('error', 'Attendance session has already ended. Extension is not allowed.');
+        }
+
+        $session->update([
+            'end_time' => $session->end_time->addMinutes((int)$request->minutes),
+            'is_active' => true
+        ]);
+
+        return redirect()->route('lecturer.attendance.view_qr', [
+            'classSchedule' => $classSchedule->id,
+            'date' => $date
+        ])->with('success', "Session extended by {$request->minutes} minutes");
+    }
+
 
     public function generateQR(Request $request)
     {

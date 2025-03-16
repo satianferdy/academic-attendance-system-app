@@ -17,14 +17,10 @@
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h6 class="card-title">Attendance List - {{ $classSchedule->course->code }}</h6>
                         <div>
-                            <form action="{{ route('lecturer.attendance.create') }}" method="POST" class="d-inline">
-                                @csrf
-                                <input type="hidden" name="class_id" value="{{ $classSchedule->id }}">
-                                <input type="hidden" name="date" value="{{ $date }}">
-                                <button type="submit" class="btn btn-primary">
-                                    <i data-feather="refresh-cw"></i> Manage QR Code
-                                </button>
-                            </form>
+                            <a href="{{ route('lecturer.attendance.view_qr', ['classSchedule' => $classSchedule->id, 'date' => $date]) }}"
+                                class="btn btn-primary">
+                                <i data-feather="eye"></i> View QR Code
+                            </a>
                         </div>
                     </div>
 
@@ -86,10 +82,17 @@
                                         </td>
                                         <td>{{ $attendance->remarks ?? '-' }}</td>
                                         <td>
-                                            <a href="{{ route('lecturer.attendance.edit', $attendance->id) }}"
-                                                class="btn btn-sm btn-primary">
+                                            <button type="button" class="btn btn-sm btn-primary edit-attendance"
+                                                data-bs-toggle="modal" data-bs-target="#editAttendanceModal"
+                                                data-attendance-id="{{ $attendance->id }}"
+                                                data-student-name="{{ $attendance->student->user->name }}"
+                                                data-student-id="{{ $attendance->student->nim }}"
+                                                data-course="{{ $classSchedule->course->code }} - {{ $classSchedule->course->name }}"
+                                                data-date="{{ \Carbon\Carbon::parse($attendance->date)->format('l, d F Y') }}"
+                                                data-status="{{ $attendance->status }}"
+                                                data-remarks="{{ $attendance->remarks }}">
                                                 <i data-feather="edit-2"></i> Edit
-                                            </a>
+                                            </button>
                                         </td>
                                     </tr>
                                 @empty
@@ -139,9 +142,71 @@
             </div>
         </div>
     </div>
+
+    <!-- Edit Attendance Modal -->
+    <div class="modal fade" id="editAttendanceModal" tabindex="-1" aria-labelledby="editAttendanceModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editAttendanceModalLabel">Edit Student Attendance</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editAttendanceForm" method="POST">
+                        @csrf
+                        @method('PUT')
+
+                        <div class="mb-3">
+                            <div class="row mb-2">
+                                <div class="col-md-6">
+                                    <p class="mb-1"><strong>Course:</strong></p>
+                                    <p id="modal-course"></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="mb-1"><strong>Date:</strong></p>
+                                    <p id="modal-date"></p>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p class="mb-1"><strong>Student ID:</strong></p>
+                                    <p id="modal-student-id"></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="mb-1"><strong>Student Name:</strong></p>
+                                    <p id="modal-student-name"></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="modal-status" class="form-label">Attendance Status</label>
+                            <select class="form-select" id="modal-status" name="status" required>
+                                <option value="present">Present</option>
+                                <option value="late">Late</option>
+                                <option value="absent">Absent</option>
+                                <option value="excused">Excused</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="modal-remarks" class="form-label">Remarks</label>
+                            <textarea class="form-control" id="modal-remarks" name="remarks" rows="3"></textarea>
+                            <div class="form-text">Optional notes or comments about the student's attendance</div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="updateAttendanceBtn">Update Attendance</button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
-@section('scripts')
+@push('scripts')
     <script>
         $(document).ready(function() {
             // Initialize datatable
@@ -153,13 +218,38 @@
                 "pageLength": 25
             });
 
-            // Initialize feather icons
-            feather.replace();
-
             // Auto-submit date filter on change
             $('#date').change(function() {
                 $('#dateFilterForm').submit();
             });
+
+            // Edit attendance button click
+            $('.edit-attendance').on('click', function() {
+                const attendanceId = $(this).data('attendance-id');
+                const studentName = $(this).data('student-name');
+                const studentId = $(this).data('student-id');
+                const course = $(this).data('course');
+                const date = $(this).data('date');
+                const status = $(this).data('status');
+                const remarks = $(this).data('remarks');
+
+                // Set form action URL
+                $('#editAttendanceForm').attr('action', "{{ route('lecturer.attendance.update', '') }}/" +
+                    attendanceId);
+
+                // Populate modal fields
+                $('#modal-student-name').text(studentName);
+                $('#modal-student-id').text(studentId);
+                $('#modal-course').text(course);
+                $('#modal-date').text(date);
+                $('#modal-status').val(status);
+                $('#modal-remarks').val(remarks);
+            });
+
+            // Update attendance button click
+            $('#updateAttendanceBtn').on('click', function() {
+                $('#editAttendanceForm').submit();
+            });
         });
     </script>
-@endsection
+@endpush
