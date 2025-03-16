@@ -17,7 +17,7 @@ class FaceRecognitionServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // $this->app->bind(FaceRecognitionServiceInterface::class, FaceRecognitionService::class);
+        $this->app->bind(FaceRecognitionServiceInterface::class, FaceRecognitionService::class);
         $this->app->bind(QRCodeServiceInterface::class, QRCodeService::class);
         $this->app->bind(AttendanceServiceInterface::class, AttendanceService::class);
     }
