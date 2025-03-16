@@ -53,7 +53,7 @@
                             <thead>
                                 <tr>
                                     <th>No</th>
-                                    <th>Student ID</th>
+                                    <th>Student NIM</th>
                                     <th>Name</th>
                                     <th>Status</th>
                                     <th>Check-in Time</th>
@@ -65,7 +65,7 @@
                                 @forelse($attendances as $key => $attendance)
                                     <tr>
                                         <td>{{ $key + 1 }}</td>
-                                        <td>{{ $attendance->student->student_id }}</td>
+                                        <td>{{ $attendance->student->nim }}</td>
                                         <td>{{ $attendance->student->user->name }}</td>
                                         <td>
                                             <span
@@ -78,8 +78,8 @@
                                             </span>
                                         </td>
                                         <td>
-                                            @if ($attendance->check_in_time)
-                                                {{ \Carbon\Carbon::parse($attendance->check_in_time)->format('H:i:s') }}
+                                            @if ($attendance->attendance_time)
+                                                {{ \Carbon\Carbon::parse($attendance->attendance_time)->format('H:i:s') }}
                                             @else
                                                 -
                                             @endif

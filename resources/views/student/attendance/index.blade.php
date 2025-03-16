@@ -54,7 +54,7 @@
                                                     <span class="badge bg-secondary">Not Marked</span>
                                                 @endif
                                             </td>
-                                            <td>{{ $attendance->check_in_time ? \Carbon\Carbon::parse($attendance->check_in_time)->format('H:i') : 'N/A' }}
+                                            <td>{{ $attendance->attendance_time ? \Carbon\Carbon::parse($attendance->attendance_time)->format('H:i') : 'N/A' }}
                                             </td>
                                             <td>{{ $attendance->remarks ?: 'N/A' }}</td>
                                         </tr>
