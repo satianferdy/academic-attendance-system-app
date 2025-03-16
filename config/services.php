@@ -35,4 +35,13 @@ return [
         ],
     ],
 
+    'face_recognition' => [
+        'url' => env('FACE_RECOGNITION_API_URL', 'http://localhost:5000'),
+        'key' => env('FACE_RECOGNITION_API_KEY', '5a16d8e3-61a7-40d6-8841-8eeadc653395'),
+    ],
+
+    'qrcode' => [
+        'expiry_time' => env('QRCODE_EXPIRY_TIME', 30), // minutes
+    ],
+
 ];

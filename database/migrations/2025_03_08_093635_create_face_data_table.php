@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('face_data', function (Blueprint $table) {
             $table->id();
             $table->foreignId('student_id')->constrained();
-            $table->text('face_embedding');
-            $table->string('image_path');
+            $table->json('face_embedding');
+            $table->json('image_path');
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });

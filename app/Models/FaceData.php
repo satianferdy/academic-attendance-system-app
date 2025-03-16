@@ -11,7 +11,8 @@ class FaceData extends Model
 
     protected $fillable = [
         'student_id',
-        'face_id',
+        'face_embedding',
+        'image_path',
         'is_active',
     ];
 

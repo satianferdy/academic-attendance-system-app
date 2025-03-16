@@ -35,7 +35,7 @@ class Student extends Model
 
     public function faceData()
     {
-        return $this->hasOne(FaceData::class);
+        return $this->hasOne(FaceData::class, 'student_id');
     }
 
     /**

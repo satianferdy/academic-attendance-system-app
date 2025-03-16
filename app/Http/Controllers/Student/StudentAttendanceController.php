@@ -23,11 +23,11 @@ class StudentAttendanceController extends Controller
     public function __construct(
         AttendanceServiceInterface $attendanceService,
         QRCodeServiceInterface $qrCodeService,
-        // FaceRecognitionServiceInterface $faceRecognitionService
+        FaceRecognitionServiceInterface $faceRecognitionService
     ) {
         $this->attendanceService = $attendanceService;
         $this->qrCodeService = $qrCodeService;
-        // $this->faceRecognitionService = $faceRecognitionService;
+        $this->faceRecognitionService = $faceRecognitionService;
     }
 
     public function index()
