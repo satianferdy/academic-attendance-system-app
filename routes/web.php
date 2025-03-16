@@ -6,7 +6,7 @@ use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\Admin\ClassScheduleController;
 use App\Http\Controllers\Lecturer\LecturerAttendanceController;
 use App\Http\Controllers\Student\StudentAttendanceController;
-use App\Models\Lecturer;
+use App\Http\Controllers\Student\FaceRegistrationController;
 
 Route::get('/', function () {
     return view('auth.login');
@@ -63,4 +63,11 @@ Route::group(['middleware' => ['auth', 'role:student'], 'prefix' => 'student', '
     Route::get('/attendance', [StudentAttendanceController::class, 'index'])->name('attendance.index');
     Route::get('/attendance/{token}', [StudentAttendanceController::class, 'show'])->name('attendance.show');
     Route::post('/attendance/verify', [StudentAttendanceController::class, 'verify'])->name('attendance.verify');
+
+    // Face registration
+    Route::get('/face', [FaceRegistrationController::class, 'index'])->name('face.index');
+    Route::get('/face/register/{token?}', [FaceRegistrationController::class, 'register'])->name('face.register');
+    Route::post('/face/store', [FaceRegistrationController::class, 'store'])->name('face.store');
+
+    Route::post('/validate-face-quality', [FaceRegistrationController::class, 'validateQuality'])->name('face.validate-quality');
 });

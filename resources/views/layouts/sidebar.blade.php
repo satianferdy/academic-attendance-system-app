@@ -56,6 +56,17 @@
                                 {{ request()->routeIs('student.attendance.*') ? 'active' : '' }}">Attendance</span>
                         </a>
                     </li>
+                    {{-- face --}}
+                    <li class="nav-item">
+                        <a href="{{ route('student.face.index') }}"
+                            class="nav-link {{ request()->routeIs('student.face.*') ? 'active' : '' }}">
+                            <i class="link-icon" data-feather="camera"></i>
+                            <span
+                                class="link-title
+                                {{ request()->routeIs('student.face.*') ? 'active' : '' }}">Face
+                                Recognition</span>
+                        </a>
+                    </li>
                 @endif
 
                 {{-- Lecturer Only Menus --}}
