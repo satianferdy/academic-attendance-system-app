@@ -4,18 +4,47 @@
 
 @push('styles')
     <style>
-        /* Style untuk video dan tombol capture */
+        .dashboard-container {
+            width: 100%;
+            min-height: calc(100vh - 60px);
+            display: flex;
+            flex-direction: column;
+            background-color: #f8f9fa;
+        }
+
+        .dashboard-header {
+            padding: 1rem 1.5rem;
+            width: 100%;
+        }
+
+        .dashboard-content {
+            flex: 1;
+        }
+
+        .icon-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        /* Video and capture button styles */
         #video-container {
             position: relative;
             width: 100%;
             max-width: 640px;
             margin: 0 auto;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
         #video {
             width: 100%;
             border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
         #capture-btn {
@@ -24,6 +53,19 @@
             left: 50%;
             transform: translateX(-50%);
             z-index: 10;
+            width: 60px;
+            height: 60px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #capture-btn .badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            font-size: 0.7rem;
         }
 
         .camera-overlay {
@@ -38,31 +80,36 @@
             pointer-events: none;
         }
 
-        /* Style untuk grid thumbnail */
+        /* Thumbnail grid styles */
         .thumbnail-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 1rem;
-            margin-top: 1rem;
+            margin-top: 1.5rem;
         }
 
-        /* Style untuk thumbnail */
+        /* Thumbnail styles */
         .thumbnail-item {
             position: relative;
             border: 2px solid #ddd;
             border-radius: 8px;
             overflow: hidden;
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .thumbnail-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
         }
 
         .thumbnail-item.good-quality {
-            border-color: #28a745;
-            /* Hijau untuk kualitas baik */
+            border-color: #198754;
         }
 
         .thumbnail-item.bad-quality {
             border-color: #dc3545;
-            /* Merah untuk kualitas jelek */
         }
 
         .thumbnail-item img {
@@ -85,25 +132,35 @@
         .quality-indicator {
             color: white;
             font-size: 0.8rem;
+            font-weight: 500;
         }
 
         .delete-btn {
             color: white;
             cursor: pointer;
+            font-size: 0.8rem;
+            padding: 0.25rem 0.5rem;
         }
 
         .quality-badge {
             position: absolute;
             top: 10px;
             right: 10px;
-            background: #28a745;
+            background: #198754;
             color: white;
             padding: 0.25rem 0.5rem;
             border-radius: 4px;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
         }
 
-        /* Style untuk loading overlay */
+        .quality-badge i {
+            margin-right: 0.25rem;
+        }
+
+        /* Loading overlay styles */
         .loading-overlay {
             display: none;
             position: fixed;
@@ -122,31 +179,145 @@
             width: 4rem;
             height: 4rem;
         }
+
+        /* Step indicator */
+        .registration-steps {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .step-indicator {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0 1rem;
+        }
+
+        .step-number {
+            width: 28px;
+            height: 28px;
+            background-color: #e9ecef;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .step-number.active {
+            background-color: #0d6efd;
+            color: white;
+        }
+
+        .step-text {
+            font-size: 0.8rem;
+            text-align: center;
+            color: #6c757d;
+        }
+
+        .step-text.active {
+            color: #0d6efd;
+            font-weight: 500;
+        }
+
+        /* Submit button styles */
+        #submit-btn {
+            padding: 0.75rem 2rem;
+            transition: all 0.3s ease;
+        }
+
+        #submit-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        #submit-btn i {
+            margin-right: 0.5rem;
+        }
+
+        /* Info card styles */
+        .info-card {
+            background-color: #f8f9fa;
+            border-left: 4px solid #0d6efd;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: 5px;
+        }
+
+        .info-card p {
+            margin-bottom: 0;
+            font-size: 0.9rem;
+        }
     </style>
 @endpush
 
 @section('content')
-    <div class="container-fluid py-4">
-        <div class="row">
-            <div class="col-12">
-                <div class="card mb-4">
-                    <div class="card-header pb-0 d-flex justify-content-between align-items-center">
-                        <h6>Register Your Face</h6>
+    <div class="container-fluid p-0">
+        <div class="dashboard-container">
+            <!-- Header Banner -->
+            <div class="dashboard-header bg-primary mb-4">
+                <h4 class="text-white mb-0">Face Registration</h4>
+            </div>
+
+            <!-- Content Area -->
+            <div class="dashboard-content px-3 pb-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-circle bg-warning text-white me-2">
+                                <i class="fas fa-id-card"></i>
+                            </div>
+                            <h5 class="mb-0">REGISTER YOUR FACE</h5>
+                        </div>
                         <a href="{{ route('student.face.index') }}" class="btn btn-sm btn-outline-secondary">
                             <i class="fas fa-arrow-left me-1"></i> Back
                         </a>
                     </div>
-                    <div class="card-body px-4 pt-4 pb-2">
-                        <div class="alert alert-info" role="alert">
-                            <i class="fas fa-info-circle me-2"></i>
-                            Please position your face clearly in the camera frame. Ensure good lighting and remove glasses
-                            or face coverings.
+
+                    <div class="card-body pt-2">
+                        <div class="registration-steps mb-4">
+                            <div class="step-indicator">
+                                <div class="step-number active">1</div>
+                                <div class="step-text active">Position Face</div>
+                            </div>
+                            <div class="step-indicator">
+                                <div class="step-number">2</div>
+                                <div class="step-text">Capture Photos</div>
+                            </div>
+                            <div class="step-indicator">
+                                <div class="step-number">3</div>
+                                <div class="step-text">Verify Quality</div>
+                            </div>
+                            <div class="step-indicator">
+                                <div class="step-number">4</div>
+                                <div class="step-text">Complete</div>
+                            </div>
                         </div>
 
-                        <div id="error-message" class="alert alert-danger" style="display: none;"></div>
+                        <div class="alert alert-info d-flex align-items-center" role="alert">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <div>
+                                Please position your face clearly in the camera frame. Ensure good lighting and remove
+                                glasses
+                                or face coverings for better accuracy.
+                            </div>
+                        </div>
+
+                        <div id="error-message" class="alert alert-danger d-flex align-items-center" style="display: none;">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            <div id="error-text"></div>
+                        </div>
 
                         <div class="row">
-                            <div class="col-md-8 mx-auto">
+                            <div class="col-md-10 mx-auto">
+                                <div class="info-card mb-3">
+                                    <p><strong>Instructions:</strong> Take 5 clear photos of your face from different angles
+                                        for best results. The system will automatically analyze the quality of each image.
+                                    </p>
+                                </div>
+
                                 <div class="camera-container">
                                     <div id="video-container">
                                         <video id="video" autoplay playsinline></video>
@@ -201,10 +372,32 @@
             const submitBtn = document.getElementById('submit-btn');
             const thumbnailGrid = document.getElementById('thumbnail-grid');
             const errorMessage = document.getElementById('error-message');
+            const errorText = document.getElementById('error-text');
             const loadingOverlay = document.getElementById('loading-overlay');
             const faceForm = document.getElementById('face-form');
+            const stepNumbers = document.querySelectorAll('.step-number');
+            const stepTexts = document.querySelectorAll('.step-text');
 
             let stream;
+
+            // Update step indicators
+            function updateStepIndicators(step) {
+                stepNumbers.forEach((el, index) => {
+                    if (index < step) {
+                        el.classList.add('active');
+                    } else {
+                        el.classList.remove('active');
+                    }
+                });
+
+                stepTexts.forEach((el, index) => {
+                    if (index < step) {
+                        el.classList.add('active');
+                    } else {
+                        el.classList.remove('active');
+                    }
+                });
+            }
 
             // Start the camera
             async function startCamera() {
@@ -222,9 +415,10 @@
                     });
                     video.srcObject = stream;
                     captureBtn.disabled = false;
+                    updateStepIndicators(1);
                 } catch (err) {
-                    errorMessage.textContent = 'Error accessing camera: ' + err.message;
-                    errorMessage.style.display = 'block';
+                    errorText.textContent = 'Error accessing camera: ' + err.message;
+                    errorMessage.style.display = 'flex';
                     captureBtn.disabled = true;
                 }
             }
@@ -250,14 +444,22 @@
                 remainingShots = MAX_SHOTS - capturedShots.length;
                 updateUI();
 
+                if (capturedShots.length > 0) {
+                    updateStepIndicators(2);
+                }
+
                 try {
                     const response = await validateImageQuality(tempImage.dataURL);
 
-                    // Perbaikan: Akses data yang benar dari response
+                    // Fixing: Access the correct data from response
                     if (response.status === 'success') {
                         tempImage.quality = response.data.quality_metrics.blur_score;
-                        tempImage.isGoodQuality = response.data.quality_metrics.blur_score >= 70;
+                        tempImage.isGoodQuality = response.data.quality_metrics.blur_score >= 30;
                         tempImage.status = 'processed';
+
+                        if (capturedShots.filter(shot => shot.isGoodQuality).length > 0) {
+                            updateStepIndicators(3);
+                        }
                     } else {
                         tempImage.status = 'error';
                         tempImage.message = response.message;
@@ -278,12 +480,12 @@
                 const formData = new FormData();
                 formData.append('image', blob, 'face.jpg');
 
-                // Gunakan route name yang benar
+                // Use the correct route name
                 const response = await fetch('{{ route('student.face.validate-quality') }}', {
                     method: 'POST',
                     headers: {
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                        'X-API-Key': '{{ config('services.face_recognition.key') }}' // Tambahkan header API key
+                        'X-API-Key': '{{ config('services.face_recognition.key') }}'
                     },
                     body: formData
                 });
@@ -305,16 +507,16 @@
                                 ${shot.quality ? `Quality: ${Math.round(shot.quality)}%` : 'Checking...'}
                             </span>
                             ${!shot.isGoodQuality ? `
-                                                <button class="btn btn-danger btn-sm delete-btn" onclick="deleteShot(${shot.id})">
-                                                    <i class="fas fa-trash"></i> Delete
-                                                </button>
-                                            ` : ''}
+                                                                                                        <button class="btn btn-danger btn-sm delete-btn" onclick="deleteShot(${shot.id})">
+                                                                                                            <i class="fas fa-trash"></i> Delete
+                                                                                                        </button>
+                                                                                                    ` : ''}
                         </div>
                         ${shot.isGoodQuality ? `
-                                            <div class="quality-badge">
-                                                <i class="fas fa-check-circle"></i> Good Quality
-                                            </div>
-                                        ` : ''}
+                                                                                                    <div class="quality-badge">
+                                                                                                        <i class="fas fa-check-circle"></i> Good Quality
+                                                                                                    </div>
+                                                                                                ` : ''}
                     </div>
                 `).join('');
 
@@ -323,12 +525,23 @@
 
                 const allValid = capturedShots.every(shot => shot.isGoodQuality);
                 submitBtn.disabled = !(capturedShots.length === MAX_SHOTS && allValid);
+
+                if (capturedShots.length === MAX_SHOTS && allValid) {
+                    updateStepIndicators(4);
+                }
             }
 
             // Delete a captured shot
             window.deleteShot = function(id) {
                 capturedShots = capturedShots.filter(shot => shot.id !== id);
                 remainingShots = MAX_SHOTS - capturedShots.length;
+
+                if (capturedShots.length === 0) {
+                    updateStepIndicators(1);
+                } else if (!capturedShots.some(shot => shot.isGoodQuality)) {
+                    updateStepIndicators(2);
+                }
+
                 updateUI();
             };
 
@@ -347,6 +560,43 @@
                     type: mimeString
                 });
             }
+
+            // Submit registration
+            submitBtn.addEventListener('click', async function() {
+                loadingOverlay.style.display = 'flex';
+
+                try {
+                    const formData = new FormData(faceForm);
+
+                    // Add each good quality image to the form data
+                    capturedShots.filter(shot => shot.isGoodQuality).forEach((shot, index) => {
+                        const blob = dataURLtoBlob(shot.dataURL);
+                        formData.append(`images[${index}]`, blob, `face_${index}.jpg`);
+                    });
+
+                    const response = await fetch('{{ route('student.face.store') }}', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                .content,
+                        },
+                        body: formData
+                    });
+
+                    const result = await response.json();
+
+                    if (result.status === 'success') {
+                        window.location.href = result.redirect_url ||
+                            '{{ route('student.face.index') }}';
+                    } else {
+                        throw new Error(result.message || 'Failed to register face');
+                    }
+                } catch (error) {
+                    loadingOverlay.style.display = 'none';
+                    errorText.textContent = error.message;
+                    errorMessage.style.display = 'flex';
+                }
+            });
 
             // Start the camera when the page loads
             startCamera();
