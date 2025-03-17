@@ -21,14 +21,24 @@
             flex: 1;
         }
 
-        .icon-circle {
-            width: 32px;
-            height: 32px;
+        .custom-icon {
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 14px;
+        }
+
+        .user-icon {
+            background-color: #FFC107;
+            /* Yellow/amber color */
+        }
+
+        .icon-inner {
+            width: 20px;
+            height: 20px;
+            color: white;
         }
 
         /* Video and capture button styles */
@@ -53,8 +63,8 @@
             left: 50%;
             transform: translateX(-50%);
             z-index: 10;
-            width: 60px;
-            height: 60px;
+            width: 50px;
+            height: 50px;
             padding: 0;
             display: flex;
             align-items: center;
@@ -135,13 +145,6 @@
             font-weight: 500;
         }
 
-        .delete-btn {
-            color: white;
-            cursor: pointer;
-            font-size: 0.8rem;
-            padding: 0.25rem 0.5rem;
-        }
-
         .quality-badge {
             position: absolute;
             top: 10px;
@@ -195,8 +198,8 @@
         }
 
         .step-number {
-            width: 28px;
-            height: 28px;
+            width: 30px;
+            height: 30px;
             background-color: #e9ecef;
             border-radius: 50%;
             display: flex;
@@ -222,19 +225,9 @@
             font-weight: 500;
         }
 
-        /* Submit button styles */
-        #submit-btn {
-            padding: 0.75rem 2rem;
-            transition: all 0.3s ease;
-        }
-
         #submit-btn:disabled {
             cursor: not-allowed;
             opacity: 0.5;
-        }
-
-        #submit-btn i {
-            margin-right: 0.5rem;
         }
 
         /* Info card styles */
@@ -254,88 +247,80 @@
 @endpush
 
 @section('content')
-    <div class="container-fluid p-0">
-        <div class="dashboard-container">
-            <!-- Header Banner -->
-            <div class="dashboard-header bg-primary mb-4">
-                <h4 class="text-white mb-0">Face Registration</h4>
-            </div>
+    <div class="dashboard-container">
+        <!-- Header Banner -->
+        <div class="dashboard-header bg-primary mb-4">
+            <h4 class="text-white mb-0">Face Registration</h4>
+        </div>
 
-            <!-- Content Area -->
-            <div class="dashboard-content px-3 pb-4">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
-                        <div class="d-flex align-items-center">
-                            <div class="icon-circle bg-warning text-white me-2">
-                                <i class="fas fa-id-card"></i>
-                            </div>
-                            <h5 class="mb-0">REGISTER YOUR FACE</h5>
+        <!-- Content Area -->
+        <div class="dashboard-content px-3 pb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <div class="custom-icon user-icon me-2">
+                            <i data-feather="user" class="icon-inner"></i>
                         </div>
-                        <a href="{{ route('student.face.index') }}" class="btn btn-sm btn-outline-secondary">
-                            <i class="fas fa-arrow-left me-1"></i> Back
-                        </a>
+                        <h5 class="mb-0">REGISTER YOUR FACE</h5>
+                    </div>
+                    <a href="{{ route('student.face.index') }}" class="btn btn-icon-text btn-sm btn-outline-secondary">
+                        <i class="btn-icon-prepend" data-feather="chevron-left"></i>Back
+                    </a>
+                </div>
+
+                <div class="card-body pt-2">
+                    <div class="registration-steps mb-4">
+                        <div class="step-indicator">
+                            <div class="step-number active">1</div>
+                            <div class="step-text active">Position Face</div>
+                        </div>
+                        <div class="step-indicator">
+                            <div class="step-number">2</div>
+                            <div class="step-text">Capture Photos</div>
+                        </div>
+                        <div class="step-indicator">
+                            <div class="step-number">3</div>
+                            <div class="step-text">Verify Quality</div>
+                        </div>
+                        <div class="step-indicator">
+                            <div class="step-number">4</div>
+                            <div class="step-text">Complete</div>
+                        </div>
                     </div>
 
-                    <div class="card-body pt-2">
-                        <div class="registration-steps mb-4">
-                            <div class="step-indicator">
-                                <div class="step-number active">1</div>
-                                <div class="step-text active">Position Face</div>
-                            </div>
-                            <div class="step-indicator">
-                                <div class="step-number">2</div>
-                                <div class="step-text">Capture Photos</div>
-                            </div>
-                            <div class="step-indicator">
-                                <div class="step-number">3</div>
-                                <div class="step-text">Verify Quality</div>
-                            </div>
-                            <div class="step-indicator">
-                                <div class="step-number">4</div>
-                                <div class="step-text">Complete</div>
-                            </div>
+                    <div class="alert alert-info d-flex align-items-center" role="alert">
+                        <div>
+                            Please position your face clearly in the camera frame. Ensure good lighting and remove
+                            glasses
+                            or face coverings for better accuracy.
                         </div>
+                    </div>
 
-                        <div class="alert alert-info d-flex align-items-center" role="alert">
-                            <i class="fas fa-info-circle me-2"></i>
-                            <div>
-                                Please position your face clearly in the camera frame. Ensure good lighting and remove
-                                glasses
-                                or face coverings for better accuracy.
+                    <div class="row">
+                        <div class="col-md-12 mx-auto">
+                            <div class="info-card mb-3">
+                                <p><strong>Instructions:</strong> Take 5 clear photos of your face from different angles
+                                    for best results. The system will automatically analyze the quality of each image.
+                                </p>
                             </div>
-                        </div>
 
-                        <div id="error-message" class="alert alert-danger d-flex align-items-center" style="display: none;">
-                            <i class="fas fa-exclamation-circle me-2"></i>
-                            <div id="error-text"></div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-10 mx-auto">
-                                <div class="info-card mb-3">
-                                    <p><strong>Instructions:</strong> Take 5 clear photos of your face from different angles
-                                        for best results. The system will automatically analyze the quality of each image.
-                                    </p>
+                            <div class="camera-container">
+                                <div id="video-container">
+                                    <video id="video" autoplay playsinline></video>
+                                    <div class="camera-overlay"></div>
+                                    <button id="capture-btn" class="btn btn-outline-primary rounded-circle"
+                                        title="Take Photo">
+                                        <i data-feather="camera"></i>
+                                        <span class="badge bg-danger">{{ $remainingShots }}/5</span>
+                                    </button>
                                 </div>
 
-                                <div class="camera-container">
-                                    <div id="video-container">
-                                        <video id="video" autoplay playsinline></video>
-                                        <div class="camera-overlay"></div>
-                                        <button id="capture-btn" class="btn btn-primary btn-lg rounded-circle"
-                                            title="Take Photo">
-                                            <i class="fas fa-camera"></i>
-                                            <span class="badge bg-danger">{{ $remainingShots }}/5</span>
-                                        </button>
-                                    </div>
+                                <div class="thumbnail-grid" id="thumbnail-grid"></div>
 
-                                    <div class="thumbnail-grid" id="thumbnail-grid"></div>
-
-                                    <div class="preview-container text-center mt-4" id="preview-container">
-                                        <button id="submit-btn" class="btn btn-success" disabled>
-                                            <i class="fas fa-check me-1"></i> Register Face
-                                        </button>
-                                    </div>
+                                <div class="preview-container text-center mt-4" id="preview-container">
+                                    <button id="submit-btn" class="btn btn-icon-text btn-sm btn-success" disabled>
+                                        <i data-feather="send" class="btn-icon-prepend"></i>Register Face
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -500,25 +485,25 @@
             // Update UI based on captured shots
             function updateUI() {
                 thumbnailGrid.innerHTML = capturedShots.map(shot => `
-                    <div class="thumbnail-item ${shot.isGoodQuality ? 'good-quality' : 'bad-quality'}">
-                        <img src="${shot.dataURL}" alt="Captured face">
-                        <div class="thumbnail-actions">
-                            <span class="quality-indicator">
-                                ${shot.quality ? `Quality: ${Math.round(shot.quality)}%` : 'Checking...'}
-                            </span>
-                            ${!shot.isGoodQuality ? `
-                                                                                                        <button class="btn btn-danger btn-sm delete-btn" onclick="deleteShot(${shot.id})">
-                                                                                                            <i class="fas fa-trash"></i> Delete
-                                                                                                        </button>
-                                                                                                    ` : ''}
-                        </div>
-                        ${shot.isGoodQuality ? `
-                                                                                                    <div class="quality-badge">
-                                                                                                        <i class="fas fa-check-circle"></i> Good Quality
-                                                                                                    </div>
-                                                                                                ` : ''}
+                <div class="thumbnail-item ${shot.isGoodQuality ? 'good-quality' : 'bad-quality'}">
+                    <img src="${shot.dataURL}" alt="Captured face">
+                    <div class="thumbnail-actions">
+                        <span class="quality-indicator">
+                            ${shot.quality ? `Quality: ${Math.round(shot.quality)}%` : 'Checking...'}
+                        </span>
+                        ${!shot.isGoodQuality ? `
+                                        <button class="btn btn-danger btn-icon btn-sm" onclick="deleteShot(${shot.id})">
+                                            <i data-feather="trash-2"></i>
+                                        </button>
+                                    ` : ''}
                     </div>
-                `).join('');
+                    ${shot.isGoodQuality ? `
+                                   <div class="btn btn-success btn-icon btn-sm">
+                                        <i data-feather="check-circle"></i>
+                                    </div>
+                                ` : ''}
+                </div>
+            `).join('');
 
                 captureBtn.querySelector('.badge').textContent = `${remainingShots}/5`;
                 captureBtn.disabled = remainingShots === 0;
@@ -528,6 +513,11 @@
 
                 if (capturedShots.length === MAX_SHOTS && allValid) {
                     updateStepIndicators(4);
+                }
+
+                // Re-initialize feather icons for newly added DOM elements
+                if (typeof feather !== 'undefined') {
+                    feather.replace();
                 }
             }
 
