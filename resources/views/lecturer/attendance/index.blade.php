@@ -58,13 +58,14 @@
                                         </td>
                                         <td>{{ $schedule->semester }} / {{ $schedule->academic_year }}</td>
                                         <td>
-                                            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal"
+                                            <button type="button" class="btn btn-sm btn-icon-text btn-primary"
+                                                data-bs-toggle="modal"
                                                 data-bs-target="#createAttendanceModal{{ $schedule->id }}">
-                                                <i data-feather="plus-circle"></i> Create Session
+                                                <i data-feather="plus-circle" class="btn-icon-prepend"></i>Create Session
                                             </button>
                                             <a href="{{ route('lecturer.attendance.show', $schedule->id) }}"
-                                                class="btn btn-sm btn-info">
-                                                <i data-feather="eye"></i> View Sessions
+                                                class="btn btn-sm btn-icon-text btn-info">
+                                                <i data-feather="info" class="btn-icon-prepend"></i>View Sessions
                                             </a>
 
                                             <!-- Create Attendance Modal -->
@@ -89,17 +90,19 @@
                                                                 <input type="hidden" name="class_id"
                                                                     value="{{ $schedule->id }}">
                                                                 <div class="mb-3">
-                                                                    <label for="date" class="form-label">Session
+                                                                    <label for="date{{ $schedule->id }}"
+                                                                        class="form-label">Session
                                                                         Date</label>
                                                                     <input type="date" class="form-control"
-                                                                        id="date" name="date"
-                                                                        value="{{ date('Y-m-d') }}" required>
+                                                                        id="date{{ $schedule->id }}" name="date"
+                                                                        value="{{ date('Y-m-d') }}"
+                                                                        min="{{ date('Y-m-d') }}" required>
                                                                 </div>
                                                             </div>
                                                             <div class="modal-footer">
-                                                                <button type="button" class="btn btn-secondary"
+                                                                <button type="button" class="btn btn-sm btn-secondary"
                                                                     data-bs-dismiss="modal">Close</button>
-                                                                <button type="submit" class="btn btn-primary">Create
+                                                                <button type="submit" class="btn btn-sm btn-primary">Create
                                                                     Session</button>
                                                             </div>
                                                         </form>
@@ -122,13 +125,42 @@
     </div>
 @endsection
 
-{{-- @section('scripts')
+@push('scripts')
     <script>
+        // Additional JavaScript to ensure past dates are disabled
         $(document).ready(function() {
-            $('#dataTableExample').DataTable();
+            // Get current date in YYYY-MM-DD format
+            function getCurrentDate() {
+                const today = new Date();
+                const year = today.getFullYear();
+                let month = today.getMonth() + 1;
+                let day = today.getDate();
 
-            // Initialize feather icons
-            feather.replace();
+                // Add leading zeros if needed
+                month = month < 10 ? '0' + month : month;
+                day = day < 10 ? '0' + day : day;
+
+                return `${year}-${month}-${day}`;
+            }
+
+            // Set minimum date for all date inputs
+            const today = getCurrentDate();
+            $('input[type="date"]').attr('min', today);
+
+            // Reset to today's date if a past date is somehow selected
+            $('input[type="date"]').on('change', function() {
+                if ($(this).val() < today) {
+                    $(this).val(today);
+
+                    // Show a message using SweetAlert
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Invalid Date',
+                        text: 'You cannot select a date in the past.',
+                        confirmButtonColor: '#3085d6'
+                    });
+                }
+            });
         });
     </script>
-@endsection --}}
+@endpush
