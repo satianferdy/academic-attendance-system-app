@@ -56,43 +56,6 @@ class FaceRecognitionService implements FaceRecognitionServiceInterface
         }
     }
 
-    // public function registerFace(UploadedFile $image, string $nim): array
-    // {
-    //     Log::info('Registering face for student ' . $nim);
-    //     Log::info('API URL: ' . $this->apiUrl);
-    //     Log::info('API Key: ' . $this->apiKey);
-
-    //     try {
-    //         $response = Http::withHeaders([
-    //             'X-API-Key' => $this->apiKey,
-    //         ])->attach(
-    //             'image',
-    //             file_get_contents($image->getPathname()),
-    //             $image->getClientOriginalName()
-    //         )->post("{$this->apiUrl}/api/register-face", [
-    //             'nim' => $nim,
-    //         ]);
-
-    //         // Check if the response is successful and contains JSON
-    //         if ($response->successful() && $response->json() !== null) {
-    //             return $response->json();
-    //         }
-
-    //         // Handle unsuccessful responses or invalid JSON
-    //         Log::error('Face recognition API error: ' . $response->body());
-    //         return [
-    //             'status' => 'error',
-    //             'message' => 'Invalid response from face recognition service. Status: ' . $response->status(),
-    //         ];
-    //     } catch (\Exception $e) {
-    //         Log::error('Face recognition registration error: ' . $e->getMessage());
-    //         return [
-    //             'status' => 'error',
-    //             'message' => 'Failed to register face. Please try again later.',
-    //         ];
-    //     }
-    // }
-
    // FaceRecognitionService.php
     public function registerFace(array $images, string $nim): array
     {
@@ -201,7 +164,7 @@ class FaceRecognitionService implements FaceRecognitionServiceInterface
             Log::error('Face quality validation error: ' . $e->getMessage());
             return [
                 'status' => 'error',
-                'message' => 'An error occurred during quality validation.',
+                'message' => 'An error occurred during quality validation.  Please try again.',
             ];
         }
     }

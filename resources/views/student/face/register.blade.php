@@ -151,16 +151,12 @@
             right: 10px;
             background: #198754;
             color: white;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.75rem;
+            padding: 0.25rem 0.25rem;
+            border-radius: 15px;
+            font-size: 0.5rem;
             font-weight: 500;
             display: flex;
             align-items: center;
-        }
-
-        .quality-badge i {
-            margin-right: 0.25rem;
         }
 
         /* Loading overlay styles */
@@ -304,6 +300,11 @@
                                 </p>
                             </div>
 
+                            <!-- Error message container -->
+                            <div id="error-message" class="alert alert-danger mt-3" style="display: none;" role="alert">
+                                <span id="error-text"></span>
+                            </div>
+
                             <div class="camera-container">
                                 <div id="video-container">
                                     <video id="video" autoplay playsinline></video>
@@ -439,7 +440,7 @@
                     // Fixing: Access the correct data from response
                     if (response.status === 'success') {
                         tempImage.quality = response.data.quality_metrics.blur_score;
-                        tempImage.isGoodQuality = response.data.quality_metrics.blur_score >= 30;
+                        tempImage.isGoodQuality = response.data.quality_metrics.blur_score >= 20;
                         tempImage.status = 'processed';
 
                         if (capturedShots.filter(shot => shot.isGoodQuality).length > 0) {
@@ -449,11 +450,19 @@
                         tempImage.status = 'error';
                         tempImage.message = response.message;
                         tempImage.isGoodQuality = false;
+
+                        // Remove the failed shot from the array
+                        capturedShots = capturedShots.filter(shot => shot.id !== tempImage.id);
+                        remainingShots = MAX_SHOTS - capturedShots.length;
                     }
                 } catch (error) {
                     tempImage.status = 'error';
                     tempImage.message = error.message;
                     tempImage.isGoodQuality = false;
+
+                    // Remove the failed shot from the array
+                    capturedShots = capturedShots.filter(shot => shot.id !== tempImage.id);
+                    remainingShots = MAX_SHOTS - capturedShots.length;
                 }
 
                 updateUI();
@@ -465,21 +474,36 @@
                 const formData = new FormData();
                 formData.append('image', blob, 'face.jpg');
 
-                // Use the correct route name
-                const response = await fetch('{{ route('student.face.validate-quality') }}', {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                        'X-API-Key': '{{ config('services.face_recognition.key') }}'
-                    },
-                    body: formData
-                });
+                try {
+                    const response = await fetch('{{ route('student.face.validate-quality') }}', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'X-API-Key': '{{ config('services.face_recognition.key') }}'
+                        },
+                        body: formData
+                    });
 
-                if (!response.ok) {
-                    throw new Error('Failed to validate image quality');
+                    const result = await response.json();
+
+                    if (result.status === 'error') {
+                        // Display the specific error message from the API
+                        errorText.textContent = result.message || 'Failed to validate image';
+                        errorMessage.style.display = 'flex';
+
+                        // Hide the error message after 5 seconds
+                        setTimeout(() => {
+                            errorMessage.style.display = 'none';
+                        }, 5000);
+
+                        throw new Error(result.message || 'Failed to validate image');
+                    }
+
+                    return result;
+                } catch (error) {
+                    console.error('Validation error:', error);
+                    throw error;
                 }
-
-                return response.json();
             }
 
             // Update UI based on captured shots
@@ -491,17 +515,9 @@
                         <span class="quality-indicator">
                             ${shot.quality ? `Quality: ${Math.round(shot.quality)}%` : 'Checking...'}
                         </span>
-                        ${!shot.isGoodQuality ? `
-                                        <button class="btn btn-danger btn-icon btn-sm" onclick="deleteShot(${shot.id})">
-                                            <i data-feather="trash-2"></i>
-                                        </button>
-                                    ` : ''}
+                        ${!shot.isGoodQuality ? `<button class="btn btn-danger btn-icon btn-sm" onclick="deleteShot(${shot.id})"><i data-feather="trash-2"></i></button>` : ''}
                     </div>
-                    ${shot.isGoodQuality ? `
-                                   <div class="btn btn-success btn-icon btn-sm">
-                                        <i data-feather="check-circle"></i>
-                                    </div>
-                                ` : ''}
+                    ${shot.isGoodQuality ? `<div class="quality-badge"><i data-feather="check-circle"></i></div>` : ''}
                 </div>
             `).join('');
 
