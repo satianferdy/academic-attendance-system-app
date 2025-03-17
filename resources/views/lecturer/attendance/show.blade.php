@@ -18,8 +18,9 @@
                         <h6 class="card-title">Attendance List - {{ $classSchedule->course->code }}</h6>
                         <div>
                             <a href="{{ route('lecturer.attendance.view_qr', ['classSchedule' => $classSchedule->id, 'date' => $date]) }}"
-                                class="btn btn-primary">
-                                <i data-feather="eye"></i> View QR Code
+                                class="btn btn-primary btn-sm btn-icon-text {{ $sessionExists ? '' : 'disabled' }}"
+                                type="button" {{ !$sessionExists ? 'onclick="return false;"' : '' }}>
+                                <i class="btn-icon-prepend" data-feather="info"></i>View QR
                             </a>
                         </div>
                     </div>
@@ -45,7 +46,7 @@
                     </div>
 
                     <div class="table-responsive">
-                        <table id="attendanceTable" class="table">
+                        <table id="dataTableExample" class="table">
                             <thead>
                                 <tr>
                                     <th>No</th>
@@ -82,8 +83,9 @@
                                         </td>
                                         <td>{{ $attendance->remarks ?? '-' }}</td>
                                         <td>
-                                            <button type="button" class="btn btn-sm btn-primary edit-attendance"
-                                                data-bs-toggle="modal" data-bs-target="#editAttendanceModal"
+                                            <button type="button" class="btn btn-primary btn-icon btn-sm edit-attendance"
+                                                data-bs-toggle="modal" title="Edit Attendance"
+                                                data-bs-target="#editAttendanceModal"
                                                 data-attendance-id="{{ $attendance->id }}"
                                                 data-student-name="{{ $attendance->student->user->name }}"
                                                 data-student-id="{{ $attendance->student->nim }}"
@@ -91,7 +93,7 @@
                                                 data-date="{{ \Carbon\Carbon::parse($attendance->date)->format('l, d F Y') }}"
                                                 data-status="{{ $attendance->status }}"
                                                 data-remarks="{{ $attendance->remarks }}">
-                                                <i data-feather="edit-2"></i> Edit
+                                                <i class="btn-icon-prepend" data-feather="edit"></i>
                                             </button>
                                         </td>
                                     </tr>
@@ -209,14 +211,6 @@
 @push('scripts')
     <script>
         $(document).ready(function() {
-            // Initialize datatable
-            $('#attendanceTable').DataTable({
-                "ordering": true,
-                "info": true,
-                "searching": true,
-                "lengthChange": true,
-                "pageLength": 25
-            });
 
             // Auto-submit date filter on change
             $('#date').change(function() {

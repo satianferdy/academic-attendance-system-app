@@ -84,8 +84,8 @@
     <!-- Custom js for this page -->
     <script src="{{ asset('assets/js/data-table.js') }}"></script>
     {{-- <script src="{{ asset('assets/js/lms-pw-update.js') }}"></script>
-    <script src="{{ asset('assets/js/dashboard-light.js') }}"></script>
-    <script src="{{ asset('assets/js/datepicker.js') }}"></script> --}}
+    <script src="{{ asset('assets/js/dashboard-light.js') }}"></script> --}}
+    {{-- <script src="{{ asset('assets/js/datepicker.js') }}"></script> --}}
     <script src="{{ asset('assets/js/sweet-alert.js') }}"></script>
     <!-- End custom js for this page -->
     @stack('scripts')

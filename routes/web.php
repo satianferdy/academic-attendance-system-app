@@ -55,12 +55,9 @@ Route::group(['middleware' => ['auth', 'role:lecturer'], 'prefix' => 'lecturer',
     Route::get('/attendance/view-qr/{classSchedule}/{date}', [LecturerAttendanceController::class, 'viewQR'])
     ->name('attendance.view_qr')
     ->where('date', '\d{4}-\d{2}-\d{2}'); // Validasi format tanggal YYYY-MM-DD
-
     Route::post('/attendance/extend-time/{classSchedule}/{date}', [LecturerAttendanceController::class, 'extendTime'])
     ->name('attendance.extend_time');
 
-    // Route::match(['get', 'post'], '/attendance/view-qr', [LecturerAttendanceController::class, 'viewQR'])->name('attendance.view_qr');
-    // Route::post('/attendance/extend-time', [LecturerAttendanceController::class, 'extendTime'])->name('attendance.extend_time');
 });
 
 // Student routes
