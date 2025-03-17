@@ -440,7 +440,7 @@
                     // Fixing: Access the correct data from response
                     if (response.status === 'success') {
                         tempImage.quality = response.data.quality_metrics.blur_score;
-                        tempImage.isGoodQuality = response.data.quality_metrics.blur_score >= 20;
+                        tempImage.isGoodQuality = response.data.quality_metrics.blur_score >= 50;
                         tempImage.status = 'processed';
 
                         if (capturedShots.filter(shot => shot.isGoodQuality).length > 0) {

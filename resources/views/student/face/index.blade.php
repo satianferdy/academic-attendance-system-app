@@ -286,7 +286,7 @@
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-md-4 mb-4 mb-md-0">
-                                    <img src="{{ asset('assets/images/register-face.jpg') }}" alt="Face Registration Tips"
+                                    <img src="{{ asset('assets/images/reg-face.jpg') }}" alt="Face Registration Tips"
                                         class="tips-image">
                                 </div>
                                 <div class="col-md-8">

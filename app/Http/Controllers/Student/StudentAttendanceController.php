@@ -61,6 +61,18 @@ class StudentAttendanceController extends Controller
         $classId = $data['class_id'];
         $date = $data['date'];
 
+        // Check if attendance already marked as present for this session
+        $existingAttendance = Attendance::where('class_schedule_id', $classId)
+            ->where('student_id', $student->id)
+            ->where('date', $date)
+            ->where('status', 'present') // Only consider "present" records
+            ->exists();
+
+        if ($existingAttendance) {
+            return redirect()->route('student.attendance.index')
+                ->with('info', 'You have already marked your attendance for this session.');
+        }
+
         $classSchedule = ClassSchedule::with(['course', 'lecturer.user', 'classroom'])
             ->findOrFail($classId);
 
@@ -108,6 +120,20 @@ class StudentAttendanceController extends Controller
                 'status' => 'error',
                 'message' => 'You are not enrolled in this class.',
             ], 403);
+        }
+
+        // Check if attendance already marked as present for this session
+        $existingAttendance = Attendance::where('class_schedule_id', $classId)
+            ->where('student_id', $student->id)
+            ->where('date', $data['date'])
+            ->where('status', 'present') // Only consider "present" records
+            ->exists();
+
+        if ($existingAttendance) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'You have already marked your attendance for this session.',
+            ], 400);
         }
 
         // Check if session is active
