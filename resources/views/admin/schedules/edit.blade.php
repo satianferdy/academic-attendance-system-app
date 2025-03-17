@@ -151,7 +151,7 @@
                                         @endforeach
                                     </div>
                                     <div class="selected-slots-container mt-3" style="display: none;">
-                                        <p class="fw-bold">Selected Time Slots:</p>
+                                        <p class="fw-bold mb-2">Selected Time Slots:</p>
                                         <div class="selected-slots-list d-flex flex-wrap gap-2"></div>
                                     </div>
                                     <div id="time_slots_error" class="text-danger mt-2" style="display: none;"></div>
@@ -163,8 +163,9 @@
                         <div id="time_slots_inputs"></div>
 
                         <div class="d-flex justify-content-end">
-                            <a href="{{ route('admin.schedules.index') }}" class="btn btn-secondary me-2">Cancel</a>
-                            <button type="submit" class="btn btn-primary">Update Schedule</button>
+                            <a href="{{ route('admin.schedules.index') }}"
+                                class="btn btn-sm btn-secondary me-2">Cancel</a>
+                            <button type="submit" class="btn btn-sm btn-primary">Update Schedule</button>
                         </div>
                     </form>
                 </div>

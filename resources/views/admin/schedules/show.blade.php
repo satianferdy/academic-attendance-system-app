@@ -18,7 +18,7 @@
                         <h6 class="card-title mb-0">Class Schedule Details</h6>
                         <div>
                             <a href="{{ route('admin.schedules.edit', $schedule->id) }}"
-                                class="btn btn-primary btn-icon-text">
+                                class="btn btn-primary btn-sm btn-icon-text">
                                 <i class="btn-icon-prepend" data-feather="edit"></i>
                                 Edit
                             </a>
@@ -26,7 +26,7 @@
                                 class="d-inline">
                                 @csrf
                                 @method('delete')
-                                <button type="submit" class="btn btn-danger btn-icon-text"
+                                <button type="submit" class="btn btn-danger btn-sm btn-icon-text"
                                     onclick="return confirm('Are you sure you want to delete this schedule?')">
                                     <i class="btn-icon-prepend" data-feather="trash-2"></i>
                                     Delete
@@ -45,11 +45,11 @@
                                     <table class="table table-borderless">
                                         <tr>
                                             <th width="30%">Course Code</th>
-                                            <td>{{ $schedule->course_code }}</td>
+                                            <td>{{ $schedule->course->code }}</td>
                                         </tr>
                                         <tr>
                                             <th>Course Name</th>
-                                            <td>{{ $schedule->course_name }}</td>
+                                            <td>{{ $schedule->course->name }}</td>
                                         </tr>
                                         <tr>
                                             <th>Semester</th>
@@ -172,7 +172,7 @@
                     </div>
 
                     <div class="d-flex justify-content-end mt-4">
-                        <a href="{{ route('admin.schedules.index') }}" class="btn btn-secondary">Back to List</a>
+                        <a href="{{ route('admin.schedules.index') }}" class="btn btn-sm btn-secondary">Back</a>
                     </div>
                 </div>
             </div>

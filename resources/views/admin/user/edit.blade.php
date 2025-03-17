@@ -9,8 +9,8 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h6 class="card-title">Edit User</h6>
-                        <a href="{{ route('admin.users.index') }}" class="btn btn-secondary">
-                            <i data-feather="arrow-left"></i> Back
+                        <a href="{{ route('admin.users.index') }}" class="btn btn-sm btn-icon-text btn-secondary">
+                            <i class="btn-icon-prepend" data-feather="arrow-left"></i> Back
                         </a>
                     </div>
 
@@ -117,7 +117,8 @@
                                             <label for="faculty" class="form-label">Faculty</label>
                                             <input type="text"
                                                 class="form-control @error('faculty') is-invalid @enderror" id="faculty"
-                                                name="faculty" value="{{ old('faculty', $user->student->faculty ?? '') }}"
+                                                name="faculty"
+                                                value="{{ old('faculty', $user->student->faculty ?? '') }}"
                                                 placeholder="Enter Faculty" required>
                                             @error('faculty')
                                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -195,8 +196,8 @@
                         @endif
 
                         <div class="mt-4">
-                            <button type="submit" class="btn btn-primary me-2">Update</button>
-                            <a href="{{ route('admin.users.index') }}" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-sm btn-primary me-2">Update</button>
+                            <a href="{{ route('admin.users.index') }}" class="btn btn-sm btn-secondary">Cancel</a>
                         </div>
                     </form>
                 </div>

@@ -18,7 +18,7 @@
                     <div class="d-flex justify-content-end mb-3">
                         <div>
                             <a href="{{ route('admin.schedules.create') }}"
-                                class="btn btn-primary btn-icon-text mb-2 mb-md-0">
+                                class="btn btn-primary btn-sm btn-icon-text mb-2 mb-md-0">
                                 <i class="btn-icon-prepend" data-feather="plus-square"></i>
                                 Add Schedule
                             </a>

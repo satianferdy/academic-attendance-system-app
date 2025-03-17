@@ -9,8 +9,8 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h6 class="card-title">Create New User</h6>
-                        <a href="{{ route('admin.users.index') }}" class="btn btn-secondary">
-                            <i data-feather="arrow-left"></i> Back
+                        <a href="{{ route('admin.users.index') }}" class="btn btn-sm btn-icon-text btn-secondary">
+                            <i class="btn-icon-prepend" data-feather="arrow-left"></i> Back
                         </a>
                     </div>
 
@@ -191,8 +191,8 @@
                         </div>
 
                         <div class="mt-4">
-                            <button type="submit" class="btn btn-primary me-2">Submit</button>
-                            <a href="{{ route('admin.users.index') }}" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-sm btn-primary me-2">Submit</button>
+                            <a href="{{ route('admin.users.index') }}" class="btn btn-sm btn-secondary">Cancel</a>
                         </div>
                     </form>
                 </div>

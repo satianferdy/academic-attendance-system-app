@@ -17,7 +17,8 @@
 
                     <div class="d-flex justify-content-end mb-3">
                         <div>
-                            <a href="{{ route('admin.users.create') }}" class="btn btn-primary btn-icon-text mb-2 mb-md-0">
+                            <a href="{{ route('admin.users.create') }}"
+                                class="btn btn-primary btn-sm btn-icon-text mb-2 mb-md-0">
                                 <i class="btn-icon-prepend" data-feather="plus-square"></i>
                                 Add User
                             </a>
@@ -75,28 +76,3 @@
         </div>
     </div>
 @endsection
-
-{{-- @push('scripts')
-    <script>
-        $(document).ready(function() {
-            $('.delete-confirm').on('click', function(e) {
-                e.preventDefault();
-                const form = $(this).closest('form');
-
-                Swal.fire({
-                    title: 'Are you sure?',
-                    text: "You won't be able to revert this!",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#3085d6',
-                    cancelButtonColor: '#d33',
-                    confirmButtonText: 'Yes, delete it!'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        form.submit();
-                    }
-                });
-            });
-        });
-    </script>
-@endpush --}}
