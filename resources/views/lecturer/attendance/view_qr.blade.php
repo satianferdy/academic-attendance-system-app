@@ -2,15 +2,48 @@
 
 @section('title', 'View QR Code')
 
+@push('styles')
+    <style>
+        /* Style for QR code display */
+        .qr-container svg {
+            width: 100%;
+            height: auto;
+            max-width: 250px;
+            display: inline-block;
+        }
+
+        .qr-code-large svg {
+            width: 100%;
+            height: auto;
+            max-width: 500px;
+            display: inline-block;
+        }
+
+        .qr-code-wrapper {
+            display: inline-block;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .qr-code-wrapper:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+@endpush
+
+
 @section('content')
     <nav class="page-breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{{ route('lecturer.dashboard') }}">Lecturer</a></li>
             <li class="breadcrumb-item"><a href="{{ route('lecturer.attendance.index') }}">Attendance</a></li>
-            <li class="breadcrumb-item"><a
-                    href="{{ route('lecturer.attendance.show', ['id' => $classSchedule->id]) }}">Attendance
-                    List</a></li>
-            <li class="breadcrumb-item active" aria-current="page">View QR Code</li>
+            <li class="breadcrumb-item"><a href="{{ route('lecturer.attendance.show', ['id' => $classSchedule->id]) }}">
+                    Attendance List</a></li>
+            <li class="breadcrumb-item
+                active" aria-current="page">View QR Code</li>
         </ol>
     </nav>
     <div class="row">
@@ -95,13 +128,23 @@
                                     <p class="text-muted mb-3">Students can scan this QR code to mark their attendance</p>
 
                                     <div class="qr-container mb-3">
-                                        {!! $qrCode !!}
+                                        <!-- Make QR code clickable to enlarge -->
+                                        <div class="qr-code-wrapper cursor-pointer" style="cursor: pointer;"
+                                            data-bs-toggle="modal" data-bs-target="#qrCodeModal">
+                                            {!! $qrCode !!}
+                                        </div>
                                     </div>
 
                                     <div class="alert alert-info mt-3">
                                         <i data-feather="clock" class="icon-sm me-2"></i>
                                         Session ends at <strong>{{ $sessionEndTime }}</strong>
                                     </div>
+
+                                    <!-- Download QR Code Button -->
+                                    <button type="button" class="btn btn-success btn-sm btn-icon-text mt-3"
+                                        id="downloadQRCode">
+                                        <i class="btn-icon-prepend" data-feather="download"></i>Download
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -154,11 +197,37 @@
             </div>
         </div>
     </div>
+
+    <!-- QR Code Modal for enlarged view -->
+    <div class="modal fade" id="qrCodeModal" tabindex="-1" aria-labelledby="qrCodeModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="qrCodeModalLabel">QR CODE - {{ $classSchedule->course->code }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <div class="qr-code-large" id="qrCodeLarge">
+                        {!! $qrCode !!}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-sm btn-icon-text btn-success" id="downloadModalQRCode">
+                        <i class="btn-icon-prepend" data-feather="download"></i>Download
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push('scripts')
     <script>
         $(document).ready(function() {
+            // Initialize feather icons in the modal
+            feather.replace();
+
             // Get session date and end time
             const sessionDate = '{{ $date }}';
             const sessionEndTime = '{{ $sessionEndTime }}';
@@ -184,6 +253,75 @@
                     return false;
                 });
             }
+
+            // Modal shown event - reinitialize feather icons
+            $('#qrCodeModal').on('shown.bs.modal', function() {
+                feather.replace();
+            });
+
+            // QR Code download functionality
+            function downloadQRCode() {
+                // Get the SVG content
+                const svgElement = document.querySelector('.qr-container svg');
+
+                if (!svgElement) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Download Failed',
+                        text: 'Unable to find QR code image for download.',
+                        confirmButtonColor: '#3085d6'
+                    });
+                    return;
+                }
+
+                // Create a canvas element
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+
+                // Set canvas dimensions (make it larger for better quality)
+                canvas.width = 1000;
+                canvas.height = 1000;
+
+                // Create a new Image object
+                const img = new Image();
+
+                // Convert SVG to data URL
+                const svgData = new XMLSerializer().serializeToString(svgElement);
+                const svgBlob = new Blob([svgData], {
+                    type: 'image/svg+xml;charset=utf-8'
+                });
+                const url = URL.createObjectURL(svgBlob);
+
+                // When the image loads, draw it on the canvas and trigger download
+                img.onload = function() {
+                    // Fill white background
+                    ctx.fillStyle = 'white';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                    // Draw the image
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                    // Convert canvas to blob
+                    canvas.toBlob(function(blob) {
+                        // Create download link
+                        const link = document.createElement('a');
+                        link.download =
+                            'QR_{{ $classSchedule->course->code }}_{{ $date }}.png';
+                        link.href = URL.createObjectURL(blob);
+                        link.click();
+
+                        // Clean up
+                        URL.revokeObjectURL(link.href);
+                    }, 'image/png');
+                };
+
+                // Set the src of the image to the SVG URL
+                img.src = url;
+            }
+
+            // Event listeners for download buttons
+            $('#downloadQRCode').on('click', downloadQRCode);
+            $('#downloadModalQRCode').on('click', downloadQRCode);
         });
     </script>
 @endpush
