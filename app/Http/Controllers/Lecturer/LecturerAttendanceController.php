@@ -101,7 +101,12 @@ class LecturerAttendanceController extends Controller
             ->where('date', $date)
             ->get();
 
-        return view('lecturer.attendance.show', compact('classSchedule', 'attendances', 'date'));
+        // check if session exists for the date
+        $sessionExists = SessionAttendance::where('class_schedule_id', $id)
+            ->where('session_date', $date)
+            ->exists();
+
+        return view('lecturer.attendance.show', compact('classSchedule', 'attendances', 'date', 'sessionExists'));
     }
 
     /**
@@ -177,6 +182,14 @@ class LecturerAttendanceController extends Controller
             ->where('session_date', $date)
             ->firstOrFail();
 
+        // Check if session exists
+        if (!$session) {
+            return redirect()->route('lecturer.attendance.show', [
+                'id' => $classSchedule->id,
+                'date' => $date
+            ])->with('error', 'Attendance session for this date has not been created yet. Please generate a new session first.');
+        }
+
         // Generate QR code
         $qrCode = $this->qrCodeService->generateForAttendance($classSchedule->id, $date);
 
@@ -208,12 +221,15 @@ class LecturerAttendanceController extends Controller
             ->where('session_date', $date)
             ->firstOrFail();
 
-        // Tambahkan validasi waktu
-        if (now() > $session->end_time) {
+        $currentDateTime = now();
+        $sessionDateTime = $session->session_date->setTimeFromTimeString($session->end_time->format('H:i:s'));
+
+        // Check if current date-time is after session end date-time
+        if ($currentDateTime > $sessionDateTime) {
             return redirect()->route('lecturer.attendance.view_qr', [
                 'classSchedule' => $classSchedule->id,
                 'date' => $date
-            ])->with('error', 'Attendance session has already ended. Extension is not allowed.');
+            ])->with('error', 'Attendance session has already ended (past the end time). Extension is not allowed.');
         }
 
         $session->update([
@@ -225,52 +241,5 @@ class LecturerAttendanceController extends Controller
             'classSchedule' => $classSchedule->id,
             'date' => $date
         ])->with('success', "Session extended by {$request->minutes} minutes");
-    }
-
-
-    public function generateQR(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'class_id' => 'required|exists:class_schedules,id',
-            'date' => 'required|date',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => $validator->errors()->first(),
-            ], 400);
-        }
-
-        $classSchedule = ClassSchedule::findOrFail($request->class_id);
-
-        // Check if the lecturer owns this class
-        if ($classSchedule->lecturer_id != Auth::user()->lecturer->id) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'You do not have permission to generate QR code for this class.',
-            ], 403);
-        }
-
-        // Update session end time
-        $session = SessionAttendance::where('class_schedule_id', $request->class_id)
-            ->where('session_date', $request->date)
-            ->first();
-
-        if ($session) {
-            $session->update([
-                'end_time' => now()->addMinutes(30),
-                'is_active' => true
-            ]);
-        }
-
-        // Generate QR code
-        $qrCode = $this->qrCodeService->generateForAttendance($request->class_id, $request->date);
-
-        return response()->json([
-            'status' => 'success',
-            'qr_code' => $qrCode,
-            'expires_at' => now()->addMinutes(30)->format('H:i')
-        ]);
     }
 }

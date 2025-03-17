@@ -21,8 +21,8 @@
                         <h6 class="card-title">QR Code - {{ $classSchedule->course->code }}</h6>
                         <div>
                             <a href="{{ route('lecturer.attendance.show', ['id' => $classSchedule->id]) }}"
-                                class="btn btn-secondary">
-                                <i data-feather="list"></i> Back to Attendance List
+                                class="btn btn-secondary btn-sm btn-icon-text" type="button">
+                                <i class="btn-icon-prepend" data-feather="list"></i> Back to Attendance List
                             </a>
                         </div>
                     </div>
@@ -79,9 +79,9 @@
                                         </table>
                                     </div>
                                     <div class="d-grid gap-2 mt-3">
-                                        <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                                        <button type="button" class="btn btn-primary btn-icon-text" data-bs-toggle="modal"
                                             data-bs-target="#extendSessionModal">
-                                            <i data-feather="clock"></i> Extend Session
+                                            <i class="btn-icon-prepend" data-feather="clock"></i>Extend Session
                                         </button>
                                     </div>
                                 </div>
@@ -129,26 +129,20 @@
                         method="POST">
                         @csrf
 
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="radio" name="minutes" id="minutes10" value="10"
-                                checked>
-                            <label class="form-check-label" for="minutes10">
-                                10 minutes
-                            </label>
-                        </div>
+                        <div class="d-flex justify-content-center pt-2">
+                            <div class="btn-group w-100" role="group" aria-label="Extension time options">
+                                <input type="radio" class="btn-check" name="minutes" id="minutes10" value="10"
+                                    autocomplete="off" checked>
+                                <label class="btn btn-outline-primary" for="minutes10">10 minutes</label>
 
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="radio" name="minutes" id="minutes20" value="20">
-                            <label class="form-check-label" for="minutes20">
-                                20 minutes
-                            </label>
-                        </div>
+                                <input type="radio" class="btn-check" name="minutes" id="minutes20" value="20"
+                                    autocomplete="off">
+                                <label class="btn btn-outline-primary" for="minutes20">20 minutes</label>
 
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="radio" name="minutes" id="minutes30" value="30">
-                            <label class="form-check-label" for="minutes30">
-                                30 minutes
-                            </label>
+                                <input type="radio" class="btn-check" name="minutes" id="minutes30" value="30"
+                                    autocomplete="off">
+                                <label class="btn btn-outline-primary" for="minutes30">30 minutes</label>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -165,13 +159,28 @@
 @push('scripts')
     <script>
         $(document).ready(function() {
-            const sessionEndTime = new Date('{{ $sessionEndTime }}');
+            // Get session date and end time
+            const sessionDate = '{{ $date }}';
+            const sessionEndTime = '{{ $sessionEndTime }}';
+
+            // Combine date and time for comparison
+            const sessionDateTime = new Date(`${sessionDate}T${sessionEndTime}`);
             const now = new Date();
 
-            if (now > sessionEndTime) {
+            // Disable extension if current datetime is after session datetime
+            if (now > sessionDateTime) {
                 $('#extendSessionModal button[type="button"]').prop('disabled', true);
                 $('#extendSessionModal').on('show.bs.modal', function(e) {
-                    alert('Session has already ended!');
+                    e.preventDefault();
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Session Ended',
+                        text: 'Attendance session has already ended!',
+                        confirmButtonColor: '#3085d6',
+                        confirmButtonText: 'OK'
+                    });
+
                     return false;
                 });
             }
