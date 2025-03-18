@@ -388,19 +388,58 @@
             // Start the camera
             async function startCamera() {
                 try {
-                    stream = await navigator.mediaDevices.getUserMedia({
-                        video: {
-                            facingMode: 'user',
-                            width: {
-                                ideal: 1280
-                            },
-                            height: {
-                                ideal: 720
-                            }
-                        }
+                    // Tambahkan kode ini untuk mendapatkan daftar kamera yang tersedia
+                    const devices = await navigator.mediaDevices.enumerateDevices();
+                    const videoDevices = devices.filter(device => device.kind === 'videoinput');
+
+                    // Tambahkan elemen select untuk memilih kamera
+                    const cameraSelect = document.createElement('select');
+                    cameraSelect.id = 'camera-select';
+                    cameraSelect.className = 'form-select form-select-sm mb-3';
+
+                    videoDevices.forEach((device, index) => {
+                        const option = document.createElement('option');
+                        option.value = device.deviceId;
+                        option.text = device.label || `Kamera ${index + 1}`;
+                        cameraSelect.appendChild(option);
                     });
-                    video.srcObject = stream;
-                    captureBtn.disabled = false;
+
+                    // Tambahkan elemen select ke dalam DOM
+                    const cameraContainer = document.querySelector('.camera-container');
+                    cameraContainer.insertBefore(cameraSelect, document.getElementById('video-container'));
+
+                    // Fungsi untuk memulai kamera dengan device ID tertentu
+                    async function startVideoStream(deviceId = null) {
+                        if (stream) {
+                            stream.getTracks().forEach(track => track.stop());
+                        }
+
+                        stream = await navigator.mediaDevices.getUserMedia({
+                            video: {
+                                deviceId: deviceId ? {
+                                    exact: deviceId
+                                } : undefined,
+                                facingMode: 'user',
+                                width: {
+                                    ideal: 1280
+                                },
+                                height: {
+                                    ideal: 720
+                                }
+                            }
+                        });
+
+                        video.srcObject = stream;
+                        captureBtn.disabled = false;
+                    }
+
+                    // Tambahkan event listener untuk mengubah kamera
+                    cameraSelect.addEventListener('change', function() {
+                        startVideoStream(this.value);
+                    });
+
+                    // Mulai dengan kamera pertama
+                    await startVideoStream(videoDevices.length > 0 ? videoDevices[0].deviceId : null);
                     updateStepIndicators(1);
                 } catch (err) {
                     errorText.textContent = 'Error accessing camera: ' + err.message;

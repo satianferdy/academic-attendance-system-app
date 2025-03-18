@@ -405,12 +405,140 @@
 
             let stream;
 
-            // Start the camera
+            // Function to get available video devices and select the appropriate one
+            async function getVideoDevices() {
+                try {
+                    // Get all media devices
+                    const devices = await navigator.mediaDevices.enumerateDevices();
+
+                    // Filter for video input devices (cameras)
+                    const videoDevices = devices.filter(device => device.kind === 'videoinput');
+
+                    // console.log('All available video devices:', videoDevices);
+
+                    if (videoDevices.length === 0) {
+                        throw new Error('No video devices found');
+                    }
+
+                    // Create a list of device labels and IDs for inspection
+                    const deviceList = videoDevices.map((device, index) => {
+                        return {
+                            index: index,
+                            label: device.label || `Camera ${index + 1}`,
+                            id: device.deviceId
+                        };
+                    });
+
+                    // console.log('Device list:', deviceList);
+
+                    // Filter out OBS and other virtual cameras
+                    const realCameras = videoDevices.filter(device => {
+                        const label = (device.label || '').toLowerCase();
+                        return !label.includes('obs') &&
+                            !label.includes('virtual') &&
+                            !label.includes('screen') &&
+                            !label.includes('display');
+                    });
+
+                    console.log('Filtered real cameras:', realCameras);
+
+                    // If we have real cameras, use the last one (likely external)
+                    if (realCameras.length > 0) {
+                        return realCameras[realCameras.length - 1].deviceId;
+                    }
+
+                    // If no real cameras detected, use the first available camera
+                    return videoDevices[0].deviceId;
+                } catch (err) {
+                    console.error('Error enumerating devices:', err);
+                    return null;
+                }
+            }
+
+            // Function to add a camera selection dropdown
+            async function addCameraSelector() {
+                try {
+                    const devices = await navigator.mediaDevices.enumerateDevices();
+                    const videoDevices = devices.filter(device => device.kind === 'videoinput');
+
+                    if (videoDevices.length <= 1) {
+                        return; // No need for selector if we have only one camera
+                    }
+
+                    // Create the selector container
+                    const selectorContainer = document.createElement('div');
+                    selectorContainer.className = 'mb-3';
+
+                    // Create a label
+                    const label = document.createElement('label');
+                    label.className = 'form-label';
+                    label.textContent = 'Select Camera:';
+                    selectorContainer.appendChild(label);
+
+                    // Create the select element
+                    const select = document.createElement('select');
+                    select.className = 'form-select';
+                    select.id = 'camera-selector';
+
+                    // Add options for each camera
+                    videoDevices.forEach((device, index) => {
+                        const option = document.createElement('option');
+                        option.value = device.deviceId;
+                        option.textContent = device.label || `Camera ${index + 1}`;
+                        select.appendChild(option);
+                    });
+
+                    selectorContainer.appendChild(select);
+
+                    // Insert before the camera container
+                    videoContainer.parentNode.insertBefore(selectorContainer, videoContainer);
+
+                    // Add event listener to change camera
+                    select.addEventListener('change', async function() {
+                        // Stop current stream
+                        if (stream) {
+                            stream.getTracks().forEach(track => track.stop());
+                        }
+
+                        // Start new stream with selected device
+                        try {
+                            stream = await navigator.mediaDevices.getUserMedia({
+                                video: {
+                                    deviceId: {
+                                        exact: this.value
+                                    },
+                                    width: {
+                                        ideal: 1280
+                                    },
+                                    height: {
+                                        ideal: 720
+                                    }
+                                }
+                            });
+                            video.srcObject = stream;
+                        } catch (err) {
+                            console.error('Error switching camera:', err);
+                            errorMessageText.textContent = 'Error switching camera: ' + err.message;
+                            errorMessage.style.display = 'block';
+                        }
+                    });
+                } catch (err) {
+                    console.error('Error creating camera selector:', err);
+                }
+            }
+
+            // Start the camera with the selected device
             async function startCamera() {
                 try {
-                    stream = await navigator.mediaDevices.getUserMedia({
+                    // Get the preferred camera device ID
+                    const deviceId = await getVideoDevices();
+
+                    // Create camera selector dropdown
+                    await addCameraSelector();
+
+                    // Configure constraints based on available devices
+                    const constraints = {
                         video: {
-                            facingMode: 'user',
                             width: {
                                 ideal: 1280
                             },
@@ -418,13 +546,49 @@
                                 ideal: 720
                             }
                         }
-                    });
+                    };
+
+                    // If we have a specific device ID, use it
+                    if (deviceId) {
+                        constraints.video.deviceId = {
+                            exact: deviceId
+                        };
+                    }
+
+                    // Get media stream with our constraints
+                    stream = await navigator.mediaDevices.getUserMedia(constraints);
                     video.srcObject = stream;
                     captureBtn.disabled = false;
+
+                    // Update the camera selector to show the current device
+                    const cameraSelector = document.getElementById('camera-selector');
+                    if (cameraSelector && deviceId) {
+                        cameraSelector.value = deviceId;
+                    }
+
+                    console.log('Camera started with device ID:', deviceId);
                 } catch (err) {
-                    errorMessageText.textContent = 'Error accessing camera: ' + err.message;
-                    errorMessage.style.display = 'block';
-                    captureBtn.disabled = true;
+                    console.error('Camera access error:', err);
+
+                    // If specific device fails, try again without specifying device
+                    if (err.name === 'OverconstrainedError' || err.name === 'ConstraintNotSatisfiedError') {
+                        try {
+                            console.log('Falling back to default camera');
+                            stream = await navigator.mediaDevices.getUserMedia({
+                                video: true
+                            });
+                            video.srcObject = stream;
+                            captureBtn.disabled = false;
+                        } catch (fallbackErr) {
+                            errorMessageText.textContent = 'Error accessing camera: ' + fallbackErr.message;
+                            errorMessage.style.display = 'block';
+                            captureBtn.disabled = true;
+                        }
+                    } else {
+                        errorMessageText.textContent = 'Error accessing camera: ' + err.message;
+                        errorMessage.style.display = 'block';
+                        captureBtn.disabled = true;
+                    }
                 }
             }
 
