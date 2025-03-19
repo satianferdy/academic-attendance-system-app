@@ -18,8 +18,15 @@ class UserManagementController extends Controller
      */
     public function index()
     {
-        $user = User::paginate(10);
-        return view('admin.user.index', compact('user'));
+        // Get all users with their relationships
+        $users = User::with(['student', 'lecturer'])->get();
+
+        // Filter users by role
+        $admins = $users->where('role', 'admin');
+        $lecturers = $users->where('role', 'lecturer');
+        $students = $users->where('role', 'student');
+
+        return view('admin.user.index', compact('users', 'admins', 'lecturers', 'students'));
     }
 
     /**
@@ -203,6 +210,9 @@ class UserManagementController extends Controller
             ->with('success', 'User updated successfully.');
     }
 
+    /**
+     * Remove the specified resource from storage.
+     */
     public function destroy(User $user)
     {
         $user->delete();

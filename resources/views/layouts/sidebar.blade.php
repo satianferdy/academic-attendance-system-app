@@ -23,8 +23,8 @@
                 </li>
 
                 {{-- Admin Only Menus --}}
-                <li class="nav-item nav-category">Admin</li>
                 @if (auth()->user()->role === 'admin')
+                    <li class="nav-item nav-category">General</li>
                     <li class="nav-item">
                         <a href="{{ route('admin.users.index') }}"
                             class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">

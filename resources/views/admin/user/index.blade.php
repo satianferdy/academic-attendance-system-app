@@ -25,54 +25,235 @@
                         </div>
                     </div>
 
-                    <div class="table-responsive">
-                        <table id="dataTableExample" class="table">
-                            <thead>
-                                <tr>
-                                    <th>No</th>
-                                    <th>Name</th>
-                                    <th>Email</th>
-                                    <th>Role</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($user as $key => $item)
-                                    <tr>
-                                        <td>{{ $user->firstItem() + $key }}</td>
-                                        <td>{{ $item->name }}</td>
-                                        <td>{{ $item->email }}</td>
-                                        <td>
-                                            <span
-                                                class="badge bg-{{ $item->role == 'admin' ? 'danger' : ($item->role == 'lecturer' ? 'warning' : 'info') }}">
-                                                {{ ucfirst($item->role) }}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <a href="{{ route('admin.users.edit', $item->id) }}"
-                                                class="btn btn-sm btn-primary btn-icon">
-                                                <i class="btn-icon-prepend" data-feather="check-square"></i>
-                                            </a>
-                                            <form action="{{ route('admin.users.destroy', $item->id) }}" method="post"
-                                                class="d-inline">
-                                                @csrf
-                                                @method('delete')
-                                                <button class="btn btn-delete btn-sm btn-danger btn-icon">
-                                                    <i class="btn-icon-prepend" data-feather="trash-2"></i>
-                                                </button>
-                                            </form>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="5" class="text-center">No users found</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
+                    <ul class="nav nav-tabs" id="userTabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="all-tab" data-bs-toggle="tab" href="#all" role="tab"
+                                aria-controls="all" aria-selected="true">All Users</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="admin-tab" data-bs-toggle="tab" href="#admin" role="tab"
+                                aria-controls="admin" aria-selected="false">Admin</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="lecturer-tab" data-bs-toggle="tab" href="#lecturer" role="tab"
+                                aria-controls="lecturer" aria-selected="false">Lecturer</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="student-tab" data-bs-toggle="tab" href="#student" role="tab"
+                                aria-controls="student" aria-selected="false">Student</a>
+                        </li>
+                    </ul>
+                    <div class="tab-content border border-top-0 p-3" id="userTabContent">
+                        <!-- All Users Tab -->
+                        <div class="tab-pane fade show active" id="all" role="tabpanel" aria-labelledby="all-tab">
+                            <div class="table-responsive">
+                                <table id="allUsersTable" class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>No</th>
+                                            <th>NIM/NIP</th>
+                                            <th>Name</th>
+                                            <th>Email</th>
+                                            <th>Role</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @forelse($users as $key => $item)
+                                            <tr>
+                                                <td>{{ $key + 1 }}</td>
+                                                <td>
+                                                    {{ $item->role == 'student' ? $item->student->nim : ($item->role == 'lecturer' ? $item->lecturer->nip : '-') }}
+                                                </td>
+                                                <td>{{ $item->name }}</td>
+                                                <td>{{ $item->email }}</td>
+                                                <td>
+                                                    <span
+                                                        class="badge bg-{{ $item->role == 'admin' ? 'danger' : ($item->role == 'lecturer' ? 'warning' : 'info') }}">
+                                                        {{ ucfirst($item->role) }}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <a href="{{ route('admin.users.edit', $item->id) }}"
+                                                        class="btn btn-sm btn-primary btn-icon">
+                                                        <i class="btn-icon-prepend" data-feather="check-square"></i>
+                                                    </a>
+                                                    <form action="{{ route('admin.users.destroy', $item->id) }}"
+                                                        method="post" class="d-inline">
+                                                        @csrf
+                                                        @method('delete')
+                                                        <button class="btn btn-delete btn-sm btn-danger btn-icon">
+                                                            <i class="btn-icon-prepend" data-feather="trash-2"></i>
+                                                        </button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        @empty
+                                            <tr>
+                                                <td colspan="6" class="text-center">No users found</td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Admin Tab -->
+                        <div class="tab-pane fade" id="admin" role="tabpanel" aria-labelledby="admin-tab">
+                            <div class="table-responsive">
+                                <table id="adminTable" class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>No</th>
+                                            <th>Name</th>
+                                            <th>Email</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @forelse($admins as $key => $item)
+                                            <tr>
+                                                <td>{{ $key + 1 }}</td>
+                                                <td>{{ $item->name }}</td>
+                                                <td>{{ $item->email }}</td>
+                                                <td>
+                                                    <a href="{{ route('admin.users.edit', $item->id) }}"
+                                                        class="btn btn-sm btn-primary btn-icon">
+                                                        <i class="btn-icon-prepend" data-feather="check-square"></i>
+                                                    </a>
+                                                    <form action="{{ route('admin.users.destroy', $item->id) }}"
+                                                        method="post" class="d-inline">
+                                                        @csrf
+                                                        @method('delete')
+                                                        <button class="btn btn-delete btn-sm btn-danger btn-icon">
+                                                            <i class="btn-icon-prepend" data-feather="trash-2"></i>
+                                                        </button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        @empty
+                                            <tr>
+                                                <td colspan="4" class="text-center">No admin users found</td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Lecturer Tab -->
+                        <div class="tab-pane fade" id="lecturer" role="tabpanel" aria-labelledby="lecturer-tab">
+                            <div class="table-responsive">
+                                <table id="lecturerTable" class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>No</th>
+                                            <th>NIP</th>
+                                            <th>Name</th>
+                                            <th>Email</th>
+                                            <th>Department</th>
+                                            <th>Faculty</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @forelse($lecturers as $key => $item)
+                                            <tr>
+                                                <td>{{ $key + 1 }}</td>
+                                                <td>{{ $item->lecturer->nip }}</td>
+                                                <td>{{ $item->name }}</td>
+                                                <td>{{ $item->email }}</td>
+                                                <td>{{ $item->lecturer->department }}</td>
+                                                <td>{{ $item->lecturer->faculty }}</td>
+                                                <td>
+                                                    <a href="{{ route('admin.users.edit', $item->id) }}"
+                                                        class="btn btn-sm btn-primary btn-icon">
+                                                        <i class="btn-icon-prepend" data-feather="check-square"></i>
+                                                    </a>
+                                                    <form action="{{ route('admin.users.destroy', $item->id) }}"
+                                                        method="post" class="d-inline">
+                                                        @csrf
+                                                        @method('delete')
+                                                        <button class="btn btn-delete btn-sm btn-danger btn-icon">
+                                                            <i class="btn-icon-prepend" data-feather="trash-2"></i>
+                                                        </button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        @empty
+                                            <tr>
+                                                <td colspan="7" class="text-center">No lecturer users found</td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Student Tab -->
+                        <div class="tab-pane fade" id="student" role="tabpanel" aria-labelledby="student-tab">
+                            <div class="table-responsive">
+                                <table id="studentTable" class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>No</th>
+                                            <th>NIM</th>
+                                            <th>Name</th>
+                                            <th>Email</th>
+                                            <th>Department</th>
+                                            <th>Faculty</th>
+                                            <th>Class</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @forelse($students as $key => $item)
+                                            <tr>
+                                                <td>{{ $key + 1 }}</td>
+                                                <td>{{ $item->student->nim }}</td>
+                                                <td>{{ $item->name }}</td>
+                                                <td>{{ $item->email }}</td>
+                                                <td>{{ $item->student->department }}</td>
+                                                <td>{{ $item->student->faculty }}</td>
+                                                <td>{{ $item->student->classroom->name ?? '-' }}</td>
+                                                <td>
+                                                    <a href="{{ route('admin.users.edit', $item->id) }}"
+                                                        class="btn btn-sm btn-primary btn-icon">
+                                                        <i class="btn-icon-prepend" data-feather="check-square"></i>
+                                                    </a>
+                                                    <form action="{{ route('admin.users.destroy', $item->id) }}"
+                                                        method="post" class="d-inline">
+                                                        @csrf
+                                                        @method('delete')
+                                                        <button class="btn btn-delete btn-sm btn-danger btn-icon">
+                                                            <i class="btn-icon-prepend" data-feather="trash-2"></i>
+                                                        </button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        @empty
+                                            <tr>
+                                                <td colspan="8" class="text-center">No student users found</td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 @endsection
+
+@push('scripts')
+    <script>
+        $(document).ready(function() {
+            $('#allUsersTable').DataTable();
+            $('#adminTable').DataTable();
+            $('#lecturerTable').DataTable();
+            $('#studentTable').DataTable();
+        });
+    </script>
+@endpush
