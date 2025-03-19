@@ -90,6 +90,16 @@
                             <span class="link-title">Attendance</span>
                         </a>
                     </li>
+                    {{-- schedule --}}
+                    <li class="nav-item">
+                        <a href="{{ route('lecturer.schedule.index') }}"
+                            class="nav-link {{ request()->routeIs('lecturer.schedule.*') ? 'active' : '' }}">
+                            <i class="link-icon" data-feather="calendar"></i>
+                            <span
+                                class="link-title
+                                {{ request()->routeIs('lecturer.schedule.*') ? 'active' : '' }}">Schedule</span>
+                        </a>
+                    </li>
                 @endif
             @endauth
         </ul>

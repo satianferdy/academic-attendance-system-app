@@ -8,6 +8,7 @@ use App\Http\Controllers\Lecturer\LecturerAttendanceController;
 use App\Http\Controllers\Student\StudentAttendanceController;
 use App\Http\Controllers\Student\FaceRegistrationController;
 use App\Http\Controllers\Admin\AttendanceListController;
+use App\Http\Controllers\Lecturer\LecturerScheduleController;
 
 Route::get('/', function () {
     return view('auth.login');
@@ -48,6 +49,9 @@ Route::group(['middleware' => ['auth', 'role:lecturer'], 'prefix' => 'lecturer',
     Route::get('/dashboard', function () {
         return view('lecturer.dashboard');
     })->name('dashboard');
+
+    //schedule
+    Route::get('/schedule', [LecturerScheduleController::class, 'index'])->name('schedule.index');
 
     // Attendance Management
     Route::get('/attendance', [LecturerAttendanceController::class, 'index'])->name('attendance.index');
