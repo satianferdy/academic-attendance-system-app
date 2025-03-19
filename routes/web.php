@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\ClassScheduleController;
 use App\Http\Controllers\Lecturer\LecturerAttendanceController;
 use App\Http\Controllers\Student\StudentAttendanceController;
 use App\Http\Controllers\Student\FaceRegistrationController;
+use App\Http\Controllers\Admin\AttendanceListController;
 
 Route::get('/', function () {
     return view('auth.login');
@@ -36,6 +37,10 @@ Route::group(['middleware' => ['auth', 'role:admin'], 'prefix' => 'admin', 'as' 
 
     // User management routes
     Route::resource('users', UserManagementController::class);
+
+    // Attendance list
+    Route::get('attendance', [AttendanceListController::class, 'index'])->name('attendance.index');
+    Route::post('attendance/update-status', [AttendanceListController::class, 'updateStatus'])->name('attendance.update-status');
 });
 
 // Lecturer routes
