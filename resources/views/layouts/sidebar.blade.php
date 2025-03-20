@@ -37,7 +37,7 @@
                         <a href="{{ route('admin.schedules.index') }}"
                             class="nav-link {{ request()->routeIs('admin.schedules.*') ? 'active' : '' }}">
                             <i class="link-icon" data-feather="calendar"></i>
-                            <span class="link-title">Class Schedule</span>
+                            <span class="link-title">Schedule Management</span>
                         </a>
                     </li>
 
@@ -57,6 +57,16 @@
                 {{-- Student Only Menus --}}
                 @if (auth()->user()->role === 'student')
                     <li class="nav-item nav-category">General</li>
+                    {{-- schedule --}}
+                    <li class="nav-item">
+                        <a href="{{ route('student.schedule.index') }}"
+                            class="nav-link {{ request()->routeIs('student.schedule.*') ? 'active' : '' }}">
+                            <i class="link-icon" data-feather="calendar"></i>
+                            <span
+                                class="link-title
+                                {{ request()->routeIs('student.schedule.*') ? 'active' : '' }}">Schedule</span>
+                        </a>
+                    </li>
                     {{-- attendance --}}
                     <li class="nav-item">
                         <a href="{{ route('student.attendance.index') }}"
@@ -64,7 +74,8 @@
                             <i class="link-icon" data-feather="calendar"></i>
                             <span
                                 class="link-title
-                                {{ request()->routeIs('student.attendance.*') ? 'active' : '' }}">Attendance</span>
+                                {{ request()->routeIs('student.attendance.*') ? 'active' : '' }}">Attendance
+                                Records</span>
                         </a>
                     </li>
                     {{-- face --}}
@@ -75,7 +86,7 @@
                             <span
                                 class="link-title
                                 {{ request()->routeIs('student.face.*') ? 'active' : '' }}">Face
-                                Recognition</span>
+                                Registration</span>
                         </a>
                     </li>
                 @endif
