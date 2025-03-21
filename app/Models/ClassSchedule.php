@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Carbon\Carbon;
 
 class ClassSchedule extends Model
 {
@@ -44,7 +45,6 @@ class ClassSchedule extends Model
         return $this->hasMany(Attendance::class);
     }
 
-    // Add the relationship to time slots
     public function timeSlots()
     {
         return $this->hasMany(ScheduleTimeSlot::class);
@@ -52,67 +52,102 @@ class ClassSchedule extends Model
 
     public function students()
     {
-        // Get students who belong to the same classroom as this schedule
         return $this->classroom ? $this->classroom->students() : $this->newCollection();
     }
 
-    // Static method to check for time slot availability
-    public static function isTimeSlotAvailable($room, $day, $startTime, $endTime, $lecturer_id = null, $excludeId = null)
+    // Scope methods for common queries
+    public function scopeOnDay($query, $day)
     {
-        // First check for room conflicts
-        $roomConflicts = self::where('room', $room)
-            ->where('day', $day);
+        return $query->where('day', $day);
+    }
 
-        if ($excludeId) {
-            $roomConflicts->where('id', '!=', $excludeId);
-        }
+    public function scopeByRoom($query, $room)
+    {
+        return $query->where('room', $room);
+    }
 
-        $roomConflicts = $roomConflicts->with('timeSlots')->get();
+    public function scopeByLecturer($query, $lecturer_id)
+    {
+        return $query->where('lecturer_id', $lecturer_id);
+    }
 
-        foreach ($roomConflicts as $schedule) {
+    public function scopeExclude($query, $excludeId)
+    {
+        return $excludeId ? $query->where('id', '!=', $excludeId) : $query;
+    }
+
+    // Static method to check for time slot availability
+    public static function checkTimeOverlap($start1, $end1, $start2, $end2)
+    {
+        $start1 = Carbon::createFromFormat('H:i', $start1);
+        $end1 = Carbon::createFromFormat('H:i', $end1);
+        $start2 = Carbon::createFromFormat('H:i', $start2);
+        $end2 = Carbon::createFromFormat('H:i', $end2);
+
+        return
+            // Start time is within an existing slot
+            ($start1->gte($start2) && $start1->lt($end2)) ||
+            // End time is within an existing slot
+            ($end1->gt($start2) && $end1->lte($end2)) ||
+            // Selected time encloses an existing slot
+            ($start1->lte($start2) && $end1->gte($end2));
+    }
+
+    public static function findConflictingTimeSlots($room, $day, $startTime, $endTime, $lecturer_id = null, $excludeId = null)
+    {
+        $conflicts = [
+            'room' => [],
+            'lecturer' => []
+        ];
+
+        // Check room conflicts
+        $roomSchedules = self::byRoom($room)
+            ->onDay($day)
+            ->exclude($excludeId)
+            ->with(['timeSlots', 'lecturer.user'])
+            ->get();
+
+        foreach ($roomSchedules as $schedule) {
             foreach ($schedule->timeSlots as $timeSlot) {
-                // Check for overlapping time slots
-                if (
-                    // Start time is within an existing slot
-                    ($startTime >= $timeSlot->start_time->format('H:i') && $startTime < $timeSlot->end_time->format('H:i')) ||
-                    // End time is within an existing slot
-                    ($endTime > $timeSlot->start_time->format('H:i') && $endTime <= $timeSlot->end_time->format('H:i')) ||
-                    // Selected time encloses an existing slot
-                    ($startTime <= $timeSlot->start_time->format('H:i') && $endTime >= $timeSlot->end_time->format('H:i'))
-                ) {
-                    return [false, 'room']; // Room conflict
+                if (self::checkTimeOverlap(
+                    $startTime,
+                    $endTime,
+                    $timeSlot->start_time->format('H:i'),
+                    $timeSlot->end_time->format('H:i')
+                )) {
+                    $conflicts['room'][] = [
+                        'slot' => $timeSlot->start_time->format('H:i') . ' - ' . $timeSlot->end_time->format('H:i'),
+                        'schedule' => $schedule
+                    ];
                 }
             }
         }
 
-        // If lecturer_id is provided, check for lecturer conflicts
+        // Check lecturer conflicts
         if ($lecturer_id) {
-            $lecturerConflicts = self::where('lecturer_id', $lecturer_id)
-                ->where('day', $day);
+            $lecturerSchedules = self::byLecturer($lecturer_id)
+                ->onDay($day)
+                ->exclude($excludeId)
+                ->with(['timeSlots', 'lecturer.user'])
+                ->get();
 
-            if ($excludeId) {
-                $lecturerConflicts->where('id', '!=', $excludeId);
-            }
-
-            $lecturerConflicts = $lecturerConflicts->with('timeSlots')->get();
-
-            foreach ($lecturerConflicts as $schedule) {
+            foreach ($lecturerSchedules as $schedule) {
                 foreach ($schedule->timeSlots as $timeSlot) {
-                    // Check for overlapping time slots
-                    if (
-                        // Start time is within an existing slot
-                        ($startTime >= $timeSlot->start_time->format('H:i') && $startTime < $timeSlot->end_time->format('H:i')) ||
-                        // End time is within an existing slot
-                        ($endTime > $timeSlot->start_time->format('H:i') && $endTime <= $timeSlot->end_time->format('H:i')) ||
-                        // Selected time encloses an existing slot
-                        ($startTime <= $timeSlot->start_time->format('H:i') && $endTime >= $timeSlot->end_time->format('H:i'))
-                    ) {
-                        return [false, 'lecturer']; // Lecturer conflict
+                    if (self::checkTimeOverlap(
+                        $startTime,
+                        $endTime,
+                        $timeSlot->start_time->format('H:i'),
+                        $timeSlot->end_time->format('H:i')
+                    )) {
+                        $conflicts['lecturer'][] = [
+                            'slot' => $timeSlot->start_time->format('H:i') . ' - ' . $timeSlot->end_time->format('H:i'),
+                            'schedule' => $schedule
+                        ];
                     }
                 }
             }
         }
 
-        return [true, null]; // Time slot is available
+        return $conflicts;
     }
 }

@@ -24,4 +24,26 @@ class ScheduleTimeSlot extends Model
     {
         return $this->belongsTo(ClassSchedule::class);
     }
+
+    // Add a scope to find overlapping time slots
+    public function scopeOverlappingWith($query, $startTime, $endTime)
+    {
+        return $query->where(function($query) use ($startTime, $endTime) {
+            // Start time is within an existing slot
+            $query->where(function($q) use ($startTime, $endTime) {
+                $q->where('start_time', '<=', $startTime)
+                  ->where('end_time', '>', $startTime);
+            })
+            // End time is within an existing slot
+            ->orWhere(function($q) use ($startTime, $endTime) {
+                $q->where('start_time', '<', $endTime)
+                  ->where('end_time', '>=', $endTime);
+            })
+            // Selected time encloses an existing slot
+            ->orWhere(function($q) use ($startTime, $endTime) {
+                $q->where('start_time', '>=', $startTime)
+                  ->where('end_time', '<=', $endTime);
+            });
+        });
+    }
 }
