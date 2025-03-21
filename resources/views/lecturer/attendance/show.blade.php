@@ -81,7 +81,15 @@
                                                 -
                                             @endif
                                         </td>
-                                        <td>{{ $attendance->remarks ?? '-' }}</td>
+                                        <td>
+                                            @if ($attendance->remarks)
+                                                <span data-bs-toggle="tooltip" title="{{ $attendance->remarks }}">
+                                                    {{ Str::limit($attendance->remarks, 30, '...') }}
+                                                </span>
+                                            @else
+                                                -
+                                            @endif
+                                        </td>
                                         <td>
                                             <button type="button" class="btn btn-primary btn-icon btn-sm edit-attendance"
                                                 data-bs-toggle="modal" title="Edit Attendance"
@@ -212,6 +220,11 @@
 @push('scripts')
     <script>
         $(document).ready(function() {
+            // Initialize tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            })
 
             // Auto-submit date filter on change
             $('#date').change(function() {
