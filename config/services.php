@@ -38,6 +38,8 @@ return [
     'face_recognition' => [
         'url' => env('FACE_RECOGNITION_API_URL', 'http://localhost:5000'),
         'key' => env('FACE_RECOGNITION_API_KEY', '5a16d8e3-61a7-40d6-8841-8eeadc653395'),
+        'storage_path' => env('FACE_RECOGNITION_STORAGE_PATH', 'face_images'),
+        'max_image_size' => env('FACE_RECOGNITION_MAX_IMAGE_SIZE', 5* 1024), // KB
     ],
 
     'qrcode' => [

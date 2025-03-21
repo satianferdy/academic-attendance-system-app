@@ -9,10 +9,13 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
+use App\Http\Requests\Face\RegistrationRequest;
+use App\Http\Requests\Face\QualityValidationRequest;
 
 class FaceRegistrationController extends Controller
 {
     protected $faceRecognitionService;
+    protected const REQUIRED_IMAGES = 5;
 
     public function __construct(FaceRecognitionServiceInterface $faceRecognitionService)
     {
@@ -27,33 +30,20 @@ class FaceRegistrationController extends Controller
 
     public function register(Request $request, $token = null)
     {
-        $this->authorize('update', Auth::user()->student);
-        $redirectUrl = $token ? route('student.attendance.show', ['token' => $token]) : route('student.face.index');
-
-        // Hitung sisa gambar yang bisa diambil
         $student = Auth::user()->student;
-        $remainingShots = 5; // Default 5 gambar
+        $this->authorize('update', $student);
+
+        $redirectUrl = $token
+            ? route('student.attendance.show', ['token' => $token])
+            : route('student.face.index');
+
+        $remainingShots = self::REQUIRED_IMAGES;
 
         return view('student.face.register', compact('redirectUrl', 'remainingShots'));
     }
 
-    // FaceRegistrationController.php
-    public function store(Request $request)
+    public function store(RegistrationRequest $request)
     {
-        // Validasi request
-        $validator = Validator::make($request->all(), [
-            'images' => 'required|array|min:5|max:5', // Pastikan 5 gambar
-            'images.*' => 'required|image|max:5120', // Setiap gambar harus valid
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => $validator->errors()->first(),
-            ], 400);
-        }
-
-        // Dapatkan student yang sedang login
         $student = Auth::user()->student;
         $this->authorize('update', $student);
 
@@ -66,15 +56,14 @@ class FaceRegistrationController extends Controller
 
         $nim = $student->nim;
 
-        // Proses registrasi wajah
         try {
             $result = $this->faceRecognitionService->registerFace(
-                $request->file('images'), // Kirim array gambar
+                $request->file('images'),
                 $nim
             );
 
             if ($result['status'] === 'success') {
-                // Update status student
+                // Update student status
                 $student->update(['face_registered' => true]);
 
                 return response()->json([
@@ -91,7 +80,12 @@ class FaceRegistrationController extends Controller
             ], 400);
 
         } catch (\Exception $e) {
-            Log::error('Face registration error: ' . $e->getMessage());
+            Log::error('Face registration error', [
+                'error' => $e->getMessage(),
+                'student_id' => $student->id,
+                'nim' => $nim
+            ]);
+
             return response()->json([
                 'status' => 'error',
                 'message' => 'An error occurred during registration. Please try again.',
@@ -99,20 +93,8 @@ class FaceRegistrationController extends Controller
         }
     }
 
-    // FaceRegistrationController.php
-    public function validateQuality(Request $request)
+    public function validateQuality(QualityValidationRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'image' => 'required|image|max:5120',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => $validator->errors()->first()
-            ], 400);
-        }
-
         try {
             $result = $this->faceRecognitionService->validateQuality(
                 $request->file('image')
@@ -120,6 +102,10 @@ class FaceRegistrationController extends Controller
 
             return response()->json($result);
         } catch (\Exception $e) {
+            Log::error('Face quality validation error', [
+                'error' => $e->getMessage()
+            ]);
+
             return response()->json([
                 'status' => 'error',
                 'message' => 'Quality check failed: ' . $e->getMessage()
