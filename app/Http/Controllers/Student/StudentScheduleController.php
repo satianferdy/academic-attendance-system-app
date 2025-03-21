@@ -11,6 +11,8 @@ class StudentScheduleController extends Controller
 {
     public function index()
     {
+        $this->authorize('viewAny', ClassSchedule::class);
+
         $user = Auth::user();
 
         // Pastikan user memiliki student

@@ -32,7 +32,8 @@ class QRCodeService implements QRCodeServiceInterface
         }
 
         // Generate QR code with the token
-        return QrCode::size(300)->generate(route('student.attendance.show', ['token' => $token]));
+        $qrSize = config('services.qrcode.size', 300);
+        return QrCode::size($qrSize)->generate(route('student.attendance.show', ['token' => $token]));
     }
 
     public function validateToken(string $token): ?array

@@ -40,7 +40,8 @@
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{{ route('lecturer.dashboard') }}">Lecturer</a></li>
             <li class="breadcrumb-item"><a href="{{ route('lecturer.attendance.index') }}">Attendance</a></li>
-            <li class="breadcrumb-item"><a href="{{ route('lecturer.attendance.show', ['id' => $classSchedule->id]) }}">
+            <li class="breadcrumb-item"><a
+                    href="{{ route('lecturer.attendance.show', ['classSchedule' => $classSchedule->id, 'date' => $date]) }}">
                     Attendance List</a></li>
             <li class="breadcrumb-item
                 active" aria-current="page">View QR Code</li>
@@ -53,7 +54,7 @@
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h6 class="card-title">QR Code - {{ $classSchedule->course->code }}</h6>
                         <div>
-                            <a href="{{ route('lecturer.attendance.show', ['id' => $classSchedule->id]) }}"
+                            <a href="{{ route('lecturer.attendance.show', ['classSchedule' => $classSchedule->id, 'date' => $date]) }}"
                                 class="btn btn-secondary btn-sm btn-icon-text" type="button">
                                 <i class="btn-icon-prepend" data-feather="list"></i> Back to Attendance List
                             </a>

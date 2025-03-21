@@ -27,6 +27,7 @@ class FaceRegistrationController extends Controller
 
     public function register(Request $request, $token = null)
     {
+        $this->authorize('update', Auth::user()->student);
         $redirectUrl = $token ? route('student.attendance.show', ['token' => $token]) : route('student.face.index');
 
         // Hitung sisa gambar yang bisa diambil
@@ -54,6 +55,8 @@ class FaceRegistrationController extends Controller
 
         // Dapatkan student yang sedang login
         $student = Auth::user()->student;
+        $this->authorize('update', $student);
+
         if (!$student) {
             return response()->json([
                 'status' => 'error',

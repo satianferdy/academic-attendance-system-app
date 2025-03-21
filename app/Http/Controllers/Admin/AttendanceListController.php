@@ -16,6 +16,8 @@ class AttendanceListController extends Controller
 {
     public function index(Request $request)
     {
+        $this->authorize('viewAny', Attendance::class);
+
         $query = Attendance::with(['classSchedule.course', 'classSchedule.lecturer.user', 'student.user']);
 
         // Filter by course
@@ -66,6 +68,10 @@ class AttendanceListController extends Controller
 
         try {
             $attendance = Attendance::findOrFail($request->attendance_id);
+
+            // Add authorization check
+            $this->authorize('update', $attendance);  // Changed from Attendance::class to $attendance
+
             $attendance->status = $request->status;
             $attendance->save();
 
@@ -81,4 +87,5 @@ class AttendanceListController extends Controller
             ], 500);
         }
     }
+
 }

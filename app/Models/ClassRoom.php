@@ -19,7 +19,7 @@ class ClassRoom extends Model
 
     public function students()
     {
-        return $this->hasMany(Student::class);
+        return $this->hasMany(Student::class, 'classroom_id');
     }
 
     public function schedules()

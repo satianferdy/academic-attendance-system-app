@@ -50,6 +50,12 @@ class ClassSchedule extends Model
         return $this->hasMany(ScheduleTimeSlot::class);
     }
 
+    public function students()
+    {
+        // Get students who belong to the same classroom as this schedule
+        return $this->classroom ? $this->classroom->students() : $this->newCollection();
+    }
+
     // Static method to check for time slot availability
     public static function isTimeSlotAvailable($room, $day, $startTime, $endTime, $lecturer_id = null, $excludeId = null)
     {

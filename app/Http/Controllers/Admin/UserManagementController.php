@@ -34,6 +34,8 @@ class UserManagementController extends Controller
      */
     public function create()
     {
+        $this->authorize('create', User::class);
+
         $classrooms = ClassRoom::all();
         return view('admin.user.create', compact('classrooms'));
     }
@@ -43,6 +45,8 @@ class UserManagementController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorize('create', User::class);
+
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
@@ -120,6 +124,8 @@ class UserManagementController extends Controller
      */
     public function edit(User $user)
     {
+        $this->authorize('update', $user);
+
         $classrooms = ClassRoom::all();
         return view('admin.user.edit', compact('user', 'classrooms'));
     }
@@ -129,6 +135,8 @@ class UserManagementController extends Controller
      */
     public function update(Request $request, User $user)
     {
+        $this->authorize('update', $user);
+
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
@@ -215,6 +223,8 @@ class UserManagementController extends Controller
      */
     public function destroy(User $user)
     {
+        $this->authorize('delete', $user);
+
         $user->delete();
 
         return redirect()->route('admin.users.index')

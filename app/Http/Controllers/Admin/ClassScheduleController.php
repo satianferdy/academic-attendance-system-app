@@ -14,12 +14,16 @@ class ClassScheduleController extends Controller
 {
     public function index()
     {
+        $this->authorize('viewAny', ClassSchedule::class);
+
         $schedules = ClassSchedule::with('lecturer.user')->paginate(10);
         return view('admin.schedules.index', compact('schedules'));
     }
 
     public function create()
     {
+        $this->authorize('create', ClassSchedule::class);
+
         $courses = Course::all();
         $classrooms = ClassRoom::all();
         $lecturers = Lecturer::with('user')->get();
@@ -31,6 +35,8 @@ class ClassScheduleController extends Controller
 
     public function store(Request $request)
     {
+        $this->authorize('create', ClassSchedule::class);
+
         $validator = Validator::make($request->all(), [
             'course_id' => 'required|exists:courses,id',
             'lecturer_id' => 'required|exists:lecturers,id',
@@ -114,12 +120,16 @@ class ClassScheduleController extends Controller
 
     public function show(ClassSchedule $schedule)
     {
+        $this->authorize('view', $schedule);
+
         $schedule->load('timeSlots');
         return view('admin.schedules.show', compact('schedule'));
     }
 
     public function edit(ClassSchedule $schedule)
     {
+        $this->authorize('update', $schedule);
+
         $schedule->load('timeSlots');
         $lecturers = Lecturer::with('user')->get();
         $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -137,6 +147,8 @@ class ClassScheduleController extends Controller
 
     public function update(Request $request, ClassSchedule $schedule)
     {
+        $this->authorize('update', $schedule);
+
         $validator = Validator::make($request->all(), [
             'course_id' => 'required|exists:courses,id',
             'lecturer_id' => 'required|exists:lecturers,id',
@@ -224,6 +236,8 @@ class ClassScheduleController extends Controller
 
     public function destroy(ClassSchedule $schedule)
     {
+        $this->authorize('delete', $schedule);
+
         $schedule->delete();
         return redirect()->route('admin.schedules.index')
             ->with('success', 'Class schedule deleted successfully.');

@@ -42,6 +42,7 @@ return [
 
     'qrcode' => [
         'expiry_time' => env('QRCODE_EXPIRY_TIME', 30), // minutes
+        'size' => env('QRCODE_SIZE', 300), // pixels
     ],
 
 ];

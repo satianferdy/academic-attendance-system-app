@@ -32,6 +32,7 @@ class StudentAttendanceController extends Controller
 
     public function index()
     {
+        $this->authorize('viewAny', Attendance::class);
         $student = Auth::user()->student;
         $attendances = Attendance::with(['classSchedule.course', 'classSchedule.lecturer.user'])
             ->where('student_id', $student->id)
@@ -76,6 +77,8 @@ class StudentAttendanceController extends Controller
         $classSchedule = ClassSchedule::with(['course', 'lecturer.user', 'classroom'])
             ->findOrFail($classId);
 
+        $this->authorize('view', $classSchedule);
+
         // Check if student is enrolled in this class
         if ($classSchedule->classroom_id != $student->classroom_id) {
             return redirect()->route('student.attendance.index')
@@ -115,6 +118,8 @@ class StudentAttendanceController extends Controller
 
         // Check if student is enrolled in this class
         $classSchedule = ClassSchedule::findOrFail($classId);
+        $this->authorize('view', $classSchedule);
+
         if ($classSchedule->classroom_id != $student->classroom_id) {
             return response()->json([
                 'status' => 'error',

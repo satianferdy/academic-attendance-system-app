@@ -8,9 +8,13 @@ use App\Models\SessionAttendance;
 use App\Models\Student;
 use App\Services\Interfaces\AttendanceServiceInterface;
 use Illuminate\Support\Facades\DB;
+use App\Exceptions\AttendanceException;
 
 class AttendanceService implements AttendanceServiceInterface
 {
+    // constants for confiquaration
+    const SESSION_DURATION_MINUTES = 30; // in minutes
+
     public function markAttendance(int $classId, int $studentId, string $date): array
     {
         try {
@@ -21,18 +25,12 @@ class AttendanceService implements AttendanceServiceInterface
                 ->first();
 
             if (!$session) {
-                return [
-                    'status' => 'error',
-                    'message' => 'No active attendance session found.'
-                ];
+                throw new AttendanceException('No active attendance session found.');
             }
 
             // Check if the session is still open
-            if (now() > $session->end_time) {
-                return [
-                    'status' => 'error',
-                    'message' => 'Attendance session has expired.'
-                ];
+            if ($session->end_time->isPast()) {
+                throw new AttendanceException('Attendance session has expired.');
             }
 
             // Find attendance record
@@ -42,10 +40,7 @@ class AttendanceService implements AttendanceServiceInterface
                 ->first();
 
             if (!$attendance) {
-                return [
-                    'status' => 'error',
-                    'message' => 'Attendance record not found.'
-                ];
+                throw new AttendanceException('Attendance record not found.');
             }
 
             $attendance->update([
@@ -56,6 +51,11 @@ class AttendanceService implements AttendanceServiceInterface
             return [
                 'status' => 'success',
                 'message' => 'Attendance marked successfully.'
+            ];
+        } catch (AttendanceException $e) {
+            return [
+                'status' => 'error',
+                'message' => 'Failed to mark attendance: ' . $e->getMessage()
             ];
         } catch (\Exception $e) {
             return [
@@ -82,7 +82,7 @@ class AttendanceService implements AttendanceServiceInterface
         try {
             // Set session duration (30 minutes from now)
             $startTime = now();
-            $endTime = now()->addMinutes(30);
+            $endTime = now()->addMinutes(self::SESSION_DURATION_MINUTES);
 
             // Create session if it doesn't exist
             $session = SessionAttendance::firstOrCreate(
@@ -97,8 +97,12 @@ class AttendanceService implements AttendanceServiceInterface
                 ]
             );
 
-            // Get all students enrolled in this class (consider modifying this if needed)
-            $students = Student::all();
+            // Get students enrolled in this class
+            $students = $classSchedule->students;
+
+            if ($students->isEmpty()) {
+                throw new AttendanceException('No students enrolled in this class.');
+            }
 
             // Create default absent attendances for all students
             foreach ($students as $student) {

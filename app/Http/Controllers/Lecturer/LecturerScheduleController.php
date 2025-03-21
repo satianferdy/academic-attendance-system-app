@@ -9,10 +9,11 @@ use Illuminate\Support\Facades\Auth;
 
 class LecturerScheduleController extends Controller
 {
-    public function index() {
-
-        $user = Auth::user();
-        $lecturer = $user->lecturer;  // Get the associated lecturer model
+    public function index()
+    {
+        $this->authorize('viewAny', ClassSchedule::class);
+        // Get the associated lecturer model
+        $lecturer = Auth::user()->lecturer;
 
         // get class schedules with course, classroom, and lecturer data
         $schedules = ClassSchedule::where('lecturer_id', $lecturer->id)

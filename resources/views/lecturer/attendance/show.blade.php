@@ -35,7 +35,7 @@
 
                     <div class="mb-3">
                         <form id="dateFilterForm" method="GET"
-                            action="{{ route('lecturer.attendance.show', $classSchedule->id) }}">
+                            action="{{ route('lecturer.attendance.show', ['classSchedule' => $classSchedule->id]) }}) }}">
                             <div class="d-flex align-items-center">
                                 <label for="date" class="me-2">Session Date:</label>
                                 <input type="date" class="form-control form-control-sm" id="date" name="date"
@@ -231,6 +231,7 @@
                 // Set form action URL
                 $('#editAttendanceForm').attr('action', "{{ route('lecturer.attendance.update', '') }}/" +
                     attendanceId);
+
 
                 // Populate modal fields
                 $('#modal-student-name').text(studentName);
