@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminDashboardController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Admin\UserManagementController;
@@ -27,9 +28,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middl
 
 // Admin routes
 Route::group(['middleware' => ['auth', 'role:admin'], 'prefix' => 'admin', 'as' => 'admin.'], function () {
-    Route::get('/dashboard', function () {
-        return view('admin.dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
     // schedule check availability
     Route::get('schedules/check-availability', [ClassScheduleController::class, 'checkAvailability'])->name('schedules.check-availability');

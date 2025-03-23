@@ -201,7 +201,7 @@
                                             <th>Name</th>
                                             <th>Email</th>
                                             <th>Department</th>
-                                            <th>Faculty</th>
+                                            <th>Face Register</th>
                                             <th>Class</th>
                                             <th>Actions</th>
                                         </tr>
@@ -214,7 +214,13 @@
                                                 <td>{{ $item->name }}</td>
                                                 <td>{{ $item->email }}</td>
                                                 <td>{{ $item->student->department }}</td>
-                                                <td>{{ $item->student->faculty }}</td>
+                                                <td>
+                                                    @if ($item->student->face_registered)
+                                                        <span class="badge bg-success">Registered</span>
+                                                    @else
+                                                        <span class="badge bg-danger">Not Registered</span>
+                                                    @endif
+                                                </td>
                                                 <td>{{ $item->student->classroom->name ?? '-' }}</td>
                                                 <td>
                                                     <a href="{{ route('admin.users.edit', $item->id) }}"
