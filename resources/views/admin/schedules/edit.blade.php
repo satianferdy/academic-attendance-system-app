@@ -74,22 +74,61 @@
 
                             <div class="col-md-6">
                                 <label for="room" class="form-label">Room</label>
-                                <input type="text" class="form-control" id="room" name="room"
-                                    value="{{ old('room', $schedule->room) }}" required>
+                                <select class="form-select" id="room" name="room" required>
+                                    <option value="">Select Room</option>
+                                    <option value="RT01" {{ old('room', $schedule->room) == 'RT01' ? 'selected' : '' }}>
+                                        RT01</option>
+                                    <option value="RT02" {{ old('room', $schedule->room) == 'RT02' ? 'selected' : '' }}>
+                                        RT02</option>
+                                    <option value="RT03" {{ old('room', $schedule->room) == 'RT03' ? 'selected' : '' }}>
+                                        RT03</option>
+                                    <option value="RT04" {{ old('room', $schedule->room) == 'RT04' ? 'selected' : '' }}>
+                                        RT04</option>
+                                    <option value="LPR01" {{ old('room', $schedule->room) == 'LPR01' ? 'selected' : '' }}>
+                                        LPR01</option>
+                                    <option value="LPR02" {{ old('room', $schedule->room) == 'LPR02' ? 'selected' : '' }}>
+                                        LPR02</option>
+                                    <option value="LT01" {{ old('room', $schedule->room) == 'LT01' ? 'selected' : '' }}>
+                                        LT01</option>
+                                </select>
                             </div>
                         </div>
 
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label for="semester" class="form-label">Semester</label>
-                                <input type="text" class="form-control" id="semester" name="semester"
-                                    value="{{ old('semester', $schedule->semester) }}" required>
+                                <select class="form-select" id="semester" name="semester" required>
+                                    <option value="">Select Semester</option>
+                                    @for ($i = 1; $i <= 8; $i++)
+                                        <option value="{{ $i }}"
+                                            {{ old('semester', $schedule->semester) == $i ? 'selected' : '' }}>
+                                            {{ $i }}
+                                        </option>
+                                    @endfor
+                                </select>
                             </div>
 
                             <div class="col-md-6">
                                 <label for="academic_year" class="form-label">Academic Year</label>
-                                <input type="text" class="form-control" id="academic_year" name="academic_year"
-                                    value="{{ old('academic_year', $schedule->academic_year) }}" required>
+                                <select class="form-select" id="academic_year" name="academic_year" required>
+                                    <option value="">Select Academic Year</option>
+                                    <option value="2024/2025 Ganjil"
+                                        {{ old('academic_year', $schedule->academic_year) == '2024/2025 Ganjil' ? 'selected' : '' }}>
+                                        2024/2025 Ganjil
+                                    </option>
+                                    <option value="2024/2025 Genap"
+                                        {{ old('academic_year', $schedule->academic_year) == '2024/2025 Genap' ? 'selected' : '' }}>
+                                        2024/2025 Genap
+                                    </option>
+                                    <option value="2025/2026 Ganjil"
+                                        {{ old('academic_year', $schedule->academic_year) == '2025/2026 Ganjil' ? 'selected' : '' }}>
+                                        2025/2026 Ganjil
+                                    </option>
+                                    <option value="2025/2026 Genap"
+                                        {{ old('academic_year', $schedule->academic_year) == '2025/2026 Genap' ? 'selected' : '' }}>
+                                        2025/2026 Genap
+                                    </option>
+                                </select>
                             </div>
                         </div>
 

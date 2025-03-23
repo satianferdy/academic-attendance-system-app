@@ -102,11 +102,16 @@
                                     <div class="col-md-4">
                                         <div class="mb-3">
                                             <label for="department" class="form-label">Department</label>
-                                            <input type="text"
-                                                class="form-control @error('department') is-invalid @enderror"
-                                                id="department" name="department"
-                                                value="{{ old('department', $user->student->department ?? '') }}"
-                                                placeholder="Enter Department" required>
+                                            <select class="form-control @error('department') is-invalid @enderror"
+                                                id="department" name="department" required>
+                                                <option value="">Select Department</option>
+                                                <option value="Teknik Informatika"
+                                                    {{ old('department', $user->student->department ?? '') == 'Teknik Informatika' ? 'selected' : '' }}>
+                                                    Teknik Informatika</option>
+                                                <option value="Sistem Informasi Bisnis"
+                                                    {{ old('department', $user->student->department ?? '') == 'Sistem Informasi Bisnis' ? 'selected' : '' }}>
+                                                    Sistem Informasi Bisnis</option>
+                                            </select>
                                             @error('department')
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
@@ -117,9 +122,7 @@
                                             <label for="faculty" class="form-label">Faculty</label>
                                             <input type="text"
                                                 class="form-control @error('faculty') is-invalid @enderror" id="faculty"
-                                                name="faculty"
-                                                value="{{ old('faculty', $user->student->faculty ?? '') }}"
-                                                placeholder="Enter Faculty" required>
+                                                name="faculty" value="Teknologi Informasi" readonly required>
                                             @error('faculty')
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
@@ -168,11 +171,16 @@
                                     <div class="col-md-4">
                                         <div class="mb-3">
                                             <label for="department" class="form-label">Department</label>
-                                            <input type="text"
-                                                class="form-control @error('department') is-invalid @enderror"
-                                                id="department" name="department"
-                                                value="{{ old('department', $user->lecturer->department ?? '') }}"
-                                                placeholder="Enter Department" required>
+                                            <select class="form-control @error('department') is-invalid @enderror"
+                                                id="department" name="department" required>
+                                                <option value="">Select Department</option>
+                                                <option value="Teknik Informatika"
+                                                    {{ old('department', $user->lecturer->department ?? '') == 'Teknik Informatika' ? 'selected' : '' }}>
+                                                    Teknik Informatika</option>
+                                                <option value="Sistem Informasi Bisnis"
+                                                    {{ old('department', $user->lecturer->department ?? '') == 'Sistem Informasi Bisnis' ? 'selected' : '' }}>
+                                                    Sistem Informasi Bisnis</option>
+                                            </select>
                                             @error('department')
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
@@ -183,9 +191,7 @@
                                             <label for="faculty" class="form-label">Faculty</label>
                                             <input type="text"
                                                 class="form-control @error('faculty') is-invalid @enderror" id="faculty"
-                                                name="faculty"
-                                                value="{{ old('faculty', $user->lecturer->faculty ?? '') }}"
-                                                placeholder="Enter Faculty" required>
+                                                name="faculty" value="Teknologi Informasi" readonly required>
                                             @error('faculty')
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror

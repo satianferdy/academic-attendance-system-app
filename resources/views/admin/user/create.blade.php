@@ -108,9 +108,16 @@
                                 <div class="col-md-4">
                                     <div class="mb-3">
                                         <label for="department" class="form-label">Department</label>
-                                        <input type="text" class="form-control @error('department') is-invalid @enderror"
-                                            id="department" name="department" value="{{ old('department') }}"
-                                            placeholder="Enter Department">
+                                        <select class="form-control @error('department') is-invalid @enderror"
+                                            id="department" name="department">
+                                            <option value="">Select Department</option>
+                                            <option value="Teknik Informatika"
+                                                {{ old('department') == 'Teknik Informatika' ? 'selected' : '' }}>Teknik
+                                                Informatika</option>
+                                            <option value="Sistem Informasi Bisnis"
+                                                {{ old('department') == 'Sistem Informasi Bisnis' ? 'selected' : '' }}>
+                                                Sistem Informasi Bisnis</option>
+                                        </select>
                                         @error('department')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
@@ -120,8 +127,7 @@
                                     <div class="mb-3">
                                         <label for="faculty" class="form-label">Faculty</label>
                                         <input type="text" class="form-control @error('faculty') is-invalid @enderror"
-                                            id="faculty" name="faculty" value="{{ old('faculty') }}"
-                                            placeholder="Enter Faculty">
+                                            id="faculty" name="faculty" value="Teknologi Informasi" readonly>
                                         @error('faculty')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
@@ -167,10 +173,16 @@
                                 <div class="col-md-4">
                                     <div class="mb-3">
                                         <label for="lecturer_department" class="form-label">Department</label>
-                                        <input type="text"
-                                            class="form-control @error('department') is-invalid @enderror"
-                                            id="lecturer_department" name="department" value="{{ old('department') }}"
-                                            placeholder="Enter Department">
+                                        <select class="form-control @error('department') is-invalid @enderror"
+                                            id="lecturer_department" name="department">
+                                            <option value="">Select Department</option>
+                                            <option value="Teknik Informatika"
+                                                {{ old('department') == 'Teknik Informatika' ? 'selected' : '' }}>Teknik
+                                                Informatika</option>
+                                            <option value="Sistem Informasi Bisnis"
+                                                {{ old('department') == 'Sistem Informasi Bisnis' ? 'selected' : '' }}>
+                                                Sistem Informasi Bisnis</option>
+                                        </select>
                                         @error('department')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
@@ -180,8 +192,7 @@
                                     <div class="mb-3">
                                         <label for="lecturer_faculty" class="form-label">Faculty</label>
                                         <input type="text" class="form-control @error('faculty') is-invalid @enderror"
-                                            id="lecturer_faculty" name="faculty" value="{{ old('faculty') }}"
-                                            placeholder="Enter Faculty">
+                                            id="lecturer_faculty" name="faculty" value="Teknologi Informasi" readonly>
                                         @error('faculty')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror

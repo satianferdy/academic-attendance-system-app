@@ -76,10 +76,9 @@
                     <!-- Combined Filters -->
                     <form id="filter-form" method="GET" action="{{ route('admin.attendance.index') }}">
                         <div class="row mb-4">
-                            <div class="col-md-4 mb-2">
+                            <div class="col-md-3 mb-3">
                                 <label class="form-label" for="course_filter">Course</label>
-                                <select class="js-example-basic-single" id="course_filter" data-width="100%"
-                                    name="course_id">
+                                <select class="js-example-basic-single form-select" id="course_filter" name="course_id">
                                     <option value="">All Courses</option>
                                     @foreach ($courses as $course)
                                         <option value="{{ $course->id }}"
@@ -89,15 +88,9 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-md-2 mb-2">
-                                <label class="form-label" for="date_filter">Date</label>
-                                <input type="date" class="form-control" id="date_filter" name="date"
-                                    value="{{ request('date') }}">
-                            </div>
-                            <div class="col-md-4 mb-2">
+                            <div class="col-md-3 mb-3">
                                 <label class="form-label" for="student_filter">Student</label>
-                                <select class="js-example-basic-single" id="student_filter" data-width="100%"
-                                    name="student_id">
+                                <select class="js-example-basic-single form-select" id="student_filter" name="student_id">
                                     <option value="">All Students</option>
                                     @foreach ($students as $student)
                                         <option value="{{ $student->id }}"
@@ -107,18 +100,23 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-md-2 mb-2">
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label" for="date_filter">Date</label>
+                                <input type="date" class="form-control" id="date_filter" name="date"
+                                    value="{{ request('date') }}">
+                            </div>
+                            <div class="col-md-3 mb-3">
                                 <label class="form-label" for="status_filter">Status</label>
                                 <select class="form-select" id="status_filter" name="status">
                                     <option value="">All Status</option>
-                                    <option value="present" {{ request('status') == 'present' ? 'selected' : '' }}>
-                                        Present</option>
+                                    <option value="present" {{ request('status') == 'present' ? 'selected' : '' }}>Present
+                                    </option>
                                     <option value="absent" {{ request('status') == 'absent' ? 'selected' : '' }}>Absent
                                     </option>
                                     <option value="late" {{ request('status') == 'late' ? 'selected' : '' }}>Late
                                     </option>
-                                    <option value="excused" {{ request('status') == 'excused' ? 'selected' : '' }}>
-                                        Excused</option>
+                                    <option value="excused" {{ request('status') == 'excused' ? 'selected' : '' }}>Excused
+                                    </option>
                                 </select>
                             </div>
                         </div>
