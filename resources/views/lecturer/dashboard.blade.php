@@ -169,8 +169,8 @@
                                                 </div>
                                             </div>
                                             <div class="d-flex">
-                                                <button class="btn btn-sm btn-primary">
-                                                    <i data-feather="camera" style="width: 14px; height: 14px;"></i>
+                                                <button class="btn btn-icon btn-sm btn-primary">
+                                                    <i data-feather="camera"></i>
                                                 </button>
                                             </div>
                                         </div>
@@ -322,6 +322,7 @@
                                             @if ($counter < 3)
                                                 @php
                                                     $timeSlot = $schedule->timeSlots->first();
+                                                    $timeSlots = $schedule->timeSlots->last();
                                                     $counter++;
                                                 @endphp
                                                 <div class="list-group-item px-0 py-2 border-0">
@@ -338,7 +339,7 @@
                                                                 <i data-feather="clock" class="me-1"
                                                                     style="width: 12px; height: 12px;"></i>
                                                                 {{ $timeSlot->start_time->format('H:i') }} -
-                                                                {{ $timeSlot->end_time->format('H:i') }}
+                                                                {{ $timeSlots->end_time->format('H:i') }}
                                                             </small>
                                                             <small class="text-muted d-flex align-items-center mt-1">
                                                                 <i data-feather="map-pin" class="me-1"
@@ -369,7 +370,7 @@
 @endsection
 
 @push('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{{ asset('assets/vendors/chartjs/Chart.min.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Weekly attendance chart
