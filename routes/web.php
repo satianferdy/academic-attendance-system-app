@@ -1,17 +1,18 @@
 <?php
 
-use App\Http\Controllers\Admin\AdminDashboardController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthController;
-use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\Admin\ClassScheduleController;
-use App\Http\Controllers\Lecturer\LecturerAttendanceController;
-use App\Http\Controllers\Student\StudentAttendanceController;
-use App\Http\Controllers\Student\FaceRegistrationController;
+use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AttendanceListController;
-use App\Http\Controllers\Lecturer\LecturerDashboardController;
-use App\Http\Controllers\Lecturer\LecturerScheduleController;
+use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\Student\StudentScheduleController;
+use App\Http\Controllers\Student\FaceRegistrationController;
+use App\Http\Controllers\Student\StudentDashboardController;
+use App\Http\Controllers\Lecturer\LecturerScheduleController;
+use App\Http\Controllers\Student\StudentAttendanceController;
+use App\Http\Controllers\Lecturer\LecturerDashboardController;
+use App\Http\Controllers\Lecturer\LecturerAttendanceController;
 
 Route::get('/', function () {
     return view('auth.login');
@@ -71,9 +72,7 @@ Route::group(['middleware' => ['auth', 'role:lecturer'], 'prefix' => 'lecturer',
 
 // Student routes
 Route::group(['middleware' => ['auth', 'role:student'], 'prefix' => 'student', 'as' => 'student.'], function () {
-    Route::get('/dashboard', function () {
-        return view('student.dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [StudentDashboardController::class, 'index'])->name('dashboard');
 
     // Schedule
     Route::get('/schedule', [StudentScheduleController::class, 'index'])->name('schedule.index');

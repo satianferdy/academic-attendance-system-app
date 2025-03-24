@@ -37,7 +37,7 @@ class StudentAttendanceController extends Controller
         $attendances = Attendance::with(['classSchedule.course', 'classSchedule.lecturer.user'])
             ->where('student_id', $student->id)
             ->orderBy('date', 'desc')
-            ->paginate(10);
+            ->get();
 
         return view('student.attendance.index', compact('attendances'));
     }

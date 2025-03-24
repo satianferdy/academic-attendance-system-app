@@ -151,31 +151,29 @@
                     <div class="card-body p-0">
                         <div class="list-group list-group-flush">
                             @forelse($todaySchedules as $schedule)
-                                @foreach ($schedule->timeSlots as $timeSlot)
-                                    <div class="list-group-item p-3">
-                                        <div class="d-flex w-100 justify-content-between align-items-center">
-                                            <div>
-                                                <h6 class="mb-1 fw-medium">{{ $schedule->course->name }}</h6>
-                                                <div class="text-muted d-flex align-items-center">
-                                                    <i data-feather="clock" class="me-1"
-                                                        style="width: 14px; height: 14px;"></i>
-                                                    <span>{{ $timeSlot->start_time->format('H:i') }} -
-                                                        {{ $timeSlot->end_time->format('H:i') }}</span>
-                                                </div>
-                                                <div class="text-muted d-flex align-items-center mt-1">
-                                                    <i data-feather="map-pin" class="me-1"
-                                                        style="width: 14px; height: 14px;"></i>
-                                                    <span>{{ $schedule->classroom->name ?? $schedule->room }}</span>
-                                                </div>
+                                <div class="list-group-item p-3">
+                                    <div class="d-flex w-100 justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1 fw-medium">{{ $schedule->course->name }}</h6>
+                                            <div class="text-muted d-flex align-items-center">
+                                                <i data-feather="clock" class="me-1"
+                                                    style="width: 14px; height: 14px;"></i>
+                                                <span>{{ $schedule->timeSlots->first()->start_time->format('H:i') }} -
+                                                    {{ $schedule->timeSlots->last()->end_time->format('H:i') }}</span>
                                             </div>
-                                            <div class="d-flex">
-                                                <button class="btn btn-icon btn-sm btn-primary">
-                                                    <i data-feather="camera"></i>
-                                                </button>
+                                            <div class="text-muted d-flex align-items-center mt-1">
+                                                <i data-feather="map-pin" class="me-1"
+                                                    style="width: 14px; height: 14px;"></i>
+                                                <span>{{ $schedule->classroom->name ?? $schedule->room }}</span>
                                             </div>
                                         </div>
+                                        <div class="d-flex">
+                                            <button class="btn btn-icon btn-sm btn-primary">
+                                                <i data-feather="camera"></i>
+                                            </button>
+                                        </div>
                                     </div>
-                                @endforeach
+                                </div>
                             @empty
                                 <div class="list-group-item p-3 text-center text-muted">
                                     <i data-feather="calendar-x" class="mb-2"></i>

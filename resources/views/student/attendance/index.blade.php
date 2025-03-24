@@ -62,3 +62,15 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+    <script>
+        $(document).ready(function() {
+            $('#dataTableExample').DataTable({
+                order: [
+                    [0, 'desc']
+                ],
+            });
+        });
+    </script>
+@endpush
