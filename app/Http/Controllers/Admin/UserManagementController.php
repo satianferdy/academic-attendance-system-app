@@ -52,6 +52,21 @@ class UserManagementController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
             'role' => 'required|in:admin,student,lecturer',
+
+            // Student validation
+            'student_nim' => 'required_if:role,student|string|max:20|unique:students,nim',
+            'student_department' => 'required_if:role,student|string|max:100',
+            'student_faculty' => 'required_if:role,student|string|max:100',
+            'classroom_id' => 'required_if:role,student|exists:classrooms,id',
+
+            // Lecturer validation
+            'lecturer_nip' => 'required_if:role,lecturer|string|max:20|unique:lecturers,nip',
+            'lecturer_department' => 'required_if:role,lecturer|string|max:100',
+            'lecturer_faculty' => 'required_if:role,lecturer|string|max:100',
+        ], [
+            'student_nim.required_if' => 'NIM wajib diisi untuk Student',
+            'lecturer_nip.required_if' => 'NIP wajib diisi untuk Lecturer',
+            'classroom_id.exists' => 'Kelas yang dipilih tidak valid',
         ]);
 
         if ($validator->fails()) {
@@ -60,7 +75,7 @@ class UserManagementController extends Controller
                 ->withInput();
         }
 
-        // Create user
+        // Proses pembuatan user
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
@@ -68,55 +83,26 @@ class UserManagementController extends Controller
             'role' => $request->role,
         ]);
 
-        // Create role-specific profile
+        // Proses data sesuai role
         if ($request->role === 'student') {
-            $studentValidator = Validator::make($request->all(), [
-                'nim' => 'required|string|max:20|unique:students',
-                'department' => 'required|string|max:100',
-                'faculty' => 'required|string|max:100',
-                'classroom_id' => 'required|exists:classrooms,id',
-            ]);
-
-            if ($studentValidator->fails()) {
-                $user->delete();
-                return redirect()->back()
-                    ->withErrors($studentValidator)
-                    ->withInput();
-            }
-
-            // Create student record
             Student::create([
                 'user_id' => $user->id,
-                'nim' => $request->nim,
-                'department' => $request->department,
-                'faculty' => $request->faculty,
+                'nim' => $request->student_nim,
+                'department' => $request->student_department,
+                'faculty' => $request->student_faculty,
                 'classroom_id' => $request->classroom_id,
             ]);
-
         } elseif ($request->role === 'lecturer') {
-            $lecturerValidator = Validator::make($request->all(), [
-                'nip' => 'required|string|max:20|unique:lecturers',
-                'department' => 'required|string|max:100',
-                'faculty' => 'required|string|max:100',
-            ]);
-
-            if ($lecturerValidator->fails()) {
-                $user->delete();
-                return redirect()->back()
-                    ->withErrors($lecturerValidator)
-                    ->withInput();
-            }
-
             Lecturer::create([
                 'user_id' => $user->id,
-                'nip' => $request->nip,
-                'department' => $request->department,
-                'faculty' => $request->faculty,
+                'nip' => $request->lecturer_nip,
+                'department' => $request->lecturer_department,
+                'faculty' => $request->lecturer_faculty,
             ]);
         }
 
         return redirect()->route('admin.users.index')
-            ->with('success', 'User created successfully.');
+            ->with('success', 'User berhasil dibuat');
     }
 
     /**

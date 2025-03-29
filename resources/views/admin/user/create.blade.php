@@ -96,50 +96,56 @@
                             <div class="row">
                                 <div class="col-md-4">
                                     <div class="mb-3">
-                                        <label for="nim" class="form-label">Student ID (NIM)</label>
-                                        <input type="text" class="form-control @error('nim') is-invalid @enderror"
-                                            id="nim" name="nim" value="{{ old('nim') }}"
-                                            placeholder="Enter NIM">
-                                        @error('nim')
+                                        <label for="student_nim" class="form-label">Student ID (NIM)</label>
+                                        <input type="text"
+                                            class="form-control @error('student_nim') is-invalid @enderror" id="student_nim"
+                                            name="student_nim" value="{{ old('student_nim') }}" placeholder="Enter NIM"
+                                            data-required>
+                                        @error('student_nim')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="mb-3">
-                                        <label for="department" class="form-label">Department</label>
-                                        <select class="form-control @error('department') is-invalid @enderror"
-                                            id="department" name="department">
+                                        <label for="student_department" class="form-label">Department</label>
+                                        <select class="form-control @error('student_department') is-invalid @enderror"
+                                            id="student_department" name="student_department" data-required>
                                             <option value="">Select Department</option>
                                             <option value="Teknik Informatika"
-                                                {{ old('department') == 'Teknik Informatika' ? 'selected' : '' }}>Teknik
-                                                Informatika</option>
+                                                {{ old('student_department') == 'Teknik Informatika' ? 'selected' : '' }}>
+                                                Teknik Informatika
+                                            </option>
                                             <option value="Sistem Informasi Bisnis"
-                                                {{ old('department') == 'Sistem Informasi Bisnis' ? 'selected' : '' }}>
-                                                Sistem Informasi Bisnis</option>
+                                                {{ old('student_department') == 'Sistem Informasi Bisnis' ? 'selected' : '' }}>
+                                                Sistem Informasi Bisnis
+                                            </option>
                                         </select>
-                                        @error('department')
+                                        @error('student_department')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="mb-3">
-                                        <label for="faculty" class="form-label">Faculty</label>
-                                        <input type="text" class="form-control @error('faculty') is-invalid @enderror"
-                                            id="faculty" name="faculty" value="Teknologi Informasi" readonly>
-                                        @error('faculty')
+                                        <label for="student_faculty" class="form-label">Faculty</label>
+                                        <input type="text"
+                                            class="form-control @error('student_faculty') is-invalid @enderror"
+                                            id="student_faculty" name="student_faculty" value="Teknologi Informasi"
+                                            readonly>
+                                        @error('student_faculty')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </div>
                                 </div>
                             </div>
+                            <!-- Classroom selection -->
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label for="classroom_id" class="form-label">Classroom</label>
                                         <select class="form-select @error('classroom_id') is-invalid @enderror"
-                                            id="classroom_id" name="classroom_id">
+                                            id="classroom_id" name="classroom_id" data-required>
                                             <option value="">Select Classroom</option>
                                             @foreach ($classrooms as $classroom)
                                                 <option value="{{ $classroom->id }}"
@@ -161,11 +167,12 @@
                             <div class="row">
                                 <div class="col-md-4">
                                     <div class="mb-3">
-                                        <label for="nip" class="form-label">Lecturer ID (NIP)</label>
-                                        <input type="text" class="form-control @error('nip') is-invalid @enderror"
-                                            id="nip" name="nip" value="{{ old('nip') }}"
-                                            placeholder="Enter NIP">
-                                        @error('nip')
+                                        <label for="lecturer_nip" class="form-label">Lecturer ID (NIP)</label>
+                                        <input type="text"
+                                            class="form-control @error('lecturer_nip') is-invalid @enderror"
+                                            id="lecturer_nip" name="lecturer_nip" value="{{ old('lecturer_nip') }}"
+                                            placeholder="Enter NIP" data-required>
+                                        @error('lecturer_nip')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </div>
@@ -173,17 +180,19 @@
                                 <div class="col-md-4">
                                     <div class="mb-3">
                                         <label for="lecturer_department" class="form-label">Department</label>
-                                        <select class="form-control @error('department') is-invalid @enderror"
-                                            id="lecturer_department" name="department">
+                                        <select class="form-control @error('lecturer_department') is-invalid @enderror"
+                                            id="lecturer_department" name="lecturer_department" data-required>
                                             <option value="">Select Department</option>
                                             <option value="Teknik Informatika"
-                                                {{ old('department') == 'Teknik Informatika' ? 'selected' : '' }}>Teknik
-                                                Informatika</option>
+                                                {{ old('lecturer_department') == 'Teknik Informatika' ? 'selected' : '' }}>
+                                                Teknik Informatika
+                                            </option>
                                             <option value="Sistem Informasi Bisnis"
-                                                {{ old('department') == 'Sistem Informasi Bisnis' ? 'selected' : '' }}>
-                                                Sistem Informasi Bisnis</option>
+                                                {{ old('lecturer_department') == 'Sistem Informasi Bisnis' ? 'selected' : '' }}>
+                                                Sistem Informasi Bisnis
+                                            </option>
                                         </select>
-                                        @error('department')
+                                        @error('lecturer_department')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </div>
@@ -191,9 +200,11 @@
                                 <div class="col-md-4">
                                     <div class="mb-3">
                                         <label for="lecturer_faculty" class="form-label">Faculty</label>
-                                        <input type="text" class="form-control @error('faculty') is-invalid @enderror"
-                                            id="lecturer_faculty" name="faculty" value="Teknologi Informasi" readonly>
-                                        @error('faculty')
+                                        <input type="text"
+                                            class="form-control @error('lecturer_faculty') is-invalid @enderror"
+                                            id="lecturer_faculty" name="lecturer_faculty" value="Teknologi Informasi"
+                                            readonly>
+                                        @error('lecturer_faculty')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </div>
@@ -215,41 +226,34 @@
 @push('scripts')
     <script>
         $(document).ready(function() {
-            // Set initial state
-            toggleRoleFields();
-
-            // Toggle role-specific fields based on selected role
-            $('#role').on('change', function() {
-                toggleRoleFields();
-            });
-
-            // Add this to your script section
-            $('form').on('submit', function() {
+            function toggleFields() {
                 const role = $('#role').val();
 
-                if (role === 'student') {
-                    // Disable lecturer fields to prevent them from being submitted
-                    $('#lecturer-fields input').prop('disabled', true);
-                } else if (role === 'lecturer') {
-                    // Disable student fields to prevent them from being submitted
-                    $('#student-fields input, #student-fields select').prop('disabled', true);
-                }
-            });
+                // Disable dan sembunyikan semua field role
+                $('#student-fields, #lecturer-fields').addClass('d-none')
+                    .find('input, select, textarea').prop('disabled', true);
 
-            function toggleRoleFields() {
-                const role = $('#role').val();
+                // Hapus atribut required
+                $('[data-required]').removeAttr('required');
 
                 if (role === 'student') {
-                    $('#student-fields').removeClass('d-none');
-                    $('#lecturer-fields').addClass('d-none');
+                    const $studentFields = $('#student-fields');
+                    $studentFields.removeClass('d-none')
+                        .find('input, select, textarea').prop('disabled', false);
+                    $studentFields.find('[data-required]').attr('required', true);
                 } else if (role === 'lecturer') {
-                    $('#student-fields').addClass('d-none');
-                    $('#lecturer-fields').removeClass('d-none');
-                } else {
-                    $('#student-fields').addClass('d-none');
-                    $('#lecturer-fields').addClass('d-none');
+                    const $lecturerFields = $('#lecturer-fields');
+                    $lecturerFields.removeClass('d-none')
+                        .find('input, select, textarea').prop('disabled', false);
+                    $lecturerFields.find('[data-required]').attr('required', true);
                 }
             }
+
+            // Jalankan saat pertama load
+            toggleFields();
+
+            // Event handler untuk perubahan role
+            $('#role').on('change', toggleFields);
         });
     </script>
 @endpush
