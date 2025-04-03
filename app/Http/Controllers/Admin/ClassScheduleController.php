@@ -10,23 +10,27 @@ use App\Models\Lecturer;
 use App\Models\ClassRoom;
 use App\Models\Course;
 use App\Services\Interfaces\ScheduleServiceInterface;
+use App\Repositories\Interfaces\ClassScheduleRepositoryInterface;
 use Illuminate\Http\Request;
 
 class ClassScheduleController extends Controller
 {
     protected $scheduleService;
+    protected $classScheduleRepository;
 
     public function __construct(
-        ScheduleServiceInterface $scheduleService
+        ScheduleServiceInterface $scheduleService,
+        ClassScheduleRepositoryInterface $classScheduleRepository
     ) {
         $this->scheduleService = $scheduleService;
+        $this->classScheduleRepository = $classScheduleRepository;
     }
 
     public function index()
     {
         $this->authorize('viewAny', ClassSchedule::class);
 
-        $schedules = ClassSchedule::with(['lecturer.user', 'course', 'classroom'])->paginate(10);
+        $schedules = $this->classScheduleRepository->getAllSchedules(10);
         return view('admin.schedules.index', compact('schedules'));
     }
 
@@ -74,7 +78,7 @@ class ClassScheduleController extends Controller
     {
         $this->authorize('view', $schedule);
 
-        $schedule->load(['timeSlots', 'lecturer.user', 'course', 'classroom']);
+        $schedule->load(['lecturer.user', 'course', 'classroom', 'timeSlots']);
         return view('admin.schedules.show', compact('schedule'));
     }
 
@@ -127,7 +131,7 @@ class ClassScheduleController extends Controller
     {
         $this->authorize('delete', $schedule);
 
-        $schedule->delete();
+        $this->classScheduleRepository->deleteSchedule($schedule->id);
         return redirect()->route('admin.schedules.index')
             ->with('success', 'Class schedule deleted successfully.');
     }

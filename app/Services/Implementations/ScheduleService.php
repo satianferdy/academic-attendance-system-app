@@ -3,19 +3,23 @@
 namespace App\Services\Implementations;
 
 use App\Models\ClassSchedule;
-use App\Models\ScheduleTimeSlot;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
 use App\Services\Interfaces\ScheduleServiceInterface;
+use App\Repositories\Interfaces\ClassScheduleRepositoryInterface;
 
 class ScheduleService implements ScheduleServiceInterface
 {
+    protected $classScheduleRepository;
+
+    public function __construct(ClassScheduleRepositoryInterface $classScheduleRepository)
+    {
+        $this->classScheduleRepository = $classScheduleRepository;
+    }
 
     public function getWeekdays()
     {
         return ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
     }
-
 
     public function generateTimeSlots()
     {
@@ -32,13 +36,11 @@ class ScheduleService implements ScheduleServiceInterface
         return $slots;
     }
 
-
     public function parseTimeSlot($timeSlot)
     {
         list($startTime, $endTime) = explode(' - ', $timeSlot);
         return [$startTime, $endTime];
     }
-
 
     public function checkAllTimeSlotsAvailability($room, $day, $timeSlots, $lecturer_id, $excludeId = null)
     {
@@ -48,7 +50,7 @@ class ScheduleService implements ScheduleServiceInterface
         foreach ($timeSlots as $timeSlot) {
             list($startTime, $endTime) = $this->parseTimeSlot($timeSlot);
 
-            $conflicts = ClassSchedule::findConflictingTimeSlots(
+            $conflicts = $this->classScheduleRepository->findConflictingTimeSlots(
                 $room,
                 $day,
                 $startTime,
@@ -86,20 +88,11 @@ class ScheduleService implements ScheduleServiceInterface
         return ['available' => true];
     }
 
-
     public function createScheduleWithTimeSlots($data)
     {
         return DB::transaction(function () use ($data) {
-            // Create schedule
-            $schedule = ClassSchedule::create([
-                'course_id' => $data['course_id'],
-                'lecturer_id' => $data['lecturer_id'],
-                'classroom_id' => $data['classroom_id'],
-                'room' => $data['room'],
-                'day' => $data['day'],
-                'semester' => $data['semester'],
-                'academic_year' => $data['academic_year'],
-            ]);
+            // Create schedule using repository
+            $schedule = $this->classScheduleRepository->createSchedule($data);
 
             // Create time slots
             $this->createTimeSlots($schedule, $data['time_slots']);
@@ -108,20 +101,11 @@ class ScheduleService implements ScheduleServiceInterface
         });
     }
 
-
     public function updateScheduleWithTimeSlots(ClassSchedule $schedule, $data)
     {
         return DB::transaction(function () use ($schedule, $data) {
-            // Update schedule
-            $schedule->update([
-                'course_id' => $data['course_id'],
-                'lecturer_id' => $data['lecturer_id'],
-                'classroom_id' => $data['classroom_id'],
-                'room' => $data['room'],
-                'day' => $data['day'],
-                'semester' => $data['semester'],
-                'academic_year' => $data['academic_year'],
-            ]);
+            // Update schedule using repository
+            $this->classScheduleRepository->updateSchedule($schedule->id, $data);
 
             // Delete existing time slots
             $schedule->timeSlots()->delete();
@@ -132,7 +116,6 @@ class ScheduleService implements ScheduleServiceInterface
             return $schedule;
         });
     }
-
 
     private function createTimeSlots(ClassSchedule $schedule, $timeSlots)
     {
@@ -146,18 +129,13 @@ class ScheduleService implements ScheduleServiceInterface
         }
     }
 
-
     public function getBookedTimeSlots($room, $day, $lecturer_id = null, $excludeId = null)
     {
         $bookedSlots = [];
 
         // Check room availability
         if ($room && $day) {
-            $roomSchedules = ClassSchedule::byRoom($room)
-                ->onDay($day)
-                ->exclude($excludeId)
-                ->with(['timeSlots', 'lecturer.user'])
-                ->get();
+            $roomSchedules = $this->classScheduleRepository->getSchedulesByRoomAndDay($room, $day, $excludeId);
 
             foreach ($roomSchedules as $schedule) {
                 $lecturerName = $schedule->lecturer ?
@@ -177,11 +155,7 @@ class ScheduleService implements ScheduleServiceInterface
 
         // Check lecturer availability
         if ($lecturer_id && $day) {
-            $lecturerSchedules = ClassSchedule::byLecturer($lecturer_id)
-                ->onDay($day)
-                ->exclude($excludeId)
-                ->with(['timeSlots'])
-                ->get();
+            $lecturerSchedules = $this->classScheduleRepository->getSchedulesByLecturerAndDay($lecturer_id, $day, $excludeId);
 
             foreach ($lecturerSchedules as $schedule) {
                 $lecturerName = $schedule->lecturer ?
@@ -211,7 +185,6 @@ class ScheduleService implements ScheduleServiceInterface
 
         return $bookedSlots;
     }
-
 
     private function slotExistsInArray($slots, $startTime, $endTime)
     {

@@ -8,7 +8,9 @@ use App\Http\Requests\Attendance\StoreAttendanceRequest;
 use App\Http\Requests\Attendance\UpdateAttendanceRequest;
 use App\Models\Attendance;
 use App\Models\ClassSchedule;
-use App\Models\SessionAttendance;
+use App\Repositories\Interfaces\AttendanceRepositoryInterface;
+use App\Repositories\Interfaces\ClassScheduleRepositoryInterface;
+use App\Repositories\Interfaces\SessionAttendanceRepositoryInterface;
 use App\Services\Interfaces\AttendanceServiceInterface;
 use App\Services\Interfaces\QRCodeServiceInterface;
 use Illuminate\Http\Request;
@@ -18,13 +20,22 @@ class LecturerAttendanceController extends Controller
 {
     protected $attendanceService;
     protected $qrCodeService;
+    protected $attendanceRepository;
+    protected $sessionRepository;
+    protected $classScheduleRepository;
 
     public function __construct(
         AttendanceServiceInterface $attendanceService,
-        QRCodeServiceInterface $qrCodeService
+        QRCodeServiceInterface $qrCodeService,
+        AttendanceRepositoryInterface $attendanceRepository,
+        SessionAttendanceRepositoryInterface $sessionRepository,
+        ClassScheduleRepositoryInterface $classScheduleRepository
     ) {
         $this->attendanceService = $attendanceService;
         $this->qrCodeService = $qrCodeService;
+        $this->attendanceRepository = $attendanceRepository;
+        $this->sessionRepository = $sessionRepository;
+        $this->classScheduleRepository = $classScheduleRepository;
     }
 
     /**
@@ -50,12 +61,12 @@ class LecturerAttendanceController extends Controller
     public function create(StoreAttendanceRequest $request)
     {
         $validated = $request->validated();
-        $classSchedule = ClassSchedule::findOrFail($validated['class_id']);
+        $classSchedule = $this->classScheduleRepository->find($validated['class_id']);
 
         $this->authorize('generateQR', $classSchedule);
 
         $result = $this->attendanceService->generateSessionAttendance(
-            $classSchedule,
+            $classSchedule->id,
             $validated['date']
         );
 
@@ -83,14 +94,9 @@ class LecturerAttendanceController extends Controller
             return redirect()->back()->with('error', 'Invalid date format.');
         }
 
-        $attendances = Attendance::with('student.user')
-            ->where('class_schedule_id', $classSchedule->id)
-            ->where('date', $date)
-            ->get();
+        $attendances = $this->attendanceRepository->findByClassAndDate($classSchedule->id, $date);
 
-        $sessionExists = SessionAttendance::where('class_schedule_id', $classSchedule->id)
-            ->where('session_date', $date)
-            ->exists();
+        $sessionExists = $this->sessionRepository->findByClassAndDate($classSchedule->id, $date) !== null;
 
         return view('lecturer.attendance.show', compact('classSchedule', 'attendances', 'date', 'sessionExists'));
     }
@@ -104,7 +110,7 @@ class LecturerAttendanceController extends Controller
 
         $validated = $request->validated();
 
-        $attendance->update([
+        $this->attendanceRepository->update($attendance, [
             'status' => $validated['status'],
             'remarks' => $validated['remarks'],
         ]);
@@ -129,14 +135,14 @@ class LecturerAttendanceController extends Controller
         }
 
         // Get current session data
-        $session = SessionAttendance::where('class_schedule_id', $classSchedule->id)
-            ->where('session_date', $date)
-            ->firstOr(function () use ($classSchedule, $date) {
-                return redirect()->route('lecturer.attendance.show', [
-                    'classSchedule' => $classSchedule->id,
-                    'date' => $date
-                ])->with('error', 'Attendance session not found.');
-            });
+        $session = $this->sessionRepository->findByClassAndDate($classSchedule->id, $date);
+
+        if (!$session) {
+            return redirect()->route('lecturer.attendance.show', [
+                'classSchedule' => $classSchedule->id,
+                'date' => $date
+            ])->with('error', 'Attendance session not found.');
+        }
 
         // Generate QR code
         $qrCode = $this->qrCodeService->generateForAttendance($classSchedule->id, $date);
@@ -163,9 +169,11 @@ class LecturerAttendanceController extends Controller
             return redirect()->back()->with('error', 'Invalid date format.');
         }
 
-        $session = SessionAttendance::where('class_schedule_id', $classSchedule->id)
-            ->where('session_date', $date)
-            ->firstOrFail();
+        $session = $this->sessionRepository->findByClassAndDate($classSchedule->id, $date);
+
+        if (!$session) {
+            return redirect()->back()->with('error', 'Session not found.');
+        }
 
         if ($session->end_time->isPast()) {
             return redirect()->route('lecturer.attendance.view_qr', [
@@ -174,7 +182,7 @@ class LecturerAttendanceController extends Controller
             ])->with('error', 'Attendance session has already ended. Extension is not allowed.');
         }
 
-        $session->update([
+        $this->sessionRepository->update($session, [
             'end_time' => $session->end_time->addMinutes((int)$validated['minutes']),
             'is_active' => true
         ]);

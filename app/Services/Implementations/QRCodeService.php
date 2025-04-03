@@ -2,14 +2,20 @@
 
 namespace App\Services\Implementations;
 
-use App\Models\ClassSchedule;
-use App\Models\SessionAttendance;
+use App\Repositories\Interfaces\SessionAttendanceRepositoryInterface;
 use App\Services\Interfaces\QRCodeServiceInterface;
 use Illuminate\Support\Facades\Crypt;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class QRCodeService implements QRCodeServiceInterface
 {
+    protected $sessionRepository;
+
+    public function __construct(SessionAttendanceRepositoryInterface $sessionRepository)
+    {
+        $this->sessionRepository = $sessionRepository;
+    }
+
     public function generateForAttendance(int $classId, string $date): string
     {
         // Create a token with class ID and date
@@ -20,12 +26,10 @@ class QRCodeService implements QRCodeServiceInterface
         ]);
 
         // Store the token in session
-        $session = SessionAttendance::where('class_schedule_id', $classId)
-            ->where('session_date', $date)
-            ->first();
+        $session = $this->sessionRepository->findByClassAndDate($classId, $date);
 
         if ($session) {
-            $session->update([
+            $this->sessionRepository->update($session, [
                 'qr_code' => $token,
                 'is_active' => true,
             ]);
