@@ -34,10 +34,7 @@ class StudentAttendanceController extends Controller
     {
         $this->authorize('viewAny', Attendance::class);
         $student = Auth::user()->student;
-        $attendances = Attendance::with(['classSchedule.course', 'classSchedule.lecturer.user'])
-            ->where('student_id', $student->id)
-            ->orderBy('date', 'desc')
-            ->get();
+        $attendances = $this->attendanceService->getStudentAttendances($student->id);
 
         return view('student.attendance.index', compact('attendances'));
     }
@@ -61,7 +58,7 @@ class StudentAttendanceController extends Controller
         }
 
         // Check if attendance is already marked
-        if ($this->isAttendanceAlreadyMarked($student->id, $classId, $date)) {
+        if ($this->attendanceService->isAttendanceAlreadyMarked($student->id, $classId, $date)) {
             return redirect()->route('student.attendance.index')
                 ->with('info', 'You have already marked your attendance for this session.');
         }
@@ -73,7 +70,7 @@ class StudentAttendanceController extends Controller
         $this->authorize('view', $classSchedule);
 
         // Check if student is enrolled in this class
-        if (!$this->isStudentEnrolled($student, $classSchedule)) {
+        if (!$this->attendanceService->isStudentEnrolled($student->id, $classSchedule->id)) {
             return redirect()->route('student.attendance.index')
                 ->with('error', 'You are not enrolled in this class.');
         }
@@ -102,7 +99,7 @@ class StudentAttendanceController extends Controller
             $classSchedule = ClassSchedule::findOrFail($classId);
             $this->authorize('view', $classSchedule);
 
-            if (!$this->isStudentEnrolled($student, $classSchedule)) {
+            if (!$this->attendanceService->isStudentEnrolled($student->id, $classSchedule->id)) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'You are not enrolled in this class.',
@@ -116,7 +113,7 @@ class StudentAttendanceController extends Controller
         }
 
         // Check if attendance already marked
-        if ($this->isAttendanceAlreadyMarked($student->id, $classId, $date)) {
+        if ($this->attendanceService->isAttendanceAlreadyMarked($student->id, $classId, $date)) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'You have already marked your attendance for this session.',
@@ -124,7 +121,7 @@ class StudentAttendanceController extends Controller
         }
 
         // Check if session is active
-        if (!$this->isSessionActive($classId, $date)) {
+        if (!$this->attendanceService->isSessionActive($classId, $date)) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'This session is no longer active.',
@@ -161,25 +158,25 @@ class StudentAttendanceController extends Controller
         ], 400);
     }
 
-    private function isStudentEnrolled(Student $student, ClassSchedule $classSchedule): bool
-    {
-        return $classSchedule->classroom_id == $student->classroom_id;
-    }
+    // private function isStudentEnrolled(Student $student, ClassSchedule $classSchedule): bool
+    // {
+    //     return $classSchedule->classroom_id == $student->classroom_id;
+    // }
 
-    private function isAttendanceAlreadyMarked(int $studentId, int $classId, string $date): bool
-    {
-        return Attendance::where('class_schedule_id', $classId)
-            ->where('student_id', $studentId)
-            ->where('date', $date)
-            ->where('status', 'present')
-            ->exists();
-    }
+    // private function isAttendanceAlreadyMarked(int $studentId, int $classId, string $date): bool
+    // {
+    //     return Attendance::where('class_schedule_id', $classId)
+    //         ->where('student_id', $studentId)
+    //         ->where('date', $date)
+    //         ->where('status', 'present')
+    //         ->exists();
+    // }
 
-    private function isSessionActive(int $classId, string $date): bool
-    {
-        return SessionAttendance::where('class_schedule_id', $classId)
-            ->where('session_date', $date)
-            ->where('is_active', true)
-            ->exists();
-    }
+    // private function isSessionActive(int $classId, string $date): bool
+    // {
+    //     return SessionAttendance::where('class_schedule_id', $classId)
+    //         ->where('session_date', $date)
+    //         ->where('is_active', true)
+    //         ->exists();
+    // }
 }

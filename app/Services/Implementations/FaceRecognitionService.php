@@ -3,6 +3,8 @@
 namespace App\Services\Implementations;
 
 use App\Services\Interfaces\FaceRecognitionServiceInterface;
+use App\Repositories\Interfaces\StudentRepositoryInterface;
+use App\Repositories\Interfaces\FaceDataRepositoryInterface;
 use App\Exceptions\FaceRecognitionException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
@@ -17,12 +19,20 @@ class FaceRecognitionService implements FaceRecognitionServiceInterface
     protected $apiUrl;
     protected $apiKey;
     protected $imageFolderPath;
+    protected $studentRepository;
+    protected $faceDataRepository;
 
-    public function __construct()
+    public function __construct(
+        // Inject repositories if needed
+        StudentRepositoryInterface $studentRepository,
+        FaceDataRepositoryInterface $faceDataRepository
+    )
     {
         $this->apiUrl = config('services.face_recognition.url');
         $this->apiKey = config('services.face_recognition.key');
         $this->imageFolderPath = config('services.face_recognition.storage_path', 'face_images');
+        $this->studentRepository = $studentRepository;
+        $this->faceDataRepository = $faceDataRepository;
     }
 
     public function verifyFace(UploadedFile $image, int $classId, string $nim): array
@@ -119,15 +129,19 @@ class FaceRecognitionService implements FaceRecognitionServiceInterface
            $averageEmbedding = $this->averageEmbeddings($embeddings);
 
            // Save to database
-           $student = Student::where('nim', $nim)->firstOrFail();
+           $student = $this->studentRepository->findByNim($nim);
 
-           FaceData::updateOrCreate(
-               ['student_id' => $student->id],
-               [
-                   'face_embedding' => json_encode($averageEmbedding),
-                   'image_path' => json_encode($imagePaths),
-                   'is_active' => true
-               ]
+            if (!$student) {
+                throw new FaceRecognitionException("Student with NIM {$nim} not found");
+            }
+
+           $this->faceDataRepository->createOrUpdate(
+                $student->id,
+                [
+                    'face_embedding' => json_encode($averageEmbedding),
+                    'image_path' => json_encode($imagePaths),
+                    'is_active' => true
+                ]
            );
 
            return [

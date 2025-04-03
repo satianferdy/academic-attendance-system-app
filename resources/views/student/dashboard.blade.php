@@ -96,7 +96,7 @@
 
                         <div class="ms-auto mt-3 mt-md-0">
                             @if (!Auth::user()->student->face_registered)
-                                <a href="{{ route('student.face-registration') }}" class="btn btn-primary">
+                                <a href="{{ route('student.face.register') }}" class="btn btn-primary">
                                     <i data-feather="camera" class="icon-sm me-1"></i> Register Face
                                 </a>
                             @else
