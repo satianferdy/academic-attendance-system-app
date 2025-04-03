@@ -1,0 +1,650 @@
+@extends('layouts.app')
+
+@section('title', 'Register Face')
+
+@push('styles')
+    <style>
+        .dashboard-container {
+            width: 100%;
+            min-height: calc(100vh - 60px);
+            display: flex;
+            flex-direction: column;
+            background-color: #f8f9fa;
+        }
+
+        .dashboard-header {
+            padding: 1rem 1.5rem;
+            width: 100%;
+        }
+
+        .dashboard-content {
+            flex: 1;
+        }
+
+        .custom-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .user-icon {
+            background-color: #FFC107;
+            /* Yellow/amber color */
+        }
+
+        .icon-inner {
+            width: 20px;
+            height: 20px;
+            color: white;
+        }
+
+        /* Video and capture button styles */
+        #video-container {
+            position: relative;
+            width: 100%;
+            max-width: 640px;
+            margin: 0 auto;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        #video {
+            width: 100%;
+            border-radius: 10px;
+        }
+
+        #capture-btn {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            width: 50px;
+            height: 50px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #capture-btn .badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            font-size: 0.7rem;
+        }
+
+        .camera-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+            border: 2px solid #ced4da;
+            box-sizing: border-box;
+            pointer-events: none;
+        }
+
+        /* Thumbnail grid styles */
+        .thumbnail-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        /* Thumbnail styles */
+        .thumbnail-item {
+            position: relative;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .thumbnail-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .thumbnail-item.good-quality {
+            border-color: #198754;
+        }
+
+        .thumbnail-item.bad-quality {
+            border-color: #dc3545;
+        }
+
+        .thumbnail-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+
+        .thumbnail-actions {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .quality-indicator {
+            color: white;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .quality-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #198754;
+            color: white;
+            padding: 0.25rem 0.25rem;
+            border-radius: 15px;
+            font-size: 0.5rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Loading overlay styles */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .spinner {
+            width: 4rem;
+            height: 4rem;
+        }
+
+        /* Step indicator */
+        .registration-steps {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .step-indicator {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0 1rem;
+        }
+
+        .step-number {
+            width: 30px;
+            height: 30px;
+            background-color: #e9ecef;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .step-number.active {
+            background-color: #0d6efd;
+            color: white;
+        }
+
+        .step-text {
+            font-size: 0.8rem;
+            text-align: center;
+            color: #6c757d;
+        }
+
+        .step-text.active {
+            color: #0d6efd;
+            font-weight: 500;
+        }
+
+        #submit-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        /* Info card styles */
+        .info-card {
+            background-color: #f8f9fa;
+            border-left: 4px solid #0d6efd;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: 5px;
+        }
+
+        .info-card p {
+            margin-bottom: 0;
+            font-size: 0.9rem;
+        }
+    </style>
+@endpush
+
+@section('content')
+    <div class="dashboard-container">
+        <!-- Header Banner -->
+        <div class="dashboard-header bg-primary mb-4">
+            <h4 class="text-white mb-0">Face Registration</h4>
+        </div>
+
+        <!-- Content Area -->
+        <div class="dashboard-content px-3 pb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <div class="custom-icon user-icon me-2">
+                            <i data-feather="user" class="icon-inner"></i>
+                        </div>
+                        <h5 class="mb-0">REGISTER YOUR FACE</h5>
+                    </div>
+                    <a href="{{ route('student.face.index') }}" class="btn btn-icon-text btn-sm btn-outline-secondary">
+                        <i class="btn-icon-prepend" data-feather="chevron-left"></i>Back
+                    </a>
+                </div>
+
+                <div class="card-body pt-2">
+                    <div class="registration-steps mb-4">
+                        <div class="step-indicator">
+                            <div class="step-number active">1</div>
+                            <div class="step-text active">Position Face</div>
+                        </div>
+                        <div class="step-indicator">
+                            <div class="step-number">2</div>
+                            <div class="step-text">Capture Photos</div>
+                        </div>
+                        <div class="step-indicator">
+                            <div class="step-number">3</div>
+                            <div class="step-text">Verify Quality</div>
+                        </div>
+                        <div class="step-indicator">
+                            <div class="step-number">4</div>
+                            <div class="step-text">Complete</div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info d-flex align-items-center" role="alert">
+                        <div>
+                            Please position your face clearly in the camera frame. Ensure good lighting and remove
+                            glasses
+                            or face coverings for better accuracy.
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12 mx-auto">
+                            <div class="info-card mb-3">
+                                <p><strong>Instructions:</strong> Take 5 clear photos of your face from different angles
+                                    for best results. The system will automatically analyze the quality of each image.
+                                </p>
+                            </div>
+
+                            <!-- Error message container -->
+                            <div id="error-message" class="alert alert-danger mt-3" style="display: none;" role="alert">
+                                <span id="error-text"></span>
+                            </div>
+
+                            <div class="camera-container">
+                                <div id="video-container">
+                                    <video id="video" autoplay playsinline></video>
+                                    <div class="camera-overlay"></div>
+                                    <button id="capture-btn" class="btn btn-outline-primary rounded-circle"
+                                        title="Take Photo">
+                                        <i data-feather="camera"></i>
+                                        <span class="badge bg-danger">{{ $remainingShots }}/5</span>
+                                    </button>
+                                </div>
+
+                                <div class="thumbnail-grid" id="thumbnail-grid"></div>
+
+                                <div class="preview-container text-center mt-4" id="preview-container">
+                                    <button id="submit-btn" class="btn btn-icon-text btn-sm btn-success" disabled>
+                                        <i data-feather="send" class="btn-icon-prepend"></i>Register Face
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="spinner-border text-light spinner mb-3" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <h5 class="text-light">Processing...</h5>
+    </div>
+
+    <!-- Hidden Form -->
+    <form id="face-form" style="display: none;">
+        @csrf
+        <input type="hidden" name="redirect_url" value="{{ $redirectUrl }}">
+    </form>
+@endsection
+
+@push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const MAX_SHOTS = 5;
+            let capturedShots = [];
+            let remainingShots = MAX_SHOTS;
+
+            const video = document.getElementById('video');
+            const captureBtn = document.getElementById('capture-btn');
+            const submitBtn = document.getElementById('submit-btn');
+            const thumbnailGrid = document.getElementById('thumbnail-grid');
+            const errorMessage = document.getElementById('error-message');
+            const errorText = document.getElementById('error-text');
+            const loadingOverlay = document.getElementById('loading-overlay');
+            const faceForm = document.getElementById('face-form');
+            const stepNumbers = document.querySelectorAll('.step-number');
+            const stepTexts = document.querySelectorAll('.step-text');
+
+            let stream;
+
+            // Update step indicators
+            function updateStepIndicators(step) {
+                stepNumbers.forEach((el, index) => {
+                    if (index < step) {
+                        el.classList.add('active');
+                    } else {
+                        el.classList.remove('active');
+                    }
+                });
+
+                stepTexts.forEach((el, index) => {
+                    if (index < step) {
+                        el.classList.add('active');
+                    } else {
+                        el.classList.remove('active');
+                    }
+                });
+            }
+
+            // Start the camera
+            async function startCamera() {
+                try {
+                    // Tambahkan kode ini untuk mendapatkan daftar kamera yang tersedia
+                    const devices = await navigator.mediaDevices.enumerateDevices();
+                    const videoDevices = devices.filter(device => device.kind === 'videoinput');
+
+                    // Tambahkan elemen select untuk memilih kamera
+                    const cameraSelect = document.createElement('select');
+                    cameraSelect.id = 'camera-select';
+                    cameraSelect.className = 'form-select form-select-sm mb-3';
+
+                    videoDevices.forEach((device, index) => {
+                        const option = document.createElement('option');
+                        option.value = device.deviceId;
+                        option.text = device.label || `Kamera ${index + 1}`;
+                        cameraSelect.appendChild(option);
+                    });
+
+                    // Tambahkan elemen select ke dalam DOM
+                    const cameraContainer = document.querySelector('.camera-container');
+                    cameraContainer.insertBefore(cameraSelect, document.getElementById('video-container'));
+
+                    // Fungsi untuk memulai kamera dengan device ID tertentu
+                    async function startVideoStream(deviceId = null) {
+                        if (stream) {
+                            stream.getTracks().forEach(track => track.stop());
+                        }
+
+                        stream = await navigator.mediaDevices.getUserMedia({
+                            video: {
+                                deviceId: deviceId ? {
+                                    exact: deviceId
+                                } : undefined,
+                                facingMode: 'user',
+                                width: {
+                                    ideal: 1280
+                                },
+                                height: {
+                                    ideal: 720
+                                }
+                            }
+                        });
+
+                        video.srcObject = stream;
+                        captureBtn.disabled = false;
+                    }
+
+                    // Tambahkan event listener untuk mengubah kamera
+                    cameraSelect.addEventListener('change', function() {
+                        startVideoStream(this.value);
+                    });
+
+                    // Mulai dengan kamera pertama
+                    await startVideoStream(videoDevices.length > 0 ? videoDevices[0].deviceId : null);
+                    updateStepIndicators(1);
+                } catch (err) {
+                    errorText.textContent = 'Error accessing camera: ' + err.message;
+                    errorMessage.style.display = 'flex';
+                    captureBtn.disabled = true;
+                }
+            }
+
+            // Capture the image
+            captureBtn.addEventListener('click', async function() {
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+
+                const context = canvas.getContext('2d');
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                const tempImage = {
+                    id: Date.now(),
+                    dataURL: canvas.toDataURL('image/jpeg', 0.9),
+                    quality: null,
+                    status: 'pending',
+                    isGoodQuality: false
+                };
+
+                capturedShots.push(tempImage);
+                remainingShots = MAX_SHOTS - capturedShots.length;
+                updateUI();
+
+                if (capturedShots.length > 0) {
+                    updateStepIndicators(2);
+                }
+
+                try {
+                    const response = await validateImageQuality(tempImage.dataURL);
+
+                    // Fixing: Access the correct data from response
+                    if (response.status === 'success') {
+                        tempImage.quality = response.data.quality_metrics.blur_score;
+                        tempImage.isGoodQuality = response.data.quality_metrics.blur_score >= 50;
+                        tempImage.status = 'processed';
+
+                        if (capturedShots.filter(shot => shot.isGoodQuality).length > 0) {
+                            updateStepIndicators(3);
+                        }
+                    } else {
+                        tempImage.status = 'error';
+                        tempImage.message = response.message;
+                        tempImage.isGoodQuality = false;
+
+                        // Remove the failed shot from the array
+                        capturedShots = capturedShots.filter(shot => shot.id !== tempImage.id);
+                        remainingShots = MAX_SHOTS - capturedShots.length;
+                    }
+                } catch (error) {
+                    tempImage.status = 'error';
+                    tempImage.message = error.message;
+                    tempImage.isGoodQuality = false;
+
+                    // Remove the failed shot from the array
+                    capturedShots = capturedShots.filter(shot => shot.id !== tempImage.id);
+                    remainingShots = MAX_SHOTS - capturedShots.length;
+                }
+
+                updateUI();
+            });
+
+            // Validate image quality via API
+            async function validateImageQuality(dataURL) {
+                const blob = dataURLtoBlob(dataURL);
+                const formData = new FormData();
+                formData.append('image', blob, 'face.jpg');
+
+                try {
+                    const response = await fetch('{{ route('student.face.validate-quality') }}', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'X-API-Key': '{{ config('services.face_recognition.key') }}'
+                        },
+                        body: formData
+                    });
+
+                    const result = await response.json();
+
+                    if (result.status === 'error') {
+                        // Display the specific error message from the API
+                        errorText.textContent = result.message || 'Failed to validate image';
+                        errorMessage.style.display = 'flex';
+
+                        // Hide the error message after 5 seconds
+                        setTimeout(() => {
+                            errorMessage.style.display = 'none';
+                        }, 5000);
+
+                        throw new Error(result.message || 'Failed to validate image');
+                    }
+
+                    return result;
+                } catch (error) {
+                    console.error('Validation error:', error);
+                    throw error;
+                }
+            }
+
+            // Update UI based on captured shots
+            function updateUI() {
+                thumbnailGrid.innerHTML = capturedShots.map(shot => `
+                <div class="thumbnail-item ${shot.isGoodQuality ? 'good-quality' : 'bad-quality'}">
+                    <img src="${shot.dataURL}" alt="Captured face">
+                    <div class="thumbnail-actions">
+                        <span class="quality-indicator">
+                            ${shot.quality ? `Quality: ${Math.round(shot.quality)}%` : 'Checking...'}
+                        </span>
+                        ${!shot.isGoodQuality ? `<button class="btn btn-danger btn-icon btn-sm" onclick="deleteShot(${shot.id})"><i data-feather="trash-2"></i></button>` : ''}
+                    </div>
+                    ${shot.isGoodQuality ? `<div class="quality-badge"><i data-feather="check-circle"></i></div>` : ''}
+                </div>
+            `).join('');
+
+                captureBtn.querySelector('.badge').textContent = `${remainingShots}/5`;
+                captureBtn.disabled = remainingShots === 0;
+
+                const allValid = capturedShots.every(shot => shot.isGoodQuality);
+                submitBtn.disabled = !(capturedShots.length === MAX_SHOTS && allValid);
+
+                if (capturedShots.length === MAX_SHOTS && allValid) {
+                    updateStepIndicators(4);
+                }
+
+                // Re-initialize feather icons for newly added DOM elements
+                if (typeof feather !== 'undefined') {
+                    feather.replace();
+                }
+            }
+
+            // Delete a captured shot
+            window.deleteShot = function(id) {
+                capturedShots = capturedShots.filter(shot => shot.id !== id);
+                remainingShots = MAX_SHOTS - capturedShots.length;
+
+                if (capturedShots.length === 0) {
+                    updateStepIndicators(1);
+                } else if (!capturedShots.some(shot => shot.isGoodQuality)) {
+                    updateStepIndicators(2);
+                }
+
+                updateUI();
+            };
+
+            // Convert dataURL to Blob
+            function dataURLtoBlob(dataURL) {
+                const byteString = atob(dataURL.split(',')[1]);
+                const mimeString = dataURL.split(',')[0].split(':')[1].split(';')[0];
+                const ab = new ArrayBuffer(byteString.length);
+                const ia = new Uint8Array(ab);
+
+                for (let i = 0; i < byteString.length; i++) {
+                    ia[i] = byteString.charCodeAt(i);
+                }
+
+                return new Blob([ab], {
+                    type: mimeString
+                });
+            }
+
+            // Submit registration
+            submitBtn.addEventListener('click', async function() {
+                loadingOverlay.style.display = 'flex';
+
+                try {
+                    const formData = new FormData(faceForm);
+
+                    // Add each good quality image to the form data
+                    capturedShots.filter(shot => shot.isGoodQuality).forEach((shot, index) => {
+                        const blob = dataURLtoBlob(shot.dataURL);
+                        formData.append(`images[${index}]`, blob, `face_${index}.jpg`);
+                    });
+
+                    const response = await fetch('{{ route('student.face.store') }}', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                .content,
+                        },
+                        body: formData
+                    });
+
+                    const result = await response.json();
+
+                    if (result.status === 'success') {
+                        window.location.href = result.redirect_url ||
+                            '{{ route('student.face.index') }}';
+                    } else {
+                        throw new Error(result.message || 'Failed to register face');
+                    }
+                } catch (error) {
+                    loadingOverlay.style.display = 'none';
+                    errorText.textContent = error.message;
+                    errorMessage.style.display = 'flex';
+                }
+            });
+
+            // Start the camera when the page loads
+            startCamera();
+        });
+    </script>
+@endpush
