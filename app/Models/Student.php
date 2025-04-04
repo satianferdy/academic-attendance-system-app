@@ -18,6 +18,10 @@ class Student extends Model
         'face_registered',
     ];
 
+    protected $casts = [
+        'face_registered' => 'boolean',
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);
