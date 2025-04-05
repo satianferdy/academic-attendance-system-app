@@ -23,10 +23,10 @@ class FaceDataFactory extends Factory
     public function definition(): array
     {
         return [
-            'student_id' => Student::factory()->withRegisteredFace(),
-            'face_encoding' => json_encode(array_fill(0, 128, $this->faker->randomFloat(-1, 1))), // Simulated 128-dimension face encoding
-            'face_image_path' => 'faces/' . $this->faker->uuid() . '.jpg',
-            'registration_date' => $this->faker->dateTimeThisYear(),
+            'student_id' => Student::factory(),
+            'face_embedding' => array_fill(0, 128, $this->faker->randomFloat(-1, 1)), // Array, not JSON string
+            'image_path' => ['path' => 'faces/' . $this->faker->uuid() . '.jpg'],     // Array structure
+            'is_active' => true,
         ];
     }
 }
