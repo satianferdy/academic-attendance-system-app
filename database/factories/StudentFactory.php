@@ -32,7 +32,7 @@ class StudentFactory extends Factory
             'nim' => $this->faker->unique()->numerify('############'),
             'department' => $this->faker->randomElement($departments),
             'faculty' => $this->faker->randomElement($faculties),
-            'face_registered' => $this->faker->boolean(60), // 60% chance of being true
+            'face_registered' => $this->faker->boolean(30), // 30% chance of being true
         ];
     }
 
