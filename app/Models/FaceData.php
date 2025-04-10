@@ -18,8 +18,6 @@ class FaceData extends Model
 
     protected $casts = [
         'is_active' => 'boolean',
-        'face_embedding' => 'array', // Assuming face_embedding is stored as a JSON array
-        'image_path' => 'array', // Assuming image_path is a string
     ];
 
     public function student()
