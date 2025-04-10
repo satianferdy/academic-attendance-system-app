@@ -157,26 +157,4 @@ class StudentAttendanceController extends Controller
             'message' => $result['message'] ?? 'Face verification failed.',
         ], 400);
     }
-
-    // private function isStudentEnrolled(Student $student, ClassSchedule $classSchedule): bool
-    // {
-    //     return $classSchedule->classroom_id == $student->classroom_id;
-    // }
-
-    // private function isAttendanceAlreadyMarked(int $studentId, int $classId, string $date): bool
-    // {
-    //     return Attendance::where('class_schedule_id', $classId)
-    //         ->where('student_id', $studentId)
-    //         ->where('date', $date)
-    //         ->where('status', 'present')
-    //         ->exists();
-    // }
-
-    // private function isSessionActive(int $classId, string $date): bool
-    // {
-    //     return SessionAttendance::where('class_schedule_id', $classId)
-    //         ->where('session_date', $date)
-    //         ->where('is_active', true)
-    //         ->exists();
-    // }
 }

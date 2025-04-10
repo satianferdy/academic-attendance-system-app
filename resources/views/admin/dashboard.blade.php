@@ -372,7 +372,11 @@
 
 @push('scripts')
     <script src="{{ asset('assets/vendors/chartjs/Chart.min.js') }}"></script>
+    {{-- <script src="{{ asset('assets/vendors/feather-icons/feather.min.js') }}"></script> --}}
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <script>
+        // Initialize Feather Icons
+        feather.replace();
         document.addEventListener('DOMContentLoaded', function() {
             // Weekly attendance chart
             const ctx = document.getElementById('weeklyAttendanceChart').getContext('2d');
