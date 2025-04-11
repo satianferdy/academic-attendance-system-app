@@ -203,7 +203,7 @@ class FaceRecognitionServiceTest extends TestCase
         $this->assertEquals('Face registered successfully', $result['message']);
         $this->assertEquals($studentId, $result['data']['student_id']);
         $this->assertEquals($nim, $result['data']['nim']);
-        $this->assertEquals(2, $result['data']['image_count']);
+        $this->assertEquals(1, $result['data']['image_count']);
 
         // Verify images were stored
         $folderPath = "face_images/{$nim}";

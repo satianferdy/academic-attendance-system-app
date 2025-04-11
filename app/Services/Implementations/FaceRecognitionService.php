@@ -88,10 +88,10 @@ class FaceRecognitionService implements FaceRecognitionServiceInterface
    {
        try {
            $embeddings = [];
-           $imagePaths = [];
+           $imagePaths = null;
 
            // Process each image
-           foreach ($images as $image) {
+           foreach ($images as $index => $image) {
                $this->validateImage($image);
 
                // Send to Flask for embedding extraction
@@ -122,7 +122,9 @@ class FaceRecognitionService implements FaceRecognitionServiceInterface
                $embeddings[] = $responseData['data']['embedding'];
 
                // Store image to storage
-               $imagePaths[] = $this->storeImage($image, $nim);
+               if ($index === 0) {
+                   $imagePaths = $this->storeImage($image, $nim);
+               }
            }
 
            // Calculate average embedding
@@ -150,7 +152,7 @@ class FaceRecognitionService implements FaceRecognitionServiceInterface
                'data' => [
                    'student_id' => $student->id,
                    'nim' => $nim,
-                   'image_count' => count($imagePaths)
+                   'image_count' => 1,
                ]
            ];
 
