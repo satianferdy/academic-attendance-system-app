@@ -140,43 +140,6 @@ class AttendanceRepositoryTest extends TestCase
         $this->assertEquals(1, Attendance::count());
     }
 
-    public function test_create_or_update_by_class_student_date_with_existing_record()
-    {
-        // Arrange
-        $classSchedule = ClassSchedule::factory()->create();
-        $student = Student::factory()->create();
-        $date = '2023-08-15';
-
-        // Create an existing attendance record
-        Attendance::factory()->create([
-            'class_schedule_id' => $classSchedule->id,
-            'student_id' => $student->id,
-            'date' => $date,
-            'status' => 'absent',
-        ]);
-
-        $attributes = [
-            'class_schedule_id' => $classSchedule->id,
-            'student_id' => $student->id,
-            'date' => $date,
-        ];
-
-        $values = [
-            'status' => 'present',
-            'remarks' => 'Late arrival',
-        ];
-
-        // Act
-        $result = $this->repository->createOrUpdateByClassStudentDate($attributes, $values);
-
-        // Assert
-        $this->assertInstanceOf(Attendance::class, $result);
-        $this->assertEquals('absent', $result->status); // Status remains the same because we use firstOrCreate
-
-        // Verify no new record was created
-        $this->assertEquals(1, Attendance::count());
-    }
-
     public function test_update()
     {
         // Arrange

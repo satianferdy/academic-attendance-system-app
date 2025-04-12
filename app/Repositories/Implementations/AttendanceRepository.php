@@ -23,7 +23,7 @@ class AttendanceRepository implements AttendanceRepositoryInterface
     {
         return $this->model->with('student.user')
             ->where('class_schedule_id', $classId)
-            ->where('date', $date)
+            ->whereDate('date', $date)
             ->get();
     }
 
@@ -31,7 +31,7 @@ class AttendanceRepository implements AttendanceRepositoryInterface
     {
         return $this->model->where('class_schedule_id', $classId)
             ->where('student_id', $studentId)
-            ->where('date', $date)
+            ->whereDate('date', $date)
             ->first();
     }
 
@@ -42,7 +42,7 @@ class AttendanceRepository implements AttendanceRepositoryInterface
 
     public function createOrUpdateByClassStudentDate(array $attributes, array $values)
     {
-        return $this->model->firstOrCreate($attributes, $values);
+        return $this->model->updateOrCreate($attributes, $values);
     }
 
     public function update(Attendance $attendance, array $data)
@@ -55,7 +55,7 @@ class AttendanceRepository implements AttendanceRepositoryInterface
     {
         return $this->model->with('student.user')
             ->where('class_schedule_id', $classId)
-            ->where('date', $date)
+            ->whereDate('date', $date)
             ->get();
     }
 

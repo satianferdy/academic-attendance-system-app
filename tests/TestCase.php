@@ -3,6 +3,7 @@
 namespace Tests;
 
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 
 abstract class TestCase extends BaseTestCase
@@ -11,22 +12,27 @@ abstract class TestCase extends BaseTestCase
 
     protected function setUp(): void
     {
-        // Double check we're in testing environment before parent setup
-        if (env('APP_ENV') !== 'testing') {
-            fwrite(STDERR, "\n⚠️ CRITICAL WARNING: Tests not running in testing environment! APP_ENV=" . env('APP_ENV') . "\n");
-            fwrite(STDERR, "Tests aborted to protect your data.\n\n");
-            exit(1);
-        }
-
         parent::setUp();
 
-        // Now check the database after connection has been established
+        // Check if using SQLite and it's in-memory
+        if (config('database.default') === 'sqlite' &&
+            config('database.connections.sqlite.database') === ':memory:') {
+            // Run migrations for in-memory database
+            Artisan::call('migrate');
+        } else {
+            // For non-SQLite connections, continue with your safety checks
+            $this->validateDatabaseConnection();
+        }
+    }
+
+    protected function validateDatabaseConnection()
+    {
         try {
-            $testDb = 'academic_attendance_system_app_test';
+            $expectedDb = 'academic_attendance_system_app_test';
             $actualDb = DB::connection()->getDatabaseName();
 
-            if ($actualDb !== $testDb) {
-                fwrite(STDERR, "\n⚠️ CRITICAL WARNING: Tests attempting to run against database '$actualDb' instead of test database '$testDb'!\n");
+            if ($actualDb !== $expectedDb && $actualDb !== ':memory:') {
+                fwrite(STDERR, "\n⚠️ CRITICAL WARNING: Tests attempting to run against database '$actualDb' instead of test database!\n");
                 fwrite(STDERR, "Tests aborted to protect your data.\n\n");
                 exit(1);
             }

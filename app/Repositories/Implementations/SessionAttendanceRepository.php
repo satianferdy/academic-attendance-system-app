@@ -17,7 +17,7 @@ class SessionAttendanceRepository implements SessionAttendanceRepositoryInterfac
     public function findActiveByClassAndDate(int $classId, string $date)
     {
         return $this->model->where('class_schedule_id', $classId)
-            ->where('session_date', $date)
+            ->whereDate('session_date', $date)
             ->where('is_active', true)
             ->first();
     }
@@ -41,7 +41,7 @@ class SessionAttendanceRepository implements SessionAttendanceRepositoryInterfac
     public function findByClassAndDate(int $classId, string $date)
     {
         return $this->model->where('class_schedule_id', $classId)
-            ->where('session_date', $date)
+            ->whereDate('session_date', $date)
             ->first();
     }
 

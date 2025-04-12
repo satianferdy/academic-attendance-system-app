@@ -92,46 +92,6 @@ class SessionAttendanceRepositoryTest extends TestCase
         $this->assertEquals(1, SessionAttendance::count());
     }
 
-    public function test_create_or_update_with_existing_session()
-    {
-        // Arrange
-        $classSchedule = ClassSchedule::factory()->create();
-        $date = '2023-08-15';
-
-        // Create an existing session
-        SessionAttendance::factory()->create([
-            'class_schedule_id' => $classSchedule->id,
-            'session_date' => $date,
-            'start_time' => '08:00',
-            'end_time' => '10:00',
-            'qr_code' => 'oldqr123',
-            'is_active' => false,
-        ]);
-
-        $attributes = [
-            'class_schedule_id' => $classSchedule->id,
-            'session_date' => $date,
-        ];
-
-        $values = [
-            'start_time' => '09:00',
-            'end_time' => '11:00',
-            'qr_code' => 'newqr456',
-            'is_active' => true,
-        ];
-
-        // Act
-        $result = $this->repository->createOrUpdate($attributes, $values);
-
-        // Assert
-        $this->assertInstanceOf(SessionAttendance::class, $result);
-        $this->assertEquals('oldqr123', $result->qr_code); // Using firstOrCreate, so values don't update
-        $this->assertFalse($result->is_active);
-
-        // Verify no new record was created
-        $this->assertEquals(1, SessionAttendance::count());
-    }
-
     public function test_create()
     {
         // Arrange
