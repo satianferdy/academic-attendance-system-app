@@ -12,6 +12,11 @@ abstract class TestCase extends BaseTestCase
 
     protected function setUp(): void
     {
+        // // Clear config cache before test runs
+        // if (PHP_SAPI !== 'phpdbg') { // Skip during code coverage runs
+        //     Artisan::call('config:clear');
+        // }
+
         parent::setUp();
 
         // Check if using SQLite and it's in-memory
@@ -28,10 +33,18 @@ abstract class TestCase extends BaseTestCase
     protected function validateDatabaseConnection()
     {
         try {
+            $connection = DB::connection()->getName();
+
+            // If using SQLite for testing, we're good
+            if ($connection === 'sqlite') {
+                return;
+            }
+
+            // For other connections, verify it's a test database
             $expectedDb = 'academic_attendance_system_app_test';
             $actualDb = DB::connection()->getDatabaseName();
 
-            if ($actualDb !== $expectedDb && $actualDb !== ':memory:') {
+            if ($actualDb !== $expectedDb) {
                 fwrite(STDERR, "\n⚠️ CRITICAL WARNING: Tests attempting to run against database '$actualDb' instead of test database!\n");
                 fwrite(STDERR, "Tests aborted to protect your data.\n\n");
                 exit(1);

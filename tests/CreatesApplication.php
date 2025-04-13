@@ -13,10 +13,10 @@ trait CreatesApplication
     public function createApplication()
     {
         // Early environment check before app creation
-        // if (getenv('APP_ENV') !== 'testing' && env('APP_ENV') !== 'testing') {
-        //     fwrite(STDERR, "\n⚠️ CRITICAL WARNING: Tests not running in testing environment!\n");
-        //     exit(1);
-        // }
+        if (getenv('APP_ENV') !== 'testing' && env('APP_ENV') !== 'testing') {
+            fwrite(STDERR, "\n⚠️ CRITICAL WARNING: Tests not running in testing environment!\n");
+            exit(1);
+        }
 
         $app = require __DIR__.'/../bootstrap/app.php';
 
