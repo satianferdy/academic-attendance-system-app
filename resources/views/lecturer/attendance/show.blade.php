@@ -17,6 +17,9 @@
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h6 class="card-title">Attendance List - {{ $classSchedule->course->code }}</h6>
                         <div>
+                            <button onclick="window.history.back()" class="btn btn-secondary btn-sm btn-icon-text me-2">
+                                <i class="btn-icon-prepend" data-feather="arrow-left"></i>Back
+                            </button>
                             <a href="{{ route('lecturer.attendance.view_qr', ['classSchedule' => $classSchedule->id, 'date' => $date]) }}"
                                 class="btn btn-primary btn-sm btn-icon-text {{ $sessionExists ? '' : 'disabled' }}"
                                 type="button" {{ !$sessionExists ? 'onclick="return false;"' : '' }}>

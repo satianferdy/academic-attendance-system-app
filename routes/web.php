@@ -13,6 +13,7 @@ use App\Http\Controllers\Lecturer\LecturerScheduleController;
 use App\Http\Controllers\Student\StudentAttendanceController;
 use App\Http\Controllers\Lecturer\LecturerDashboardController;
 use App\Http\Controllers\Lecturer\LecturerAttendanceController;
+use App\Http\Controllers\Lecturer\LecturerSessionController;
 
 Route::get('/', function () {
     return view('auth.login');
@@ -68,6 +69,8 @@ Route::group(['middleware' => ['auth', 'role:lecturer'], 'prefix' => 'lecturer',
     Route::get('/attendance/{classSchedule}', [LecturerAttendanceController::class, 'show'])->name('attendance.show');
     Route::get('/attendance/{classSchedule}/edit', [LecturerAttendanceController::class, 'edit'])->name('attendance.edit');
     Route::put('/attendance/update/{attendance}', [LecturerAttendanceController::class, 'update'])->name('attendance.update');
+
+    Route::get('/sessions/recent', [LecturerSessionController::class, 'recentSessions'])->name('recent.sessions');
 });
 
 // Student routes

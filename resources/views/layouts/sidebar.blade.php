@@ -98,7 +98,7 @@
                         <a href="{{ route('lecturer.attendance.index') }}"
                             class="nav-link {{ request()->routeIs('lecturer.attendance.*') ? 'active' : '' }}">
                             <i class="link-icon" data-feather="calendar"></i>
-                            <span class="link-title">Attendance</span>
+                            <span class="link-title">Session</span>
                         </a>
                     </li>
                     {{-- schedule --}}
@@ -111,6 +111,16 @@
                                 {{ request()->routeIs('lecturer.schedule.*') ? 'active' : '' }}">Schedule</span>
                         </a>
                     </li>
+                    {{-- recent session --}}
+                    <li class="nav-item">
+                        <a href="{{ route('lecturer.recent.sessions') }}"
+                            class="nav-link {{ request()->routeIs('lecturer.recent.sessions') ? 'active' : '' }}">
+                            <i class="link-icon" data-feather="calendar"></i>
+                            <span
+                                class="link-title
+                                {{ request()->routeIs('lecturer.recent.sessions') ? 'active' : '' }}">Recent
+                                Session</span>
+                        </a>
                 @endif
             @endauth
         </ul>
