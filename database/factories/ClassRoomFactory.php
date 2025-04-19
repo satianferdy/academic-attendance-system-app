@@ -28,6 +28,7 @@ class ClassRoomFactory extends Factory
             'name' => $this->faker->randomElement($classLevels) . ' ' . $this->faker->randomElement($departments),
             'department' => $this->faker->randomElement($departments),
             'faculty' => $this->faker->randomElement(['Engineering', 'Science', 'Arts']),
+            'capacity' => 30, // Default capacity
         ];
     }
 }

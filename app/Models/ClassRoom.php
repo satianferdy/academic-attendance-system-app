@@ -15,6 +15,7 @@ class ClassRoom extends Model
         'name',
         'department',
         'faculty',
+        'capacity',
     ];
 
     public function students()
