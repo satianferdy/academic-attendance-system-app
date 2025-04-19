@@ -238,8 +238,8 @@
                                 </div>
                             @empty
                                 <div class="list-group-item p-4 text-center">
-                                    <img src="{{ asset('images/no-schedule.svg') }}" alt="No classes" class="mb-3"
-                                        height="80">
+                                    {{-- <img src="{{ asset('images/no-schedule.svg') }}" alt="No classes" class="mb-3"
+                                        height="80"> --}}
                                     <p class="text-muted mb-0">No classes scheduled for today</p>
                                 </div>
                             @endforelse
