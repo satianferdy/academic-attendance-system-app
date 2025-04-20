@@ -89,13 +89,21 @@
                                             <td>{{ $schedule->day }}</td>
                                         </tr>
                                         <tr>
+                                            <th>Total Weeks</th>
+                                            <td>{{ $schedule->total_weeks ?? 16 }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Meetings Per Week</th>
+                                            <td>{{ $schedule->meetings_per_week ?? 1 }}</td>
+                                        </tr>
+                                        {{-- <tr>
                                             <th>Created At</th>
                                             <td>{{ $schedule->created_at->format('d M Y, H:i') }}</td>
                                         </tr>
                                         <tr>
                                             <th>Updated At</th>
                                             <td>{{ $schedule->updated_at->format('d M Y, H:i') }}</td>
-                                        </tr>
+                                        </tr> --}}
                                     </table>
                                 </div>
                             </div>

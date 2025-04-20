@@ -18,6 +18,8 @@ class ClassSchedule extends Model
         'day',
         'semester',
         'academic_year',
+        'total_weeks',
+        'meetings_per_week',
     ];
 
     protected $casts = [

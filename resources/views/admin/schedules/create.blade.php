@@ -117,6 +117,22 @@
                             </div>
                         </div>
 
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="total_weeks" class="form-label">Total Weeks</label>
+                                <input type="number" class="form-control" id="total_weeks" name="total_weeks"
+                                    value="{{ old('total_weeks', 16) }}" min="1" max="52" required>
+                                <small class="text-muted">Number of weeks for this schedule (e.g., 16 weeks in a
+                                    semester)</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="meetings_per_week" class="form-label">Meetings Per Week</label>
+                                <input type="number" class="form-control" id="meetings_per_week" name="meetings_per_week"
+                                    value="{{ old('meetings_per_week', 1) }}" min="1" max="7" required>
+                                <small class="text-muted">Number of class meetings per week</small>
+                            </div>
+                        </div>
+
                         <div class="mb-3">
                             <label class="form-label">Select Day</label>
                             <div class="card">

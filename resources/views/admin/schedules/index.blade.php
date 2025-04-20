@@ -60,7 +60,12 @@
                                                 <span class="text-muted">No time slots</span>
                                             @endif
                                         </td>
-                                        <td>{{ $schedule->semester }} / {{ $schedule->academic_year }}</td>
+                                        <td>
+                                            {{ $schedule->semester }} / {{ $schedule->academic_year }}
+                                            <br>
+                                            <small>{{ $schedule->total_weeks }} weeks, {{ $schedule->meetings_per_week }}
+                                                meeting(s)/week</small>
+                                        </td>
                                         <td>
                                             <a href="{{ route('admin.schedules.show', $schedule->id) }}"
                                                 class="btn btn-sm btn-info btn-icon">

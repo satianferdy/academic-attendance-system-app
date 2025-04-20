@@ -35,6 +35,8 @@ class ClassScheduleFactory extends Factory
             'day' => $this->faker->randomElement($days),
             'semester' => $this->faker->randomElement($semesters),
             'academic_year' => $this->faker->randomElement(['Ganjil 2024/2025', 'Genap 2025/2026']),
+            'total_weeks' => $this->faker->numberBetween(12, 16),
+            'meetings_per_week' => $this->faker->numberBetween(1, 3),
         ];
     }
 }

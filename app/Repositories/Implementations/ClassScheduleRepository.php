@@ -126,6 +126,8 @@ class ClassScheduleRepository implements ClassScheduleRepositoryInterface
             'day' => $data['day'],
             'semester' => $data['semester'],
             'academic_year' => $data['academic_year'],
+            'total_weeks' => $data['total_weeks'] ?? 16,
+            'meetings_per_week' => $data['meetings_per_week'] ?? 1,
         ]);
     }
 
@@ -140,6 +142,8 @@ class ClassScheduleRepository implements ClassScheduleRepositoryInterface
             'day' => $data['day'],
             'semester' => $data['semester'],
             'academic_year' => $data['academic_year'],
+            'total_weeks' => $data['total_weeks'] ?? $schedule->total_weeks,
+            'meetings_per_week' => $data['meetings_per_week'] ?? $schedule->meetings_per_week,
         ]);
         return $schedule;
     }
