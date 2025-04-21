@@ -73,48 +73,66 @@ class StudentDashboardController extends Controller
 
     private function getMonthlyAttendanceData($studentId)
     {
-        $currentMonth = Carbon::now()->month;
-        $currentYear = Carbon::now()->year;
+        // Menentukan rentang waktu - 6 bulan terakhir
+        $now = Carbon::now();
+        $sixMonthsAgo = $now->copy()->subMonths(5)->startOfMonth();
 
-        // Get last 6 months
+        // Mendapatkan semua status attendance dalam satu query dengan pengelompokan
+        $attendances = Attendance::where('student_id', $studentId)
+            ->where('date', '>=', $sixMonthsAgo)
+            ->selectRaw('MONTH(date) as month, YEAR(date) as year, status, COUNT(*) as count')
+            ->groupBy('year', 'month', 'status')
+            ->orderBy('year')
+            ->orderBy('month')
+            ->get();
+
+        // Menyiapkan array bulan untuk 6 bulan terakhir (oldest to newest)
         $months = [];
         $presentData = [];
         $lateData = [];
         $absentData = [];
         $excusedData = [];
 
-        for ($i = 0; $i < 6; $i++) {
-            $date = Carbon::create($currentYear, $currentMonth)->subMonths($i);
-            $monthName = $date->format('M');
-            $months[] = $monthName;
+        // Pre-fill arrays with zeros
+        for ($i = 5; $i >= 0; $i--) {
+            $monthDate = $now->copy()->subMonths($i);
+            $months[] = $monthDate->format('M');
 
-            $monthStart = $date->copy()->startOfMonth();
-            $monthEnd = $date->copy()->endOfMonth();
-
-            $monthlyAttendances = Attendance::where('student_id', $studentId)
-                ->whereBetween('date', [$monthStart, $monthEnd])
-                ->get();
-
-            $presentData[] = $monthlyAttendances->where('status', 'present')->count();
-            $lateData[] = $monthlyAttendances->where('status', 'late')->count();
-            $absentData[] = $monthlyAttendances->where('status', 'absent')->count();
-            $excusedData[] = $monthlyAttendances->where('status', 'excused')->count();
+            $yearMonth = $monthDate->format('Y-m');
+            $presentData[$yearMonth] = 0;
+            $lateData[$yearMonth] = 0;
+            $absentData[$yearMonth] = 0;
+            $excusedData[$yearMonth] = 0;
         }
 
-        // Reverse arrays to show oldest to newest
-        $months = array_reverse($months);
-        $presentData = array_reverse($presentData);
-        $lateData = array_reverse($lateData);
-        $absentData = array_reverse($absentData);
-        $excusedData = array_reverse($excusedData);
+        // Populate with actual data
+        foreach ($attendances as $record) {
+            $yearMonth = "{$record->year}-" . str_pad($record->month, 2, '0', STR_PAD_LEFT);
+
+            if (isset($presentData[$yearMonth]) && $record->status === 'present') {
+                $presentData[$yearMonth] = $record->count;
+            } elseif (isset($lateData[$yearMonth]) && $record->status === 'late') {
+                $lateData[$yearMonth] = $record->count;
+            } elseif (isset($absentData[$yearMonth]) && $record->status === 'absent') {
+                $absentData[$yearMonth] = $record->count;
+            } elseif (isset($excusedData[$yearMonth]) && $record->status === 'excused') {
+                $excusedData[$yearMonth] = $record->count;
+            }
+        }
+
+        // Convert associative arrays to indexed arrays for the chart
+        $presentValues = array_values($presentData);
+        $lateValues = array_values($lateData);
+        $absentValues = array_values($absentData);
+        $excusedValues = array_values($excusedData);
 
         return [
             'months' => $months,
             'series' => [
-                ['name' => 'Present', 'data' => $presentData],
-                ['name' => 'Late', 'data' => $lateData],
-                ['name' => 'Absent', 'data' => $absentData],
-                ['name' => 'Excused', 'data' => $excusedData]
+                ['name' => 'Present', 'data' => $presentValues],
+                ['name' => 'Late', 'data' => $lateValues],
+                ['name' => 'Absent', 'data' => $absentValues],
+                ['name' => 'Excused', 'data' => $excusedValues]
             ]
         ];
     }
