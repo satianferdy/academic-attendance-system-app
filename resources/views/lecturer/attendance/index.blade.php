@@ -56,7 +56,7 @@
                                                 <span class="text-muted">No time slots</span>
                                             @endif
                                         </td>
-                                        <td>{{ $schedule->semester }} / {{ $schedule->academic_year }}</td>
+                                        <td>{{ $schedule->semester }} / {{ $schedule->semesters->name }}</td>
                                         <td>
                                             <button type="button" class="btn btn-sm btn-icon-text btn-primary"
                                                 data-bs-toggle="modal"

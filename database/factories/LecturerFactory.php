@@ -22,14 +22,9 @@ class LecturerFactory extends Factory
      */
     public function definition(): array
     {
-        $departments = ['Computer Science', 'Information Systems', 'Data Science', 'Software Engineering'];
-        $faculties = ['Engineering', 'Science', 'Arts'];
-
         return [
             'user_id' => User::factory(),
             'nip' => $this->faker->unique()->numerify('############'),
-            'department' => $this->faker->randomElement($departments),
-            'faculty' => $this->faker->randomElement($faculties),
         ];
     }
 }

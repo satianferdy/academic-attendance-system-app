@@ -57,7 +57,7 @@
                                         </tr>
                                         <tr>
                                             <th>Academic Year</th>
-                                            <td>{{ $schedule->academic_year }}</td>
+                                            <td>{{ $schedule->semesters->name }}</td>
                                         </tr>
                                         {{-- classroom --}}
                                         <tr>

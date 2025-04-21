@@ -49,7 +49,7 @@
                                                 <span class="text-muted">No time slots</span>
                                             @endif
                                         </td>
-                                        <td>{{ $schedule->semester }} / {{ $schedule->academic_year }}</td>
+                                        <td>{{ $schedule->semester }} / {{ $schedule->semesters->name }}</td>
                                     </tr>
                                 @empty
                                     <tr>

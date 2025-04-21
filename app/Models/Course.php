@@ -13,11 +13,24 @@ class Course extends Model
 
     protected $fillable = [
         'name',
-        'code'
+        'code',
+        'study_program_id',
+        'credits',          // Add course credits (SKS)
+        'description',
     ];
 
     public function classSchedules()
     {
         return $this->hasMany(ClassSchedule::class);
+    }
+
+    public function studyProgram()
+    {
+        return $this->belongsTo(StudyProgram::class);
+    }
+
+    public function students()
+    {
+        return $this->hasMany(Student::class);
     }
 }

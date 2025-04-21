@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Course;
+use App\Models\StudyProgram;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class CourseFactory extends Factory
@@ -39,6 +40,19 @@ class CourseFactory extends Factory
         return [
             'code' => $courseCode,
             'name' => $this->faker->randomElement($subjects),
+            'study_program_id' => StudyProgram::factory(),
+            'credits' => $this->faker->numberBetween(2, 4), // Course credits (SKS)
+            'description' => $this->faker->paragraph(),
         ];
+    }
+
+    /**
+     * Configure the course with a specific study program.
+     */
+    public function forProgram(StudyProgram $program): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'study_program_id' => $program->id,
+        ]);
     }
 }

@@ -111,9 +111,17 @@ class ClassScheduleRepository implements ClassScheduleRepositoryInterface
 
     public function getAllSchedules(int $perPage = 10)
     {
-        return $this->model->with(['lecturer.user', 'course', 'classroom', 'timeSlots'])
+        return $this->model->with(['lecturer.user', 'course', 'classroom', 'timeSlots', 'semesters', 'studyProgram'])
                           ->orderBy('day')
                           ->paginate($perPage);
+    }
+
+    public function getSchedulesByLecturerId(int $lecturerId, int $perPage = 10)
+    {
+        return $this->model->where('lecturer_id', $lecturerId)
+                        ->with(['course', 'classroom', 'lecturer', 'semesters', 'timeSlots'])
+                        ->orderBy('day')
+                        ->paginate($perPage);
     }
 
     public function createSchedule(array $data)
@@ -122,10 +130,11 @@ class ClassScheduleRepository implements ClassScheduleRepositoryInterface
             'course_id' => $data['course_id'],
             'lecturer_id' => $data['lecturer_id'],
             'classroom_id' => $data['classroom_id'],
+            'semester_id' => $data['semester_id'] ?? null,
+            'study_program_id' => $data['study_program_id'] ?? null,
             'room' => $data['room'],
             'day' => $data['day'],
             'semester' => $data['semester'],
-            'academic_year' => $data['academic_year'],
             'total_weeks' => $data['total_weeks'] ?? 16,
             'meetings_per_week' => $data['meetings_per_week'] ?? 1,
         ]);
@@ -138,10 +147,11 @@ class ClassScheduleRepository implements ClassScheduleRepositoryInterface
             'course_id' => $data['course_id'],
             'lecturer_id' => $data['lecturer_id'],
             'classroom_id' => $data['classroom_id'],
+            'semester_id' => $data['semester_id'] ?? null,
+            'study_program_id' => $data['study_program_id'] ?? null,
             'room' => $data['room'],
             'day' => $data['day'],
             'semester' => $data['semester'],
-            'academic_year' => $data['academic_year'],
             'total_weeks' => $data['total_weeks'] ?? $schedule->total_weeks,
             'meetings_per_week' => $data['meetings_per_week'] ?? $schedule->meetings_per_week,
         ]);

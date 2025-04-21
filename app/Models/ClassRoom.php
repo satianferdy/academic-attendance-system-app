@@ -13,9 +13,9 @@ class ClassRoom extends Model
 
     protected $fillable = [
         'name',
-        'department',
-        'faculty',
+        'study_program_id',  // Add study_program_id
         'capacity',
+        'semester_id',       // Add semester_id for specific semester classes     // Add academic year for filtering
     ];
 
     public function students()
@@ -26,5 +26,15 @@ class ClassRoom extends Model
     public function schedules()
     {
         return $this->hasMany(ClassSchedule::class);
+    }
+
+    public function studyProgram()
+    {
+        return $this->belongsTo(StudyProgram::class);
+    }
+
+    public function semester()
+    {
+        return $this->belongsTo(Semester::class);
     }
 }

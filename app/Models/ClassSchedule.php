@@ -14,10 +14,11 @@ class ClassSchedule extends Model
         'course_id',
         'lecturer_id',
         'classroom_id',
+        'semester_id',        // Add semester_id
+        'study_program_id',   // Add study_program_id
         'room',
         'day',
-        'semester',
-        'academic_year',
+        'semester',           // This will be deprecated in favor of semester_id
         'total_weeks',
         'meetings_per_week',
     ];
@@ -40,6 +41,16 @@ class ClassSchedule extends Model
     public function classroom()
     {
         return $this->belongsTo(ClassRoom::class);
+    }
+
+    public function semesters()
+    {
+        return $this->belongsTo(Semester::class, 'semester_id');
+    }
+
+    public function studyProgram()
+    {
+        return $this->belongsTo(StudyProgram::class);
     }
 
     public function attendances()
@@ -76,5 +87,13 @@ class ClassSchedule extends Model
     public function scopeExclude($query, $excludeId)
     {
         return $excludeId ? $query->where('id', '!=', $excludeId) : $query;
+    }
+
+    public function scopeCurrentSemester($query)
+    {
+        if ($activeSemester = Semester::where('is_active', true)->first()) {
+            return $query->where('semester_id', $activeSemester->id);
+        }
+        return $query;
     }
 }

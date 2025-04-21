@@ -51,7 +51,7 @@ class LecturerAttendanceController extends Controller
             return redirect()->back()->with('error', 'Lecturer profile not found.');
         }
 
-        $schedules = $lecturer->classSchedules()->with('course')->get();
+        $schedules = $lecturer->classSchedules()->with('course', 'semesters')->get();
         return view('lecturer.attendance.index', compact('schedules'));
     }
 

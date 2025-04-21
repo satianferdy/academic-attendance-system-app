@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\ClassRoom;
 use App\Models\Student;
+use App\Models\StudyProgram;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -23,15 +24,11 @@ class StudentFactory extends Factory
      */
     public function definition(): array
     {
-        $departments = ['Computer Science', 'Information Systems', 'Data Science', 'Software Engineering'];
-        $faculties = ['Engineering', 'Science', 'Arts'];
-
         return [
             'user_id' => User::factory()->student(),
             'classroom_id' => ClassRoom::factory(),
+            'study_program_id' => StudyProgram::factory(),
             'nim' => $this->faker->unique()->numerify('############'),
-            'department' => $this->faker->randomElement($departments),
-            'faculty' => $this->faker->randomElement($faculties),
             'face_registered' => $this->faker->boolean(30), // 30% chance of being true
         ];
     }
@@ -43,6 +40,18 @@ class StudentFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'face_registered' => true,
+        ]);
+    }
+
+    /**
+     * Configure the student with a specific study program.
+     */
+    public function forProgram(StudyProgram $program): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'study_program_id' => $program->id,
+            'department' => $program->department,
+            'faculty' => $program->faculty,
         ]);
     }
 }

@@ -10,6 +10,7 @@ use App\Models\Lecturer;
 use App\Models\ClassRoom;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use App\Models\StudyProgram;
 
 class UserManagementController extends Controller
 {
@@ -37,7 +38,8 @@ class UserManagementController extends Controller
         $this->authorize('create', User::class);
 
         $classrooms = ClassRoom::all();
-        return view('admin.user.create', compact('classrooms'));
+        $studyPrograms = StudyProgram::all();
+        return view('admin.user.create', compact('classrooms', 'studyPrograms'));
     }
 
     /**
@@ -55,14 +57,11 @@ class UserManagementController extends Controller
 
             // Student validation
             'student_nim' => 'required_if:role,student|string|max:20|unique:students,nim',
-            'student_department' => 'required_if:role,student|string|max:100',
-            'student_faculty' => 'required_if:role,student|string|max:100',
+            'study_program_id' => 'required_if:role,student|exists:study_programs,id',
             'classroom_id' => 'required_if:role,student|exists:classrooms,id',
 
             // Lecturer validation
             'lecturer_nip' => 'required_if:role,lecturer|string|max:20|unique:lecturers,nip',
-            'lecturer_department' => 'required_if:role,lecturer|string|max:100',
-            'lecturer_faculty' => 'required_if:role,lecturer|string|max:100',
         ], [
             'student_nim.required_if' => 'NIM wajib diisi untuk Student',
             'lecturer_nip.required_if' => 'NIP wajib diisi untuk Lecturer',
@@ -88,16 +87,13 @@ class UserManagementController extends Controller
             Student::create([
                 'user_id' => $user->id,
                 'nim' => $request->student_nim,
-                'department' => $request->student_department,
-                'faculty' => $request->student_faculty,
+                'study_program_id' => $request->study_program_id,
                 'classroom_id' => $request->classroom_id,
             ]);
         } elseif ($request->role === 'lecturer') {
             Lecturer::create([
                 'user_id' => $user->id,
                 'nip' => $request->lecturer_nip,
-                'department' => $request->lecturer_department,
-                'faculty' => $request->lecturer_faculty,
             ]);
         }
 
@@ -113,7 +109,8 @@ class UserManagementController extends Controller
         $this->authorize('update', $user);
 
         $classrooms = ClassRoom::all();
-        return view('admin.user.edit', compact('user', 'classrooms'));
+        $studyPrograms = StudyProgram::all();
+        return view('admin.user.edit', compact('user', 'classrooms', 'studyPrograms'));
     }
 
     /**
@@ -160,8 +157,7 @@ class UserManagementController extends Controller
         if ($user->role === 'student' && $user->student) {
             $validator = Validator::make($request->all(), [
                 'nim' => 'required|string|max:20|unique:students,nim,' . $user->student->id,
-                'department' => 'required|string|max:100',
-                'faculty' => 'required|string|max:100',
+                'study_program_id' => 'required|exists:study_programs,id',
                 'classroom_id' => 'required|exists:classrooms,id',
             ]);
 
@@ -173,8 +169,7 @@ class UserManagementController extends Controller
 
             $user->student->update([
                 'nim' => $request->nim,
-                'department' => $request->department,
-                'faculty' => $request->faculty,
+                'study_program_id' => $request->study_program_id,
                 'classroom_id' => $request->classroom_id,
             ]);
         }
@@ -183,8 +178,6 @@ class UserManagementController extends Controller
         if ($user->role === 'lecturer' && $user->lecturer) {
             $validator = Validator::make($request->all(), [
                 'nip' => 'required|string|max:20|unique:lecturers,nip,' . $user->lecturer->id,
-                'department' => 'required|string|max:100',
-                'faculty' => 'required|string|max:100',
             ]);
 
             if ($validator->fails()) {
@@ -195,8 +188,6 @@ class UserManagementController extends Controller
 
             $user->lecturer->update([
                 'nip' => $request->nip,
-                'department' => $request->department,
-                'faculty' => $request->faculty,
             ]);
         }
 

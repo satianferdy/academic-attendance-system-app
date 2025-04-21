@@ -16,6 +16,8 @@ class DatabaseSeeder extends Seeder
         // User::factory(10)->create();
 
         $this->call([
+            SemesterSeeder::class,
+            StudyProgramSeeder::class,
             CourseSeeder::class,
             AdminSeeder::class,
             ClassroomSeeder::class,

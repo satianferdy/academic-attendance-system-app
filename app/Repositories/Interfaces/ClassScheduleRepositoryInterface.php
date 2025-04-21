@@ -13,6 +13,7 @@ interface ClassScheduleRepositoryInterface
     public function getSchedulesByRoomAndDay(string $room, string $day, ?int $excludeId = null);
     public function getSchedulesByLecturerAndDay(int $lecturerId, string $day, ?int $excludeId = null);
     public function getAllSchedules(int $perPage = 10);
+    public function getSchedulesByLecturerId(int $lecturerId, int $perPage = 10);
     public function createSchedule(array $data);
     public function updateSchedule(int $id, array $data);
     public function deleteSchedule(int $id);

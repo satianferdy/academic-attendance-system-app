@@ -3,6 +3,8 @@
 namespace Database\Factories;
 
 use App\Models\ClassRoom;
+use App\Models\Semester;
+use App\Models\StudyProgram;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class ClassRoomFactory extends Factory
@@ -22,13 +24,44 @@ class ClassRoomFactory extends Factory
     public function definition(): array
     {
         $classLevels = ['1A', '1B', '2A', '2B', '3A', '3B', '4A', '4B'];
-        $departments = ['Computer Science', 'Information Systems', 'Data Science', 'Software Engineering'];
+
+        // Get a random study program or create one
+        $studyProgram = StudyProgram::inRandomOrder()->first()
+            ?? StudyProgram::factory()->create();
+
+        // Get the active semester or create one
+        $semester = Semester::where('is_active', true)->first()
+            ?? Semester::factory()->active()->create();
 
         return [
-            'name' => $this->faker->randomElement($classLevels) . ' ' . $this->faker->randomElement($departments),
-            'department' => $this->faker->randomElement($departments),
-            'faculty' => $this->faker->randomElement(['Engineering', 'Science', 'Arts']),
-            'capacity' => 30, // Default capacity
+            'name' => $this->faker->randomElement($classLevels) . ' ' . $studyProgram->code,
+            'study_program_id' => $studyProgram->id,
+            'semester_id' => $semester->id,
+            'capacity' => $this->faker->numberBetween(20, 40),
         ];
+    }
+
+    /**
+     * Configure the classroom for a specific study program.
+     */
+    public function forProgram(StudyProgram $program): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'name' => $this->faker->randomElement(['1A', '1B', '2A', '2B', '3A', '3B', '4A', '4B']) . ' ' . $program->code,
+            'department' => $program->department,
+            'faculty' => $program->faculty,
+            'study_program_id' => $program->id,
+        ]);
+    }
+
+    /**
+     * Configure the classroom for a specific semester.
+     */
+    public function forSemester(Semester $semester): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'semester_id' => $semester->id,
+            'academic_year' => $semester->academic_year,
+        ]);
     }
 }

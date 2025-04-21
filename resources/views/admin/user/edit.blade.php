@@ -87,7 +87,7 @@
                         @if ($user->role === 'student')
                             <div id="student-fields">
                                 <div class="row">
-                                    <div class="col-md-4">
+                                    <div class="col-md-6">
                                         <div class="mb-3">
                                             <label for="nim" class="form-label">Student ID (NIM)</label>
                                             <input type="text" class="form-control @error('nim') is-invalid @enderror"
@@ -99,31 +99,21 @@
                                             @enderror
                                         </div>
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="department" class="form-label">Department</label>
-                                            <select class="form-control @error('department') is-invalid @enderror"
-                                                id="department" name="department" required>
-                                                <option value="">Select Department</option>
-                                                <option value="Teknik Informatika"
-                                                    {{ old('department', $user->student->department ?? '') == 'Teknik Informatika' ? 'selected' : '' }}>
-                                                    Teknik Informatika</option>
-                                                <option value="Sistem Informasi Bisnis"
-                                                    {{ old('department', $user->student->department ?? '') == 'Sistem Informasi Bisnis' ? 'selected' : '' }}>
-                                                    Sistem Informasi Bisnis</option>
+                                            <label for="study_program_id" class="form-label">Study Program</label>
+                                            <select class="form-select @error('study_program_id') is-invalid @enderror"
+                                                id="study_program_id" name="study_program_id" required>
+                                                <option value="">Select Study Program</option>
+                                                @foreach ($studyPrograms as $program)
+                                                    <option value="{{ $program->id }}"
+                                                        {{ old('study_program_id', $user->student->study_program_id ?? '') == $program->id ? 'selected' : '' }}
+                                                        data-program-id="{{ $program->id }}">
+                                                        {{ $program->name }}
+                                                    </option>
+                                                @endforeach
                                             </select>
-                                            @error('department')
-                                                <div class="invalid-feedback">{{ $message }}</div>
-                                            @enderror
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="mb-3">
-                                            <label for="faculty" class="form-label">Faculty</label>
-                                            <input type="text"
-                                                class="form-control @error('faculty') is-invalid @enderror" id="faculty"
-                                                name="faculty" value="Teknologi Informasi" readonly required>
-                                            @error('faculty')
+                                            @error('study_program_id')
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
                                         </div>
@@ -135,13 +125,7 @@
                                             <label for="classroom_id" class="form-label">Classroom</label>
                                             <select class="form-select @error('classroom_id') is-invalid @enderror"
                                                 id="classroom_id" name="classroom_id" required>
-                                                <option value="">Select Classroom</option>
-                                                @foreach ($classrooms as $classroom)
-                                                    <option value="{{ $classroom->id }}"
-                                                        {{ old('classroom_id', $user->student->classroom_id ?? '') == $classroom->id ? 'selected' : '' }}>
-                                                        {{ $classroom->name }} ({{ $classroom->department }})
-                                                    </option>
-                                                @endforeach
+                                                <option value="">Loading classrooms...</option>
                                             </select>
                                             @error('classroom_id')
                                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -156,7 +140,7 @@
                         @if ($user->role === 'lecturer')
                             <div id="lecturer-fields">
                                 <div class="row">
-                                    <div class="col-md-4">
+                                    <div class="col-md-6">
                                         <div class="mb-3">
                                             <label for="nip" class="form-label">Lecturer ID (NIP)</label>
                                             <input type="text" class="form-control @error('nip') is-invalid @enderror"
@@ -164,35 +148,6 @@
                                                 value="{{ old('nip', $user->lecturer->nip ?? '') }}"
                                                 placeholder="Enter NIP" required>
                                             @error('nip')
-                                                <div class="invalid-feedback">{{ $message }}</div>
-                                            @enderror
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="mb-3">
-                                            <label for="department" class="form-label">Department</label>
-                                            <select class="form-control @error('department') is-invalid @enderror"
-                                                id="department" name="department" required>
-                                                <option value="">Select Department</option>
-                                                <option value="Teknik Informatika"
-                                                    {{ old('department', $user->lecturer->department ?? '') == 'Teknik Informatika' ? 'selected' : '' }}>
-                                                    Teknik Informatika</option>
-                                                <option value="Sistem Informasi Bisnis"
-                                                    {{ old('department', $user->lecturer->department ?? '') == 'Sistem Informasi Bisnis' ? 'selected' : '' }}>
-                                                    Sistem Informasi Bisnis</option>
-                                            </select>
-                                            @error('department')
-                                                <div class="invalid-feedback">{{ $message }}</div>
-                                            @enderror
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="mb-3">
-                                            <label for="faculty" class="form-label">Faculty</label>
-                                            <input type="text"
-                                                class="form-control @error('faculty') is-invalid @enderror" id="faculty"
-                                                name="faculty" value="Teknologi Informasi" readonly required>
-                                            @error('faculty')
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
                                         </div>
@@ -211,3 +166,58 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+    @if ($user->role === 'student')
+        <script>
+            $(document).ready(function() {
+                // Store classroom data keyed by study program ID
+                const classroomsByProgram = {
+                    @foreach ($studyPrograms as $program)
+                        {{ $program->id }}: [
+                            @foreach ($classrooms->where('study_program_id', $program->id) as $classroom)
+                                {
+                                    id: {{ $classroom->id }},
+                                    name: "{{ $classroom->name }}"
+                                },
+                            @endforeach
+                        ],
+                    @endforeach
+                };
+
+                // Function to update classroom options based on selected study program
+                function updateClassroomOptions() {
+                    const selectedProgramId = $('#study_program_id').val();
+                    const $classroomSelect = $('#classroom_id');
+                    const currentClassroom = "{{ old('classroom_id', $user->student->classroom_id ?? '') }}";
+
+                    // Reset classroom dropdown
+                    $classroomSelect.empty();
+                    $classroomSelect.append('<option value="">Select Classroom</option>');
+
+                    if (selectedProgramId) {
+                        const classrooms = classroomsByProgram[selectedProgramId] || [];
+
+                        if (classrooms.length > 0) {
+                            // Add classroom options based on selected study program
+                            classrooms.forEach(function(classroom) {
+                                const selected = (classroom.id == currentClassroom) ? 'selected' : '';
+                                $classroomSelect.append(
+                                    `<option value="${classroom.id}" ${selected}>${classroom.name}</option>`
+                                );
+                            });
+                        } else {
+                            $classroomSelect.append('<option value="">No classrooms available</option>');
+                        }
+                    }
+                }
+
+                // Event handler for study program change
+                $('#study_program_id').on('change', updateClassroomOptions);
+
+                // Initialize classroom options on page load
+                updateClassroomOptions();
+            });
+        </script>
+    @endif
+@endpush

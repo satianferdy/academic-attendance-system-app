@@ -61,7 +61,7 @@
                                             @endif
                                         </td>
                                         <td>
-                                            {{ $schedule->semester }} / {{ $schedule->academic_year }}
+                                            {{ $schedule->semester }} / {{ $schedule->semesters->name }}
                                             <br>
                                             <small>{{ $schedule->total_weeks }} weeks, {{ $schedule->meetings_per_week }}
                                                 meeting(s)/week</small>

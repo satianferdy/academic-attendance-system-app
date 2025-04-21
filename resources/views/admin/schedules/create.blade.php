@@ -48,11 +48,14 @@
                                     <option value="">Select Classroom</option>
                                     @foreach ($classrooms as $classroom)
                                         <option value="{{ $classroom->id }}"
+                                            data-study-program-id="{{ $classroom->study_program_id }}"
                                             {{ old('classroom_id') == $classroom->id ? 'selected' : '' }}>
-                                            {{ $classroom->name }} ({{ $classroom->department }})
+                                            {{ $classroom->name }} - {{ $classroom->studyProgram->name }}
                                         </option>
                                     @endforeach
                                 </select>
+                                <input type="hidden" name="study_program_id" id="study_program_id"
+                                    value="{{ old('study_program_id') }}">
                             </div>
                         </div>
 
@@ -86,34 +89,31 @@
 
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label for="semester" class="form-label">Semester</label>
-                                <select class="form-select" id="semester" name="semester" required>
+                                <label for="semester_id" class="form-label">Semester</label>
+                                <select class="form-select" id="semester_id" name="semester_id" required>
                                     <option value="">Select Semester</option>
+                                    @foreach ($semesters as $semester)
+                                        <option value="{{ $semester->id }}"
+                                            {{ old('semester_id') == $semester->id ? 'selected' : '' }}
+                                            {{ $semester->is_active ? 'selected' : '' }}>
+                                            {{ $semester->name }} ({{ $semester->academic_year }})
+                                            {{ $semester->is_active ? '- Active' : '' }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="semester" class="form-label">Academic Term</label>
+                                <select class="form-select" id="semester" name="semester" required>
+                                    <option value="">Select Academic Term</option>
                                     @for ($i = 1; $i <= 8; $i++)
                                         <option value="{{ $i }}" {{ old('semester') == $i ? 'selected' : '' }}>
                                             {{ $i }}
                                         </option>
                                     @endfor
                                 </select>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label for="academic_year" class="form-label">Academic Year</label>
-                                <select class="form-select" id="academic_year" name="academic_year" required>
-                                    <option value="">Select Academic Year</option>
-                                    <option value="2024/2025 Ganjil"
-                                        {{ old('academic_year') == '2024/2025 Ganjil' ? 'selected' : '' }}>2024/2025 Ganjil
-                                    </option>
-                                    <option value="2024/2025 Genap"
-                                        {{ old('academic_year') == '2024/2025 Genap' ? 'selected' : '' }}>2024/2025 Genap
-                                    </option>
-                                    <option value="2025/2026 Ganjil"
-                                        {{ old('academic_year') == '2025/2026 Ganjil' ? 'selected' : '' }}>2025/2026 Ganjil
-                                    </option>
-                                    <option value="2025/2026 Genap"
-                                        {{ old('academic_year') == '2025/2026 Genap' ? 'selected' : '' }}>2025/2026 Genap
-                                    </option>
-                                </select>
+                                <small class="text-muted">Term number (1-8 for 4-year program)</small>
                             </div>
                         </div>
 
@@ -225,9 +225,29 @@
             const selectedSlotsList = document.querySelector('.selected-slots-list');
             const timeSlotErrorDiv = document.getElementById('time_slots_error');
             const timeSlotInputsContainer = document.getElementById('time_slots_inputs');
+            const classroomSelect = document.getElementById('classroom_id');
+            const studyProgramIdInput = document.getElementById('study_program_id');
 
             // Store selected time slots
             let selectedTimeSlots = [];
+
+            // Set study program ID when classroom is selected
+            classroomSelect.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                if (selectedOption && selectedOption.dataset.studyProgramId) {
+                    studyProgramIdInput.value = selectedOption.dataset.studyProgramId;
+                } else {
+                    studyProgramIdInput.value = '';
+                }
+            });
+
+            // Initialize study program ID if classroom is pre-selected
+            if (classroomSelect.value) {
+                const selectedOption = classroomSelect.options[classroomSelect.selectedIndex];
+                if (selectedOption && selectedOption.dataset.studyProgramId) {
+                    studyProgramIdInput.value = selectedOption.dataset.studyProgramId;
+                }
+            }
 
             // Restore selected day if any
             if (selectedDayInput.value) {

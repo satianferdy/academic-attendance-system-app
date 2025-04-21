@@ -31,7 +31,8 @@ class StudentScheduleController extends Controller
 
         // Ambil jadwal berdasarkan classroom_id
         $schedules = ClassSchedule::where('classroom_id', $classroom->id)
-            ->with(['course', 'lecturer'])
+            ->with(['course', 'lecturer', 'semesters'])
+            ->orderBy('day')
             ->get();
 
         return view('student.schedule.index', compact('schedules', 'classroom'));
