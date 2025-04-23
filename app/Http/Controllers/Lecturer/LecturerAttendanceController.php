@@ -67,7 +67,10 @@ class LecturerAttendanceController extends Controller
 
         $result = $this->attendanceService->generateSessionAttendance(
             $classSchedule->id,
-            $validated['date']
+            $validated['date'],
+            $validated['week'],
+            $validated['meetings']
+
         );
 
         if ($result['status'] === 'error') {
@@ -88,17 +91,60 @@ class LecturerAttendanceController extends Controller
         $this->authorize('view', $classSchedule);
 
         $date = $request->query('date', date('Y-m-d'));
+        $week = $request->query('week');
+        $meeting = $request->query('meeting');
 
         // Check date format
         if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
             return redirect()->back()->with('error', 'Invalid date format.');
         }
 
-        $attendances = $this->attendanceRepository->findByClassAndDate($classSchedule->id, $date);
+        // Get the specific session attendance record if week and meeting are provided
+        $session = null;
+        if ($week && $meeting) {
+            $session = $this->sessionRepository->findByClassWeekAndMeeting($classSchedule->id, $week, $meeting);
+            // If session found but dates don't match, update the date parameter to match the session date
+            if ($session && $session->session_date->format('Y-m-d') !== $date) {
+                return redirect()->route('lecturer.attendance.show', [
+                    'classSchedule' => $classSchedule->id,
+                    'date' => $session->session_date->format('Y-m-d'),
+                    'week' => $week,
+                    'meeting' => $meeting
+                ]);
+            }
+        }
 
-        $sessionExists = $this->sessionRepository->findByClassAndDate($classSchedule->id, $date) !== null;
+        // If no specific session found by week/meeting, try to find by date
+        if (!$session) {
+            $session = $this->sessionRepository->findByClassAndDate($classSchedule->id, $date);
+            // Update week and meeting values from the found session
+            $week = $session ? $session->week : null;
+            $meeting = $session ? $session->meetings : null;
+        }
 
-        return view('lecturer.attendance.show', compact('classSchedule', 'attendances', 'date', 'sessionExists'));
+        // Get attendances for this specific session
+        $attendances = collect([]);
+        if ($session) {
+            $attendances = $this->attendanceRepository->findByClassAndDate($classSchedule->id, $session->session_date->format('Y-m-d'));
+        }
+
+        $sessionExists = $session !== null;
+        $weekNumber = $week;
+        $meetingNumber = $meeting;
+
+        // If session exists, use its date for consistency
+        if ($session) {
+            $date = $session->session_date->format('Y-m-d');
+        }
+
+        return view('lecturer.attendance.show', compact(
+            'classSchedule',
+            'attendances',
+            'date',
+            'sessionExists',
+            'weekNumber',
+            'meetingNumber'
+        ));
     }
 
     /**
@@ -151,7 +197,9 @@ class LecturerAttendanceController extends Controller
             'classSchedule' => $classSchedule,
             'qrCode' => $qrCode,
             'sessionEndTime' => $session->end_time->format('H:i'),
-            'date' => $date
+            'date' => $date,
+            'weekNumber' => $session->week,
+            'meetingNumber' => $session->meetings
         ]);
     }
 
@@ -191,5 +239,22 @@ class LecturerAttendanceController extends Controller
             'classSchedule' => $classSchedule->id,
             'date' => $date
         ])->with('success', "Session extended by {$validated['minutes']} minutes");
+    }
+
+    public function getUsedSessions(ClassSchedule $classSchedule)
+    {
+        $this->authorize('view', $classSchedule);
+
+        // Get all sessions that have been created for this class schedule
+        $usedSessions = $this->sessionRepository->getSessionsByClassSchedule($classSchedule->id);
+
+        return response()->json([
+            'usedSessions' => $usedSessions->map(function($session) {
+                return [
+                    'week' => $session->week,
+                    'meeting' => $session->meeting
+                ];
+            })
+        ]);
     }
 }

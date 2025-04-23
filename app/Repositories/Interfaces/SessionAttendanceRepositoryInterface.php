@@ -12,4 +12,7 @@ interface SessionAttendanceRepositoryInterface
     public function update(SessionAttendance $session, array $data);
     public function findByClassAndDate(int $classId, string $date);
     public function deactivateSession(int $sessionId);
+    public function getSessionsByClassSchedule(int $classScheduleId);
+    public function findByClassWeekAndMeeting(int $classId, int $week, int $meeting);
+    public function getSessionsByLecturer(int $lecturerId, ?int $courseId = null, ?string $date = null, ?int $week = null);
 }

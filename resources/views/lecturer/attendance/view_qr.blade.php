@@ -86,6 +86,10 @@
                                                 </td>
                                             </tr>
                                             <tr>
+                                                <th>Week/Meeting</th>
+                                                <td>Week {{ $weekNumber }}, Meeting {{ $meetingNumber }}</td>
+                                            </tr>
+                                            <tr>
                                                 <th>Session Date</th>
                                                 <td>{{ \Carbon\Carbon::parse(request('date'))->format('l, d F Y') }}</td>
                                             </tr>

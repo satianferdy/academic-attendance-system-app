@@ -63,7 +63,10 @@
                                                 data-bs-target="#createAttendanceModal{{ $schedule->id }}">
                                                 <i data-feather="plus-circle" class="btn-icon-prepend"></i>Create Session
                                             </button>
-                                            <a href="{{ route('lecturer.attendance.show', $schedule->id) }}"
+                                            <a href="{{ route('lecturer.attendance.show', [
+                                                'classSchedule' => $schedule->id,
+                                                'date' => now()->format('Y-m-d'),
+                                            ]) }}"
                                                 class="btn btn-sm btn-icon-text btn-info">
                                                 <i data-feather="info" class="btn-icon-prepend"></i>View Sessions
                                             </a>
@@ -89,21 +92,52 @@
                                                             <div class="modal-body">
                                                                 <input type="hidden" name="class_id"
                                                                     value="{{ $schedule->id }}">
+
                                                                 <div class="mb-3">
                                                                     <label for="date{{ $schedule->id }}"
-                                                                        class="form-label">Session
-                                                                        Date</label>
+                                                                        class="form-label">Session Date</label>
                                                                     <input type="date" class="form-control"
                                                                         id="date{{ $schedule->id }}" name="date"
                                                                         value="{{ date('Y-m-d') }}"
                                                                         min="{{ date('Y-m-d') }}" required>
                                                                 </div>
+
+                                                                <div class="mb-3">
+                                                                    <label for="week{{ $schedule->id }}"
+                                                                        class="form-label">Week</label>
+                                                                    <select class="form-select week-select"
+                                                                        id="week{{ $schedule->id }}" name="week"
+                                                                        required data-schedule-id="{{ $schedule->id }}">
+                                                                        @for ($i = 1; $i <= $schedule->total_weeks; $i++)
+                                                                            <option value="{{ $i }}">Week
+                                                                                {{ $i }}</option>
+                                                                        @endfor
+                                                                    </select>
+                                                                </div>
+
+                                                                <div class="mb-3">
+                                                                    <label for="meetings{{ $schedule->id }}"
+                                                                        class="form-label">Meeting</label>
+                                                                    <select class="form-select meetings-select"
+                                                                        id="meetings{{ $schedule->id }}" name="meetings"
+                                                                        required data-schedule-id="{{ $schedule->id }}"
+                                                                        {{ $schedule->meetings_per_week == 1 ? 'readonly' : '' }}>
+                                                                        @for ($i = 1; $i <= $schedule->meetings_per_week; $i++)
+                                                                            <option value="{{ $i }}">Meeting
+                                                                                {{ $i }}</option>
+                                                                        @endfor
+                                                                    </select>
+                                                                </div>
                                                             </div>
                                                             <div class="modal-footer">
                                                                 <button type="button" class="btn btn-sm btn-secondary"
                                                                     data-bs-dismiss="modal">Close</button>
-                                                                <button type="submit" class="btn btn-sm btn-primary">Create
-                                                                    Session</button>
+                                                                <button type="submit"
+                                                                    class="btn btn-sm btn-primary session-submit"
+                                                                    id="submit-btn-{{ $schedule->id }}"
+                                                                    data-schedule-id="{{ $schedule->id }}">
+                                                                    Create Session
+                                                                </button>
                                                             </div>
                                                         </form>
                                                     </div>
@@ -127,7 +161,6 @@
 
 @push('scripts')
     <script>
-        // Additional JavaScript to ensure past dates are disabled
         $(document).ready(function() {
             // Get current date in YYYY-MM-DD format
             function getCurrentDate() {
@@ -151,8 +184,6 @@
             $('input[type="date"]').on('change', function() {
                 if ($(this).val() < today) {
                     $(this).val(today);
-
-                    // Show a message using SweetAlert
                     Swal.fire({
                         icon: 'warning',
                         title: 'Invalid Date',
@@ -161,6 +192,125 @@
                     });
                 }
             });
+
+            // Make readonly selects actually behave like readonly
+            $('select[readonly]').on('mousedown', function(e) {
+                e.preventDefault();
+                this.blur();
+                return false;
+            });
+
+            // Fetch used sessions data via AJAX for each schedule
+            @foreach ($schedules as $schedule)
+                // Prepare to load used sessions when modal is opened
+                $('#createAttendanceModal{{ $schedule->id }}').on('show.bs.modal', function() {
+                    // Fetch the existing sessions for this schedule
+                    $.ajax({
+                        url: '{{ route('lecturer.attendance.get-used-sessions', $schedule->id) }}',
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function(response) {
+                            const usedSessions = response.usedSessions;
+                            updateSessionOptions({{ $schedule->id }}, usedSessions);
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('Error fetching used sessions:', error);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'Failed to load attendance data. Please try again.',
+                            });
+                        }
+                    });
+                });
+            @endforeach
+
+            // Function to update selects based on used sessions
+            function updateSessionOptions(scheduleId, usedSessions) {
+                const weekSelect = $('#week' + scheduleId);
+                const meetingsSelect = $('#meetings' + scheduleId);
+                const meetingsPerWeek = {{ $schedule->meetings_per_week }};
+                const submitBtn = $('#submit-btn-' + scheduleId);
+
+                // Reset all options
+                weekSelect.find('option').prop('disabled', false);
+                meetingsSelect.find('option').prop('disabled', false);
+                submitBtn.prop('disabled', false);
+
+                // Immediately disable week/meeting combinations that are used
+                if (meetingsPerWeek === 1) {
+                    // For classes with only 1 meeting per week, we just disable used weeks
+                    usedSessions.forEach(session => {
+                        weekSelect.find(`option[value="${session.week}"]`).prop('disabled', true);
+                    });
+
+                    // If current selection is disabled, select first available
+                    if (weekSelect.find('option:selected').prop('disabled')) {
+                        weekSelect.find('option:not(:disabled)').first().prop('selected', true);
+                    }
+
+                    // If no weeks available, disable submit button
+                    if (weekSelect.find('option:not(:disabled)').length === 0) {
+                        submitBtn.prop('disabled', true);
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'All Sessions Created',
+                            text: 'All available weeks have attendance sessions created.'
+                        });
+                    }
+                } else {
+                    // For multiple meetings per week, it's a combination
+                    // Create a lookup of used week/meeting combinations
+                    const usedCombos = {};
+                    usedSessions.forEach(session => {
+                        if (!usedCombos[session.week]) {
+                            usedCombos[session.week] = [];
+                        }
+                        usedCombos[session.week].push(session.meetings);
+                    });
+
+                    // Function to update meeting options based on selected week
+                    function updateMeetingOptions() {
+                        const selectedWeek = weekSelect.val();
+                        meetingsSelect.find('option').prop('disabled', false);
+
+                        // Disable used meetings for this week
+                        if (usedCombos[selectedWeek]) {
+                            usedCombos[selectedWeek].forEach(meetings => {
+                                meetingsSelect.find(`option[value="${meetings}"]`).prop('disabled', true);
+                            });
+                        }
+
+                        // If current selection is disabled, select first available
+                        if (meetingsSelect.find('option:selected').prop('disabled')) {
+                            meetingsSelect.find('option:not(:disabled)').first().prop('selected', true);
+                        }
+
+                        // If all meetings for this week are used, select another week
+                        if (meetingsSelect.find('option:not(:disabled)').length === 0) {
+                            weekSelect.find(`option[value="${selectedWeek}"]`).prop('disabled', true);
+                            weekSelect.find('option:not(:disabled)').first().prop('selected', true);
+                            updateMeetingOptions(); // Recursively update again with new week
+                        }
+                    }
+
+                    // Bind change event
+                    weekSelect.off('change').on('change', updateMeetingOptions);
+
+                    // Initialize options
+                    updateMeetingOptions();
+
+                    // Disable submit if no valid combinations exist
+                    if (weekSelect.find('option:not(:disabled)').length === 0) {
+                        submitBtn.prop('disabled', true);
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'All Sessions Created',
+                            text: 'All available week and meeting combinations have attendance sessions created.'
+                        });
+                    }
+                }
+            }
         });
     </script>
 @endpush

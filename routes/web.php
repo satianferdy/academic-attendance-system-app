@@ -64,6 +64,9 @@ Route::group(['middleware' => ['auth', 'role:lecturer'], 'prefix' => 'lecturer',
         ->where('date', '\d{4}-\d{2}-\d{2}');
     Route::post('/attendance/extend-time/{classSchedule}/{date}', [LecturerAttendanceController::class, 'extendTime'])
         ->name('attendance.extend_time');
+    // Inside lecturer routes group
+    Route::get('/attendance/get-used-sessions/{classSchedule}', [LecturerAttendanceController::class, 'getUsedSessions'])
+    ->name('attendance.get-used-sessions');
 
     // General routes - THESE COME AFTER THE SPECIFIC ONES
     Route::get('/attendance/{classSchedule}', [LecturerAttendanceController::class, 'show'])->name('attendance.show');

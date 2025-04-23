@@ -5,7 +5,7 @@
 @section('content')
     <nav class="page-breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="#">Admin</a></li>
+            <li class="breadcrumb-item"><a href="#">Dosen</a></li>
             <li class="breadcrumb-item active" aria-current="page">Class Schedule</li>
         </ol>
     </nav>

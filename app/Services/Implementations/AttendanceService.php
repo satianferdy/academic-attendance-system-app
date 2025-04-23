@@ -122,12 +122,23 @@ class AttendanceService implements AttendanceServiceInterface
         }
     }
 
-    public function generateSessionAttendance(int $classScheduleId, string $date): array
+    public function generateSessionAttendance(int $classScheduleId, string $date, int $week, int $meetings): array
     {
         DB::beginTransaction();
 
         try {
             $classSchedule = $this->classScheduleRepository->find($classScheduleId);
+
+            // Check if this week/meeting combo already exists
+            $existingSession = $this->sessionRepository->findByClassWeekAndMeeting(
+                $classScheduleId,
+                $week,
+                $meetings
+            );
+
+            if ($existingSession) {
+                throw new AttendanceException('Attendance session for this week and meeting already exists.');
+            }
 
             // Set session duration (30 minutes from now)
             $startTime = now();
@@ -138,6 +149,8 @@ class AttendanceService implements AttendanceServiceInterface
                 [
                     'class_schedule_id' => $classSchedule->id,
                     'session_date' => $date,
+                    'week' => $week,
+                    'meetings' => $meetings,
                 ],
                 [
                     'start_time' => $startTime,

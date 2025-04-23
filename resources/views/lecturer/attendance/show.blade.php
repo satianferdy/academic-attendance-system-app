@@ -28,6 +28,18 @@
                         </div>
                     </div>
 
+                    <!-- Add this section to display week and meeting info -->
+                    @if ($sessionExists)
+                        <div class="alert alert-info">
+                            <div class="d-flex align-items-center">
+                                <i data-feather="info" class="me-2"></i>
+                                <div>
+                                    <strong>Session Details:</strong> Week {{ $weekNumber }}, Meeting {{ $meetingNumber }}
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
                     @if (session('error'))
                         <div class="alert alert-danger">{{ session('error') }}</div>
                     @endif

@@ -36,6 +36,8 @@ class SessionAttendanceFactory extends Factory
         return [
             'class_schedule_id' => ClassSchedule::factory(),
             'session_date' => $today,
+            'week' => $this->faker->numberBetween(1, 16), // Assuming 52 weeks in a year
+            'meetings' => $this->faker->numberBetween(1, 3), // Random number of meetings
             'start_time' => $startTime,
             'end_time' => $endTime,
             'qr_code' => Str::random(8),

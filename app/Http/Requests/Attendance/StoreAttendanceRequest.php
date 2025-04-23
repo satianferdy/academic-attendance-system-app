@@ -25,6 +25,8 @@ class StoreAttendanceRequest extends FormRequest
         return [
             'class_id' => 'required|exists:class_schedules,id',
             'date' => 'required|date|after_or_equal:today',
+            'week' => 'required|integer|min:1|max:24',
+            'meetings' => 'required|integer|min:1|max:7',
         ];
     }
 }

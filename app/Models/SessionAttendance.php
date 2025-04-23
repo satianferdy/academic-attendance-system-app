@@ -14,6 +14,8 @@ class SessionAttendance extends Model
     protected $fillable = [
         'class_schedule_id',
         'session_date',
+        'week',
+        'meetings',
         'start_time',
         'end_time',
         'qr_code',
