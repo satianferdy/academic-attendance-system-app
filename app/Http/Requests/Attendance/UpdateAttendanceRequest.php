@@ -22,6 +22,11 @@ class UpdateAttendanceRequest extends FormRequest
         return [
             'status' => 'required|in:present,absent,late,excused',
             'remarks' => 'nullable|string|max:255',
+            'edit_notes' => 'nullable|string|max:500',
+            'hours_present' => 'required|integer|min:0',
+            'hours_absent' => 'required|integer|min:0',
+            'hours_permitted' => 'required|integer|min:0',
+            'hours_sick' => 'required|integer|min:0',
         ];
     }
 }

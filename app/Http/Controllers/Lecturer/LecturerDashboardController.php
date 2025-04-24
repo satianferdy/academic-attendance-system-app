@@ -63,6 +63,7 @@ class LecturerDashboardController extends Controller
         return ClassSchedule::with(['course', 'classroom', 'timeSlots'])
             ->where('lecturer_id', $lecturerId)
             ->where('day', $dayName)
+            ->take(3)
             ->get();
     }
 
@@ -76,11 +77,11 @@ class LecturerDashboardController extends Controller
     {
         $upcomingDays = [];
         $upcomingSchedules = [];
+        $schedulesFound = 0;
 
-        for ($i = 1; $i <= 7; $i++) {
+        for ($i = 1; $schedulesFound < 3 && $i <= 7; $i++) {
             $date = Carbon::now()->addDays($i);
             $day = strtolower($date->format('l'));
-            $upcomingDays[$day] = $date->format('M d');
 
             $schedules = ClassSchedule::with(['course', 'classroom', 'timeSlots'])
                 ->where('lecturer_id', $lecturerId)
@@ -88,7 +89,9 @@ class LecturerDashboardController extends Controller
                 ->get();
 
             if ($schedules->count() > 0) {
+                $upcomingDays[$day] = $date->format('M d');
                 $upcomingSchedules[$day] = $schedules;
+                $schedulesFound += $schedules->count();
             }
         }
 

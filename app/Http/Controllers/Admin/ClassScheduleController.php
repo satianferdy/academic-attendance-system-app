@@ -31,7 +31,7 @@ class ClassScheduleController extends Controller
     {
         $this->authorize('viewAny', ClassSchedule::class);
 
-        $schedules = $this->classScheduleRepository->getAllSchedules(10);
+        $schedules = $this->classScheduleRepository->getAllSchedules();
         return view('admin.schedules.index', compact('schedules'));
     }
 

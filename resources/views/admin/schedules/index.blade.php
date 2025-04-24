@@ -42,7 +42,7 @@
                             <tbody>
                                 @forelse($schedules as $key => $schedule)
                                     <tr>
-                                        <td>{{ $schedules->firstItem() + $key }}</td>
+                                        <td>{{ $key + 1 }}</td>
                                         <td>
                                             <strong>{{ $schedule->course->code }}</strong><br>
                                             <small>{{ $schedule->course->name }}</small>

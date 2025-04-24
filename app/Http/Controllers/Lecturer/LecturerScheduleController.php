@@ -23,7 +23,7 @@ class LecturerScheduleController extends Controller
         // Get the associated lecturer model
         $lecturer = Auth::user()->lecturer;
 
-         $schedules = $this->classScheduleRepository->getSchedulesByLecturerId($lecturer->id, 10);
+         $schedules = $this->classScheduleRepository->getSchedulesByLecturerId($lecturer->id);
 
         return view('lecturer.schedule.index', compact('schedules'));
     }

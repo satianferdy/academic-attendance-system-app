@@ -95,4 +95,15 @@ class AttendanceRepository implements AttendanceRepositoryInterface
 
         return $query->orderBy('date', 'desc')->get();
     }
+
+    public function getAttendancesByClassAndStudent(int $classId, ?int $studentId = null)
+    {
+        $query = $this->model->where('class_schedule_id', $classId);
+
+        if ($studentId) {
+            $query->where('student_id', $studentId);
+        }
+
+        return $query->get();
+    }
 }

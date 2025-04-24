@@ -17,4 +17,5 @@ interface AttendanceRepositoryInterface
     public function getStudentAttendanceByClass(int $classId, string $date);
     public function getStudentAttendances(int $studentId);
     public function getFilteredAttendances($courseId = null, $date = null, $studentId = null, $status = null);
+    public function getAttendancesByClassAndStudent(int $classId, ?int $studentId = null);
 }

@@ -31,6 +31,21 @@
             transform: scale(1.02);
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
+
+        /* Add styles for tolerance display */
+        .tolerance-badge {
+            background-color: #e3f2fd;
+            color: #0d6efd;
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .tolerance-badge i {
+            margin-right: 5px;
+        }
     </style>
 @endpush
 
@@ -87,11 +102,11 @@
                                             </tr>
                                             <tr>
                                                 <th>Week/Meeting</th>
-                                                <td>Week {{ $weekNumber }}, Meeting {{ $meetingNumber }}</td>
+                                                <td>Week {{ $session->week }}, Meeting {{ $session->meetings }}</td>
                                             </tr>
                                             <tr>
                                                 <th>Session Date</th>
-                                                <td>{{ \Carbon\Carbon::parse(request('date'))->format('l, d F Y') }}</td>
+                                                <td>{{ \Carbon\Carbon::parse($date)->format('l, d F Y') }}</td>
                                             </tr>
                                             <tr>
                                                 <th>Room</th>
@@ -112,14 +127,27 @@
                                             </tr>
                                             <tr>
                                                 <th>Session End Time</th>
-                                                <td>{{ $sessionEndTime }}</td>
+                                                <td>{{ $session->end_time->format('H:i') }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Lateness Tolerance</th>
+                                                <td>
+                                                    <span class="tolerance-badge">
+                                                        <i data-feather="clock" class="icon-sm me-2"></i>
+                                                        {{ $session->tolerance_minutes ?? 15 }} minutes
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th>Total Teaching Hours</th>
+                                                <td>{{ $session->total_hours ?? 4 }} hours</td>
                                             </tr>
                                         </table>
                                     </div>
                                     <div class="d-grid gap-2 mt-3">
                                         <button type="button" class="btn btn-primary btn-icon-text" data-bs-toggle="modal"
-                                            data-bs-target="#extendSessionModal">
-                                            <i class="btn-icon-prepend" data-feather="clock"></i>Extend Session
+                                            data-bs-target="#toleranceModal">
+                                            <i class="btn-icon-prepend" data-feather="clock"></i>Set Tolerance Time
                                         </button>
                                     </div>
                                 </div>
@@ -133,7 +161,7 @@
                                     <p class="text-muted mb-3">Students can scan this QR code to mark their attendance</p>
 
                                     <div class="qr-container mb-3">
-                                        <!-- Make QR code clickable to enlarge -->
+                                        <!-- QR code display -->
                                         <div class="qr-code-wrapper cursor-pointer" style="cursor: pointer;"
                                             data-bs-toggle="modal" data-bs-target="#qrCodeModal">
                                             {!! $qrCode !!}
@@ -142,7 +170,7 @@
 
                                     <div class="alert alert-info mt-3">
                                         <i data-feather="clock" class="icon-sm me-2"></i>
-                                        Session ends at <strong>{{ $sessionEndTime }}</strong>
+                                        Session ends at <strong>{{ $session->end_time->format('H:i') }}</strong>
                                     </div>
 
                                     <!-- Download QR Code Button -->
@@ -159,46 +187,43 @@
         </div>
     </div>
 
-    <!-- Extend Session Modal -->
-    <div class="modal fade" id="extendSessionModal" tabindex="-1" aria-labelledby="extendSessionModalLabel"
-        aria-hidden="true">
+    <!-- Tolerance Time Modal -->
+    <div class="modal fade" id="toleranceModal" tabindex="-1" aria-labelledby="toleranceModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="extendSessionModalLabel">Extend Session Time</h5>
+                    <h5 class="modal-title" id="toleranceModalLabel">Set Lateness Tolerance Time</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
-                    <p>Current session end time: <strong>{{ $sessionEndTime }}</strong></p>
-                    <p>Choose how much time to add to the session:</p>
-
-                    <form id="extendTimeForm"
-                        action="{{ route('lecturer.attendance.extend_time', ['classSchedule' => $classSchedule->id, 'date' => $date]) }}"
-                        method="POST">
-                        @csrf
+                <form id="toleranceForm"
+                    action="{{ route('lecturer.attendance.extend_time', ['classSchedule' => $classSchedule->id, 'date' => $date]) }}"
+                    method="POST">
+                    @csrf
+                    <div class="modal-body">
+                        <p>Current tolerance time: <strong>{{ $session->tolerance_minutes ?? 15 }} minutes</strong></p>
+                        <p>Choose the number of minutes students can be late before being marked absent for that hour:</p>
 
                         <div class="d-flex justify-content-center pt-2">
-                            <div class="btn-group w-100" role="group" aria-label="Extension time options">
-                                <input type="radio" class="btn-check" name="minutes" id="minutes10" value="10"
-                                    autocomplete="off" checked>
-                                <label class="btn btn-outline-primary" for="minutes10">10 minutes</label>
+                            <div class="btn-group w-100" role="group" aria-label="Tolerance time options">
+                                <input type="radio" class="btn-check" name="minutes" id="minutes15" value="15"
+                                    autocomplete="off" {{ ($session->tolerance_minutes ?? 15) == 15 ? 'checked' : '' }}>
+                                <label class="btn btn-outline-primary" for="minutes15">15 minutes</label>
 
                                 <input type="radio" class="btn-check" name="minutes" id="minutes20" value="20"
-                                    autocomplete="off">
+                                    autocomplete="off" {{ ($session->tolerance_minutes ?? 15) == 20 ? 'checked' : '' }}>
                                 <label class="btn btn-outline-primary" for="minutes20">20 minutes</label>
 
                                 <input type="radio" class="btn-check" name="minutes" id="minutes30" value="30"
-                                    autocomplete="off">
+                                    autocomplete="off" {{ ($session->tolerance_minutes ?? 15) == 30 ? 'checked' : '' }}>
                                 <label class="btn btn-outline-primary" for="minutes30">30 minutes</label>
                             </div>
                         </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-sm btn-primary"
-                        onclick="document.getElementById('extendTimeForm').submit();">Extend Session</button>
-                </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-sm btn-primary">Save Changes</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -235,7 +260,7 @@
 
             // Get session date and end time
             const sessionDate = '{{ $date }}';
-            const sessionEndTime = '{{ $sessionEndTime }}';
+            const sessionEndTime = '{{ $session->end_time->format('H:i') }}';
 
             // Combine date and time for comparison
             const sessionDateTime = new Date(`${sessionDate}T${sessionEndTime}`);

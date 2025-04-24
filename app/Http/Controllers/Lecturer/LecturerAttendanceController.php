@@ -58,19 +58,32 @@ class LecturerAttendanceController extends Controller
     /**
      * Create a new attendance session.
      */
-    public function create(StoreAttendanceRequest $request)
+    public function create(Request $request)
     {
-        $validated = $request->validated();
-        $classSchedule = $this->classScheduleRepository->find($validated['class_id']);
+        $validated = $request->validate([
+            'class_id' => 'required|exists:class_schedules,id',
+            'date' => 'required|date|after_or_equal:today',
+            'week' => 'required|integer|min:1|max:24',
+            'meetings' => 'required|integer|min:1|max:7',
+            'total_hours' => 'required|integer|min:1|max:8',
+            'tolerance_minutes' => 'required|in:15,20,30',
+        ]);
 
+        $classSchedule = $this->classScheduleRepository->find($validated['class_id']);
         $this->authorize('generateQR', $classSchedule);
+
+        $existingSession = $this->sessionRepository->sessionExistsForDate($classSchedule->id, $validated['date']);
+        if ($existingSession) {
+            return redirect()->back()->with('error', 'An attendance session already exists for this date.');
+        }
 
         $result = $this->attendanceService->generateSessionAttendance(
             $classSchedule->id,
             $validated['date'],
             $validated['week'],
-            $validated['meetings']
-
+            $validated['meetings'],
+            $validated['total_hours'], // Added total_hours parameter
+            $validated['tolerance_minutes'] // Added tolerance_minutes parameter
         );
 
         if ($result['status'] === 'error') {
@@ -91,36 +104,9 @@ class LecturerAttendanceController extends Controller
         $this->authorize('view', $classSchedule);
 
         $date = $request->query('date', date('Y-m-d'));
-        $week = $request->query('week');
-        $meeting = $request->query('meeting');
 
-        // Check date format
-        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
-            return redirect()->back()->with('error', 'Invalid date format.');
-        }
-
-        // Get the specific session attendance record if week and meeting are provided
-        $session = null;
-        if ($week && $meeting) {
-            $session = $this->sessionRepository->findByClassWeekAndMeeting($classSchedule->id, $week, $meeting);
-            // If session found but dates don't match, update the date parameter to match the session date
-            if ($session && $session->session_date->format('Y-m-d') !== $date) {
-                return redirect()->route('lecturer.attendance.show', [
-                    'classSchedule' => $classSchedule->id,
-                    'date' => $session->session_date->format('Y-m-d'),
-                    'week' => $week,
-                    'meeting' => $meeting
-                ]);
-            }
-        }
-
-        // If no specific session found by week/meeting, try to find by date
-        if (!$session) {
-            $session = $this->sessionRepository->findByClassAndDate($classSchedule->id, $date);
-            // Update week and meeting values from the found session
-            $week = $session ? $session->week : null;
-            $meeting = $session ? $session->meetings : null;
-        }
+        // Get the specific session attendance record
+        $session = $this->sessionRepository->findByClassAndDate($classSchedule->id, $date);
 
         // Get attendances for this specific session
         $attendances = collect([]);
@@ -128,27 +114,33 @@ class LecturerAttendanceController extends Controller
             $attendances = $this->attendanceRepository->findByClassAndDate($classSchedule->id, $session->session_date->format('Y-m-d'));
         }
 
-        $sessionExists = $session !== null;
-        $weekNumber = $week;
-        $meetingNumber = $meeting;
-
-        // If session exists, use its date for consistency
-        if ($session) {
-            $date = $session->session_date->format('Y-m-d');
+        // Get cumulative attendance data for all students in this class
+        $cumulativeData = [];
+        foreach ($attendances as $attendance) {
+            $cumulativeData[$attendance->student_id] = $this->attendanceService->getCumulativeAttendance(
+                $classSchedule->id,
+                $attendance->student_id
+            );
         }
 
+        $sessionExists = $session !== null;
+        $toleranceMinutes = $session ? $session->tolerance_minutes : 15;
+        $totalHours = $session ? $session->total_hours : 4;
+
         return view('lecturer.attendance.show', compact(
+            'session',
             'classSchedule',
             'attendances',
             'date',
             'sessionExists',
-            'weekNumber',
-            'meetingNumber'
+            'cumulativeData',
+            'toleranceMinutes',
+            'totalHours'
         ));
     }
 
     /**
-     * Update the specified resource in storage.
+     * Update attendance with hourly breakdown
      */
     public function update(UpdateAttendanceRequest $request, Attendance $attendance)
     {
@@ -156,16 +148,36 @@ class LecturerAttendanceController extends Controller
 
         $validated = $request->validated();
 
-        $this->attendanceRepository->update($attendance, [
+        // Add validation for hourly data
+        $totalHours = $request->input('total_hours', 4);
+        $totalAttendanceHours =
+            $request->input('hours_present', 0) +
+            $request->input('hours_absent', 0) +
+            $request->input('hours_permitted', 0) +
+            $request->input('hours_sick', 0);
+
+        if ($totalAttendanceHours != $totalHours) {
+            return redirect()->back()->with('error', 'Total attendance hours must equal total class hours (' . $totalHours . ')');
+        }
+
+        $result = $this->attendanceService->updateAttendanceStatus($attendance, [
             'status' => $validated['status'],
             'remarks' => $validated['remarks'],
+            'edit_notes' => $validated['edit_notes'] ?? null,
+            'hours_present' => $request->input('hours_present', 0),
+            'hours_absent' => $request->input('hours_absent', 0),
+            'hours_permitted' => $request->input('hours_permitted', 0),
+            'hours_sick' => $request->input('hours_sick', 0),
         ]);
 
-        return redirect()->route('lecturer.attendance.show', [
+        if ($result['status'] === 'success') {
+            return redirect()->route('lecturer.attendance.show', [
                 'classSchedule' => $attendance->class_schedule_id,
                 'date' => $attendance->date,
-            ])
-            ->with('success', 'Attendance updated successfully.');
+            ])->with('success', 'Attendance updated successfully.');
+        }
+
+        return redirect()->back()->with('error', $result['message']);
     }
 
     /**
@@ -194,23 +206,23 @@ class LecturerAttendanceController extends Controller
         $qrCode = $this->qrCodeService->generateForAttendance($classSchedule->id, $date);
 
         return view('lecturer.attendance.view_qr', [
+            'session' => $session,
             'classSchedule' => $classSchedule,
             'qrCode' => $qrCode,
-            'sessionEndTime' => $session->end_time->format('H:i'),
             'date' => $date,
-            'weekNumber' => $session->week,
-            'meetingNumber' => $session->meetings
         ]);
     }
 
     /**
      * Extend the session time for attendance.
      */
-    public function extendTime(ExtendTimeRequest $request, ClassSchedule $classSchedule, $date)
+    public function extendTime(Request $request, ClassSchedule $classSchedule, $date)
     {
         $this->authorize('extendTime', $classSchedule);
 
-        $validated = $request->validated();
+        $request->validate([
+            'minutes' => 'required|in:15,20,30',
+        ]);
 
         // Validate date format
         if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
@@ -227,18 +239,19 @@ class LecturerAttendanceController extends Controller
             return redirect()->route('lecturer.attendance.view_qr', [
                 'classSchedule' => $classSchedule->id,
                 'date' => $date
-            ])->with('error', 'Attendance session has already ended. Extension is not allowed.');
+            ])->with('error', 'Attendance session has already ended.');
         }
 
+        // Update tolerance minutes instead of extending end time
         $this->sessionRepository->update($session, [
-            'end_time' => $session->end_time->addMinutes((int)$validated['minutes']),
+            'tolerance_minutes' => (int)$request->minutes,
             'is_active' => true
         ]);
 
         return redirect()->route('lecturer.attendance.view_qr', [
             'classSchedule' => $classSchedule->id,
             'date' => $date
-        ])->with('success', "Session extended by {$validated['minutes']} minutes");
+        ])->with('success', "Tolerance time set to {$request->minutes} minutes");
     }
 
     public function getUsedSessions(ClassSchedule $classSchedule)

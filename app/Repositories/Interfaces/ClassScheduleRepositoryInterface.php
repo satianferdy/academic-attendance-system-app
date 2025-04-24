@@ -12,8 +12,8 @@ interface ClassScheduleRepositoryInterface
     public function checkTimeOverlap(string $start1, string $end1, string $start2, string $end2): bool;
     public function getSchedulesByRoomAndDay(string $room, string $day, ?int $excludeId = null);
     public function getSchedulesByLecturerAndDay(int $lecturerId, string $day, ?int $excludeId = null);
-    public function getAllSchedules(int $perPage = 10);
-    public function getSchedulesByLecturerId(int $lecturerId, int $perPage = 10);
+    public function getAllSchedules();
+    public function getSchedulesByLecturerId(int $lecturerId);
     public function createSchedule(array $data);
     public function updateSchedule(int $id, array $data);
     public function deleteSchedule(int $id);

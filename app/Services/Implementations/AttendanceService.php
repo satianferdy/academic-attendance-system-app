@@ -9,6 +9,8 @@ use App\Repositories\Interfaces\SessionAttendanceRepositoryInterface;
 use App\Repositories\Interfaces\StudentRepositoryInterface;
 use App\Services\Interfaces\AttendanceServiceInterface;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class AttendanceService implements AttendanceServiceInterface
 {
@@ -32,6 +34,9 @@ class AttendanceService implements AttendanceServiceInterface
         $this->studentRepository = $studentRepository;
     }
 
+     /**
+     * Mark attendance with hourly tracking
+     */
     public function markAttendance(int $classId, int $studentId, string $date): array
     {
         try {
@@ -54,21 +59,30 @@ class AttendanceService implements AttendanceServiceInterface
                 throw new AttendanceException('Attendance record not found.');
             }
 
+            // Calculate hourly attendance
+            $attendanceHours = $this->calculateHourlyAttendance(
+                $session->start_time,
+                now(),
+                $session->total_hours,
+                $session->tolerance_minutes
+            );
+
+            // Update attendance record
             $this->attendanceRepository->update($attendance, [
-                'status' => 'present',
+                'status' => ($attendanceHours['hours_present'] > 0) ? 'present' : 'absent',
                 'attendance_time' => now(),
+                'hours_present' => $attendanceHours['hours_present'],
+                'hours_absent' => $attendanceHours['hours_absent'],
+                'hours_permitted' => $attendanceHours['hours_permitted'],
+                'hours_sick' => $attendanceHours['hours_sick']
             ]);
 
             return [
                 'status' => 'success',
-                'message' => 'Attendance marked successfully.'
+                'message' => 'Attendance marked successfully.',
+                'attendance_hours' => $attendanceHours
             ];
         } catch (AttendanceException $e) {
-            return [
-                'status' => 'error',
-                'message' => 'Failed to mark attendance: ' . $e->getMessage()
-            ];
-        } catch (\Exception $e) {
             return [
                 'status' => 'error',
                 'message' => 'Failed to mark attendance: ' . $e->getMessage()
@@ -103,12 +117,29 @@ class AttendanceService implements AttendanceServiceInterface
         return $this->attendanceRepository->getStudentAttendances($studentId);
     }
 
-    public function updateAttendanceStatus($attendance, string $status): array
+     /**
+     * Update attendance status with hourly breakdown
+     */
+    public function updateAttendanceStatus($attendance, array $data): array
     {
         try {
-            $this->attendanceRepository->update($attendance, [
-                'status' => $status,
-            ]);
+            $totalHours = $attendance->classSchedule->timeSlots->count() ?: 4;
+
+            $updateData = [
+                'status' => $data['status'] ?? $attendance->status,
+                'remarks' => $data['remarks'] ?? $attendance->remarks,
+                'last_edited_at' => now(),
+                'last_edited_by' => Auth::check() ? Auth::id() : null,
+                'edit_notes' => $data['edit_notes'] ?? null
+            ];
+
+            // Update hourly breakdown
+            if (isset($data['hours_present'])) $updateData['hours_present'] = $data['hours_present'];
+            if (isset($data['hours_absent'])) $updateData['hours_absent'] = $data['hours_absent'];
+            if (isset($data['hours_permitted'])) $updateData['hours_permitted'] = $data['hours_permitted'];
+            if (isset($data['hours_sick'])) $updateData['hours_sick'] = $data['hours_sick'];
+
+            $this->attendanceRepository->update($attendance, $updateData);
 
             return [
                 'status' => 'success',
@@ -122,18 +153,23 @@ class AttendanceService implements AttendanceServiceInterface
         }
     }
 
-    public function generateSessionAttendance(int $classScheduleId, string $date, int $week, int $meetings): array
+    public function generateSessionAttendance(int $classScheduleId, string $date, int $week, int $meetings, int $totalHours = 4, int $toleranceMinutes = 15 ): array
     {
         DB::beginTransaction();
 
         try {
             $classSchedule = $this->classScheduleRepository->find($classScheduleId);
 
+            // Check if a session already exists for this date
+            if ($this->sessionRepository->sessionExistsForDate($classScheduleId, $date)) {
+                throw new AttendanceException('An attendance session already exists for this date.');
+            }
+
             // Check if this week/meeting combo already exists
             $existingSession = $this->sessionRepository->findByClassWeekAndMeeting(
                 $classScheduleId,
                 $week,
-                $meetings
+                $meetings,
             );
 
             if ($existingSession) {
@@ -156,6 +192,8 @@ class AttendanceService implements AttendanceServiceInterface
                     'start_time' => $startTime,
                     'end_time' => $endTime,
                     'is_active' => true,
+                    'total_hours' => $totalHours,
+                    'tolerance_minutes' => $toleranceMinutes,
                 ]
             );
 
@@ -194,6 +232,64 @@ class AttendanceService implements AttendanceServiceInterface
                 'message' => 'Failed to generate attendances: ' . $e->getMessage(),
             ];
         }
+    }
+
+    /**
+     * Calculate hourly attendance based on arrival time
+     */
+    public function calculateHourlyAttendance($startTime, $arrivalTime, $totalHours, $toleranceMinutes)
+    {
+        $hoursPresent = 0;
+        $hoursAbsent = 0;
+
+        $startTime = Carbon::parse($startTime);
+        $arrivalTime = Carbon::parse($arrivalTime);
+
+        for ($hour = 0; $hour < $totalHours; $hour++) {
+            $hourStart = $startTime->copy()->addHours($hour);
+            $hourEnd = $hourStart->copy()->addHours(1);
+
+            // Calculate the cutoff time (hour start + tolerance)
+            $cutoffTime = $hourStart->copy()->addMinutes($toleranceMinutes);
+
+            // If arrival time is before cutoff time for this hour
+            if ($arrivalTime <= $cutoffTime) {
+                $hoursPresent++;
+            } else {
+                // If arrival is after cutoff for this hour but before next hour
+                if ($arrivalTime < $hourEnd) {
+                    $hoursAbsent++;
+                    // Update arrival time to next hour for subsequent calculations
+                    $arrivalTime = $hourEnd;
+                } else {
+                    $hoursAbsent++;
+                }
+            }
+        }
+
+        return [
+            'hours_present' => $hoursPresent,
+            'hours_absent' => $hoursAbsent,
+            'hours_permitted' => 0, // Initially 0, can be updated by lecturer
+            'hours_sick' => 0       // Initially 0, can be updated by lecturer
+        ];
+    }
+
+    /**
+     * Get cumulative attendance for a class
+     */
+    public function getCumulativeAttendance(int $classId, int $studentId = null)
+    {
+        $attendances = $this->attendanceRepository->getAttendancesByClassAndStudent($classId, $studentId);
+
+        $summary = [
+            'total_present' => $attendances->sum('hours_present'),
+            'total_absent' => $attendances->sum('hours_absent'),
+            'total_permitted' => $attendances->sum('hours_permitted'),
+            'total_sick' => $attendances->sum('hours_sick'),
+        ];
+
+        return $summary;
     }
 }
 

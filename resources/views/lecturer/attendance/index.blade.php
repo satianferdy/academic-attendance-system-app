@@ -71,7 +71,7 @@
                                                 <i data-feather="info" class="btn-icon-prepend"></i>View Sessions
                                             </a>
 
-                                            <!-- Create Attendance Modal -->
+                                            <!-- Inside the create attendance modal -->
                                             <div class="modal fade" id="createAttendanceModal{{ $schedule->id }}"
                                                 tabindex="-1"
                                                 aria-labelledby="createAttendanceModalLabel{{ $schedule->id }}"
@@ -127,6 +127,35 @@
                                                                                 {{ $i }}</option>
                                                                         @endfor
                                                                     </select>
+                                                                </div>
+
+                                                                <!-- New fields -->
+                                                                <div class="mb-3">
+                                                                    <label for="total_hours{{ $schedule->id }}"
+                                                                        class="form-label">Total Teaching Hours</label>
+                                                                    <input type="number" class="form-control"
+                                                                        id="total_hours{{ $schedule->id }}"
+                                                                        name="total_hours"
+                                                                        value="{{ $schedule->timeSlots->count() ?: 4 }}"
+                                                                        min="1" max="8" required>
+                                                                    <div class="form-text">Number of teaching hours for
+                                                                        attendance tracking</div>
+                                                                </div>
+
+                                                                <div class="mb-3">
+                                                                    <label for="tolerance_minutes{{ $schedule->id }}"
+                                                                        class="form-label">Lateness Tolerance
+                                                                        (minutes)
+                                                                    </label>
+                                                                    <select class="form-select"
+                                                                        id="tolerance_minutes{{ $schedule->id }}"
+                                                                        name="tolerance_minutes" required>
+                                                                        <option value="15" selected>15 minutes</option>
+                                                                        <option value="20">20 minutes</option>
+                                                                        <option value="30">30 minutes</option>
+                                                                    </select>
+                                                                    <div class="form-text">Maximum allowed lateness before
+                                                                        being marked absent for an hour</div>
                                                                 </div>
                                                             </div>
                                                             <div class="modal-footer">

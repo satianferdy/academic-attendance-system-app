@@ -13,5 +13,6 @@ interface AttendanceServiceInterface
     public function isAttendanceAlreadyMarked(int $studentId, int $classScheduleId, string $date): bool;
     public function getStudentAttendances(int $studentId);
     public function isSessionActive(int $classScheduleId, string $date): bool;
-    public function updateAttendanceStatus($attendance, string $status): array;
+    public function updateAttendanceStatus($attendance, array $data): array;
+    public function getCumulativeAttendance(int $classId, int $studentId = null);
 }

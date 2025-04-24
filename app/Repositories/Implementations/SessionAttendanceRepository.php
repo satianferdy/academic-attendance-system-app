@@ -25,7 +25,17 @@ class SessionAttendanceRepository implements SessionAttendanceRepositoryInterfac
 
     public function createOrUpdate(array $attributes, array $values)
     {
-        return $this->model->firstOrCreate($attributes, $values);
+        // Ensure tolerance_minutes is set
+        if (!isset($values['tolerance_minutes'])) {
+            $values['tolerance_minutes'] = 15; // Default tolerance
+        }
+
+        // Ensure total_hours is set
+        if (!isset($values['total_hours'])) {
+            $values['total_hours'] = 4; // Default hours
+        }
+
+        return $this->model->updateOrCreate($attributes, $values);
     }
 
     public function create(array $data)
@@ -100,6 +110,14 @@ class SessionAttendanceRepository implements SessionAttendanceRepositoryInterfac
         return $query->with(['classSchedule.course', 'classSchedule.classroom'])
             ->orderBy('session_date', 'desc')
             ->get();
+    }
+
+    public function sessionExistsForDate(int $classId, string $date): bool
+    {
+        return $this->model
+            ->where('class_schedule_id', $classId)
+            ->whereDate('session_date', $date)
+            ->exists();
     }
 }
 

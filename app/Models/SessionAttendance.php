@@ -18,6 +18,8 @@ class SessionAttendance extends Model
         'meetings',
         'start_time',
         'end_time',
+        'total_hours',
+        'tolerance_minutes',
         'qr_code',
         'is_active'
     ];

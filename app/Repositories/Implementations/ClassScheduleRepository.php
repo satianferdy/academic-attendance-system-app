@@ -109,19 +109,19 @@ class ClassScheduleRepository implements ClassScheduleRepositoryInterface
             ->get();
     }
 
-    public function getAllSchedules(int $perPage = 10)
+    public function getAllSchedules()
     {
-        return $this->model->with(['lecturer.user', 'course', 'classroom', 'timeSlots', 'semesters', 'studyProgram'])
-                          ->orderBy('day')
-                          ->paginate($perPage);
+        return $this->model->with(['course', 'classroom', 'lecturer', 'semesters', 'timeSlots'])
+                        ->orderBy('day')
+                        ->get();
     }
 
-    public function getSchedulesByLecturerId(int $lecturerId, int $perPage = 10)
+    public function getSchedulesByLecturerId(int $lecturerId)
     {
         return $this->model->where('lecturer_id', $lecturerId)
                         ->with(['course', 'classroom', 'lecturer', 'semesters', 'timeSlots'])
                         ->orderBy('day')
-                        ->paginate($perPage);
+                        ->get();
     }
 
     public function createSchedule(array $data)

@@ -15,4 +15,5 @@ interface SessionAttendanceRepositoryInterface
     public function getSessionsByClassSchedule(int $classScheduleId);
     public function findByClassWeekAndMeeting(int $classId, int $week, int $meeting);
     public function getSessionsByLecturer(int $lecturerId, ?int $courseId = null, ?string $date = null, ?int $week = null);
+    public function sessionExistsForDate(int $classId, string $date): bool;
 }
