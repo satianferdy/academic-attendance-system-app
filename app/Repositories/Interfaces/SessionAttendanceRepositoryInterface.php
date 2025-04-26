@@ -14,7 +14,15 @@ interface SessionAttendanceRepositoryInterface
     public function deactivateSession(int $sessionId);
     public function getSessionsByClassSchedule(int $classScheduleId);
     public function findByClassWeekAndMeeting(int $classId, int $week, int $meeting);
-    public function getSessionsByLecturer(int $lecturerId, ?int $courseId = null, ?string $date = null, ?int $week = null);
+    public function getSessionsByLecturer(
+        int $lecturerId,
+        ?int $courseId = null,
+        ?string $date = null,
+        ?int $week = null,
+        ?int $studyProgramId = null,
+        ?int $classroomId = null,
+        ?int $semesterId = null
+    );
     public function sessionExistsForDate(int $classId, string $date): bool;
     public function findByQrCode(string $qrCode);
 }

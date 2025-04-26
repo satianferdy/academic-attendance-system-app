@@ -109,21 +109,21 @@
                     </div>
 
                     <div class="table-responsive">
-                        <table id="dataTableExample" class="table">
+                        <table id="dataTableExample" class="table table-hover table-bordered">
                             <thead>
+                                <tr>
+                                    <th colspan="5"></th>
+                                    <th colspan="4" class="text-center">Cumulative Hours</th>
+                                    <th colspan="4" class="text-center">Current Session Hours</th>
+                                    {{-- <th>Remarks</th> --}}
+                                    <th colspan="2"></th>
+                                </tr>
                                 <tr>
                                     <th>No</th>
                                     <th>Student NIM</th>
                                     <th>Name</th>
                                     <th>Status</th>
-                                    <th>Check-in Time</th>
-                                    <th colspan="4" class="text-center">Current Session Hours</th>
-                                    <th colspan="4" class="text-center">Cumulative Hours</th>
-                                    <th>Remarks</th>
-                                    <th>Actions</th>
-                                </tr>
-                                <tr>
-                                    <th colspan="5"></th>
+                                    <th>Check-in</th>
                                     <th class="text-center bg-success-subtle">H</th>
                                     <th class="text-center bg-danger-subtle">A</th>
                                     <th class="text-center bg-warning-subtle">I</th>
@@ -132,7 +132,7 @@
                                     <th class="text-center bg-danger-subtle">Alpha</th>
                                     <th class="text-center bg-warning-subtle">Izin</th>
                                     <th class="text-center bg-info-subtle">Sakit</th>
-                                    <th colspan="2"></th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -153,27 +153,10 @@
                                         </td>
                                         <td>
                                             @if ($attendance->attendance_time)
-                                                {{ \Carbon\Carbon::parse($attendance->attendance_time)->format('H:i:s') }}
+                                                {{ \Carbon\Carbon::parse($attendance->attendance_time)->format('H:i') }}
                                             @else
                                                 -
                                             @endif
-                                        </td>
-                                        <!-- Current Session Hours -->
-                                        <td class="text-center bg-success-subtle">
-                                            <span
-                                                class="badge bg-success hours-badge">{{ $attendance->hours_present ?? 0 }}</span>
-                                        </td>
-                                        <td class="text-center bg-danger-subtle">
-                                            <span
-                                                class="badge bg-danger hours-badge">{{ $attendance->hours_absent ?? 0 }}</span>
-                                        </td>
-                                        <td class="text-center bg-warning-subtle">
-                                            <span
-                                                class="badge bg-warning hours-badge">{{ $attendance->hours_permitted ?? 0 }}</span>
-                                        </td>
-                                        <td class="text-center bg-info-subtle">
-                                            <span
-                                                class="badge bg-info hours-badge">{{ $attendance->hours_sick ?? 0 }}</span>
                                         </td>
 
                                         <!-- Cumulative Hours -->
@@ -202,7 +185,21 @@
                                                 class="badge bg-info hours-badge">{{ $cumulativeHours['total_sick'] ?? 0 }}</span>
                                         </td>
 
-                                        <td>
+                                        <!-- Current Session Hours -->
+                                        <td class="text-center bg-success-subtle">
+                                            <span>{{ $attendance->hours_present ?? 0 }}</span>
+                                        </td>
+                                        <td class="text-center bg-danger-subtle">
+                                            <span>{{ $attendance->hours_absent ?? 0 }}</span>
+                                        </td>
+                                        <td class="text-center bg-warning-subtle">
+                                            <span>{{ $attendance->hours_permitted ?? 0 }}</span>
+                                        </td>
+                                        <td class="text-center bg-info-subtle">
+                                            <span>{{ $attendance->hours_sick ?? 0 }}</span>
+                                        </td>
+
+                                        {{-- <td>
                                             @if ($attendance->remarks)
                                                 <span data-bs-toggle="tooltip" title="{{ $attendance->remarks }}">
                                                     {{ Str::limit($attendance->remarks, 30, '...') }}
@@ -210,7 +207,7 @@
                                             @else
                                                 -
                                             @endif
-                                        </td>
+                                        </td> --}}
                                         <td>
                                             <button type="button" class="btn btn-primary btn-icon btn-sm edit-attendance"
                                                 data-bs-toggle="modal" title="Edit Attendance"

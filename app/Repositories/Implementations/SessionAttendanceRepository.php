@@ -77,8 +77,15 @@ class SessionAttendanceRepository implements SessionAttendanceRepositoryInterfac
             ->first();
     }
 
-    public function getSessionsByLecturer(int $lecturerId, ?int $courseId = null, ?string $date = null, ?int $week = null)
-    {
+    public function getSessionsByLecturer(
+        int $lecturerId,
+        ?int $courseId = null,
+        ?string $date = null,
+        ?int $week = null,
+        ?int $studyProgramId = null,
+        ?int $classroomId = null,
+        ?int $semesterId = null
+    ) {
         $query = $this->model
             ->select('session_attendance.*',
                      DB::raw('COUNT(CASE WHEN attendances.status = "present" THEN 1 END) as present_count'),
@@ -107,7 +114,26 @@ class SessionAttendanceRepository implements SessionAttendanceRepositoryInterfac
             $query->where('week', $week);
         }
 
-        return $query->with(['classSchedule.course', 'classSchedule.classroom'])
+        // Add new filters
+        if ($studyProgramId) {
+            $query->whereHas('classSchedule', function ($q) use ($studyProgramId) {
+                $q->where('study_program_id', $studyProgramId);
+            });
+        }
+
+        if ($classroomId) {
+            $query->whereHas('classSchedule', function ($q) use ($classroomId) {
+                $q->where('classroom_id', $classroomId);
+            });
+        }
+
+        if ($semesterId) {
+            $query->whereHas('classSchedule', function ($q) use ($semesterId) {
+                $q->where('semester_id', $semesterId);
+            });
+        }
+
+        return $query->with(['classSchedule.course', 'classSchedule.classroom.studyProgram'])
             ->orderBy('session_date', 'desc')
             ->get();
     }

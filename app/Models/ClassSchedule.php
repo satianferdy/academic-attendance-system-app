@@ -40,7 +40,7 @@ class ClassSchedule extends Model
 
     public function classroom()
     {
-        return $this->belongsTo(ClassRoom::class);
+        return $this->belongsTo(ClassRoom::class, 'classroom_id');
     }
 
     public function semesters()

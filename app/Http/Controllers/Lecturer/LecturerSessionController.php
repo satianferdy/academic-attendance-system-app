@@ -7,6 +7,9 @@ use Illuminate\Http\Request;
 use App\Repositories\Interfaces\AttendanceRepositoryInterface;
 use App\Repositories\Interfaces\ClassScheduleRepositoryInterface;
 use App\Repositories\Interfaces\SessionAttendanceRepositoryInterface;
+use App\Models\StudyProgram;
+use App\Models\ClassRoom;
+use App\Models\Semester;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
@@ -31,17 +34,27 @@ class LecturerSessionController extends Controller
         // Get lecturer ID from authenticated user
         $lecturerId = Auth::user()->lecturer->id;
 
+        // Get active semester as default if no semester is selected
+        $activeSemester = Semester::where('is_active', true)->first();
+        $defaultSemesterId = $activeSemester ? $activeSemester->id : null;
+
         // Get filters if provided
         $courseId = $request->input('course_id');
         $date = $request->input('date');
         $week = $request->input('week');
+        $studyProgramId = $request->input('study_program_id');
+        $classroomId = $request->input('classroom_id');
+        $semesterId = $request->input('semester_id', $defaultSemesterId);
 
         // Get sessions with attendance counts
         $sessions = $this->sessionAttendanceRepository->getSessionsByLecturer(
             $lecturerId,
             $courseId,
             $date,
-            $week
+            $week,
+            $studyProgramId,
+            $classroomId,
+            $semesterId
         );
 
         // Process sessions into summary format
@@ -58,12 +71,23 @@ class LecturerSessionController extends Controller
                 'present' => $present,
                 'absent' => $absent,
                 'total' => $total,
-                'rate' => $total > 0 ? round(($present / $total) * 100, 2) : 0
+                'rate' => $total > 0 ? round(($present / $total) * 100) : 0
             ];
         })->toArray();
 
         // Get courses for filter (only those taught by logged-in lecturer)
         $courses = $this->getCoursesForLecturer($lecturerId);
+
+        // Get study programs for filter
+        $studyPrograms = StudyProgram::orderBy('name')->get();
+
+        // Get classrooms for filter
+        $classrooms = $this->getClassroomsForLecturer($lecturerId);
+
+        // Get semesters for filter (ordered by recency)
+        $semesters = Semester::orderBy('is_active', 'desc')
+            ->orderBy('start_date', 'desc')
+            ->get();
 
         // Get available weeks for filter
         $maxWeeks = $this->getMaxWeeksForLecturer($lecturerId);
@@ -71,9 +95,15 @@ class LecturerSessionController extends Controller
         return view('lecturer.session.index', [
             'sessionSummaries' => $sessionSummaries,
             'courses' => $courses,
+            'studyPrograms' => $studyPrograms,
+            'classrooms' => $classrooms,
+            'semesters' => $semesters,
             'selectedCourse' => $courseId,
             'selectedDate' => $date,
             'selectedWeek' => $week,
+            'selectedProgram' => $studyProgramId,
+            'selectedClassroom' => $classroomId,
+            'selectedSemester' => $semesterId,
             'maxWeeks' => $maxWeeks,
         ]);
     }
@@ -93,5 +123,14 @@ class LecturerSessionController extends Controller
             ->max('total_weeks');
 
         return $maxWeeks ?: 16; // Default to 16 weeks if no value found
+    }
+
+    // get classrooms for lecturer
+    private function getClassroomsForLecturer($lecturerId)
+    {
+        // Get unique classrooms for this lecturer
+        return ClassRoom::whereHas('schedules', function ($query) use ($lecturerId) {
+            $query->where('lecturer_id', $lecturerId);
+        })->orderBy('name')->get();
     }
 }
