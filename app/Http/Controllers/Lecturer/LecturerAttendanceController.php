@@ -235,7 +235,7 @@ class LecturerAttendanceController extends Controller
             return redirect()->back()->with('error', 'Session not found.');
         }
 
-        if ($session->end_time->isPast()) {
+        if ($session->end_time->setTimezone(config('app.timezone'))->isPast()) {
             return redirect()->route('lecturer.attendance.view_qr', [
                 'classSchedule' => $classSchedule->id,
                 'date' => $date

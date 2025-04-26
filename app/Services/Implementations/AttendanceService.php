@@ -243,8 +243,8 @@ class AttendanceService implements AttendanceServiceInterface
         $hoursPresent = 0;
         $hoursAbsent = 0;
 
-        $startTime = Carbon::parse($startTime);
-        $arrivalTime = Carbon::parse($arrivalTime);
+        $startTime = Carbon::parse($startTime)->setTimezone(config('app.timezone'));
+        $arrivalTime = Carbon::parse($arrivalTime)->setTimezone(config('app.timezone'));
 
         for ($hour = 0; $hour < $totalHours; $hour++) {
             $hourStart = $startTime->copy()->addHours($hour);

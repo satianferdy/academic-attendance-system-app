@@ -96,8 +96,9 @@
                                     <div class="table-responsive">
                                         <table class="table table-bordered">
                                             <tr>
-                                                <th>Course</th>
-                                                <td>{{ $classSchedule->course->code }} - {{ $classSchedule->course->name }}
+                                                <th>Class / Course</th>
+                                                <td>{{ $classSchedule->classroom->name }} -
+                                                    {{ $classSchedule->course->name }}
                                                 </td>
                                             </tr>
                                             <tr>
@@ -261,24 +262,9 @@
 @push('scripts')
     <script>
         $(document).ready(function() {
-            // Get the complete date-time string from the server
-            const sessionEndTimeStr = '{{ $session->end_time->format('Y-m-d H:i:s') }}';
-
-            // Create a proper date object, ensuring timezone is properly handled
-            const sessionEndTimeParts = sessionEndTimeStr.split(' ');
-            const datePart = sessionEndTimeParts[0];
-            const timePart = sessionEndTimeParts[1];
-
-            // Create a new date with explicit parts to avoid timezone issues
-            const endYear = parseInt(datePart.split('-')[0]);
-            const endMonth = parseInt(datePart.split('-')[1]) - 1; // JS months are 0-based
-            const endDay = parseInt(datePart.split('-')[2]);
-            const endHours = parseInt(timePart.split(':')[0]);
-            const endMinutes = parseInt(timePart.split(':')[1]);
-            const endSeconds = parseInt(timePart.split(':')[2]);
-
-            // Create the end date object with precise components
-            const sessionEndTime = new Date(endYear, endMonth, endDay, endHours, endMinutes, endSeconds);
+            // Use ISO string format which includes timezone information
+            const sessionEndTimeIso = '{{ $session->end_time->toISOString() }}';
+            const sessionEndTime = new Date(sessionEndTimeIso);
 
             // For debugging
             // console.log('Parsed session end time:', sessionEndTime.toString());

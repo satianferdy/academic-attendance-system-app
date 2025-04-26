@@ -47,7 +47,10 @@ class QRCodeService implements QRCodeServiceInterface
             }
 
             // Check if current time is past the session end time
-            if (now() > $session->end_time) {
+            $currentTime = now()->setTimezone(config('app.timezone'));
+            $sessionEndTime = $session->end_time->setTimezone(config('app.timezone'));
+
+            if ($currentTime > $sessionEndTime) {
                 return null; // Session has expired
             }
 

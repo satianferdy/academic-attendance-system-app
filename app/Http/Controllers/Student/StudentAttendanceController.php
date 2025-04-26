@@ -106,7 +106,10 @@ class StudentAttendanceController extends Controller
         // Get the session and check its end time
         $session = $this->sessionRepository->findByClassAndDate($classId, $date);
 
-        if (!$session || !$session->is_active || now() > $session->end_time) {
+        $currentTime = now()->setTimezone(config('app.timezone'));
+        $sessionEndTime = $session->end_time->setTimezone(config('app.timezone'));
+
+        if (!$session || !$session->is_active || $currentTime > $sessionEndTime) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'This session has expired or is no longer active.',

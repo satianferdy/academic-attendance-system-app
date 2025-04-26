@@ -29,6 +29,7 @@ class Attendance extends Model
     protected $casts = [
         'date' => 'date',
         'attendance_time' => 'datetime',
+        'last_edited_at' => 'datetime',
     ];
 
     public function classSchedule()
