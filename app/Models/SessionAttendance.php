@@ -35,9 +35,4 @@ class SessionAttendance extends Model
     {
         return $this->belongsTo(ClassSchedule::class);
     }
-
-    public function attendance()
-    {
-        return $this->hasMany(Attendance::class);
-    }
 }

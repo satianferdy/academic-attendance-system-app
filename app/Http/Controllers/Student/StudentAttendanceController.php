@@ -3,17 +3,14 @@
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
-use App\Models\Attendance;
 use App\Models\ClassSchedule;
-use App\Models\SessionAttendance;
-use App\Models\Student;
 use App\Services\Interfaces\AttendanceServiceInterface;
 use App\Services\Interfaces\FaceRecognitionServiceInterface;
 use App\Services\Interfaces\QRCodeServiceInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\Attendance\VerifyAttendanceRequest;
-use App\Repositories\Implementations\SessionAttendanceRepository;
+use App\Repositories\Interfaces\SessionAttendanceRepositoryInterface;
 
 class StudentAttendanceController extends Controller
 {
@@ -26,7 +23,7 @@ class StudentAttendanceController extends Controller
         AttendanceServiceInterface $attendanceService,
         QRCodeServiceInterface $qrCodeService,
         FaceRecognitionServiceInterface $faceRecognitionService,
-        SessionAttendanceRepository $sessionRepository
+        SessionAttendanceRepositoryInterface $sessionRepository
     ) {
         $this->attendanceService = $attendanceService;
         $this->qrCodeService = $qrCodeService;
@@ -43,7 +40,22 @@ class StudentAttendanceController extends Controller
             return redirect()->route('login')->with('error', 'Student profile not found.');
         }
 
+        // Get attendances with all related data
         $attendances = $this->attendanceService->getStudentAttendances($student->id);
+
+        // For each attendance, fetch the session data to get week/meeting information
+        foreach ($attendances as $attendance) {
+            $session = $this->sessionRepository->findByClassAndDate(
+                $attendance->class_schedule_id,
+                $attendance->date->format('Y-m-d')
+            );
+
+            if ($session) {
+                // Add week and meeting number to attendance object
+                $attendance->week = $session->week;
+                $attendance->meeting = $session->meetings;
+            }
+        }
 
         return view('student.attendance.index', compact('attendances'));
     }

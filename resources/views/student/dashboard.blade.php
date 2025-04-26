@@ -90,7 +90,7 @@
                             <p class="text-muted mb-0">
                                 Student ID: {{ Auth::user()->student->nim }} |
                                 Class: {{ Auth::user()->student->classroom->name }} |
-                                Department: {{ Auth::user()->student->department }}
+                                Department: {{ Auth::user()->student->studyProgram->name }}
                             </p>
                         </div>
 
