@@ -13,27 +13,36 @@ use App\Services\Interfaces\QRCodeServiceInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\Attendance\VerifyAttendanceRequest;
+use App\Repositories\Implementations\SessionAttendanceRepository;
 
 class StudentAttendanceController extends Controller
 {
     protected $attendanceService;
     protected $qrCodeService;
     protected $faceRecognitionService;
+    protected $sessionRepository;
 
     public function __construct(
         AttendanceServiceInterface $attendanceService,
         QRCodeServiceInterface $qrCodeService,
-        FaceRecognitionServiceInterface $faceRecognitionService
+        FaceRecognitionServiceInterface $faceRecognitionService,
+        SessionAttendanceRepository $sessionRepository
     ) {
         $this->attendanceService = $attendanceService;
         $this->qrCodeService = $qrCodeService;
         $this->faceRecognitionService = $faceRecognitionService;
+        $this->sessionRepository = $sessionRepository;
     }
 
     public function index()
     {
-        $this->authorize('viewAny', Attendance::class);
+        // Ensure user is authorized to view their own attendances
         $student = Auth::user()->student;
+
+        if (!$student) {
+            return redirect()->route('login')->with('error', 'Student profile not found.');
+        }
+
         $attendances = $this->attendanceService->getStudentAttendances($student->id);
 
         return view('student.attendance.index', compact('attendances'));
@@ -93,6 +102,16 @@ class StudentAttendanceController extends Controller
         $nim = $student->nim;
         $classId = $tokenData['class_id'];
         $date = $tokenData['date'];
+
+        // Get the session and check its end time
+        $session = $this->sessionRepository->findByClassAndDate($classId, $date);
+
+        if (!$session || !$session->is_active || now() > $session->end_time) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'This session has expired or is no longer active.',
+            ], 400);
+        }
 
         // Check if class is valid and student is enrolled
         try {

@@ -14,9 +14,6 @@ use Illuminate\Support\Facades\Auth;
 
 class AttendanceService implements AttendanceServiceInterface
 {
-    // constants for configuration
-    const SESSION_DURATION_MINUTES = 30; // in minutes
-
     protected $attendanceRepository;
     protected $sessionRepository;
     protected $classScheduleRepository;
@@ -178,7 +175,7 @@ class AttendanceService implements AttendanceServiceInterface
 
             // Set session duration (30 minutes from now)
             $startTime = now();
-            $endTime = now()->addMinutes(self::SESSION_DURATION_MINUTES);
+            $endTime = $startTime->copy()->addHours($totalHours);
 
             // Create session if it doesn't exist
             $session = $this->sessionRepository->createOrUpdate(
@@ -214,6 +211,10 @@ class AttendanceService implements AttendanceServiceInterface
                     ],
                     [
                         'status' => 'absent',
+                        'hours_absent' => $totalHours,
+                        'hours_present' => 0,
+                        'hours_permitted' => 0,
+                        'hours_sick' => 0,
                     ]
                 );
             }

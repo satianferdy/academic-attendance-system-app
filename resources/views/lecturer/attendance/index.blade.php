@@ -29,7 +29,7 @@
                                 <tr>
                                     <th>No</th>
                                     <th>Course</th>
-                                    <th>Room</th>
+                                    <th>Room / Class</th>
                                     <th>Day</th>
                                     <th>Time Slots</th>
                                     <th>Semester/Year</th>
@@ -44,7 +44,7 @@
                                             <strong>{{ $schedule->course->code }}</strong><br>
                                             <small>{{ $schedule->course->name }}</small>
                                         </td>
-                                        <td>{{ $schedule->room }}</td>
+                                        <td>{{ $schedule->room }} - {{ $schedule->classroom->name }}</td>
                                         <td>{{ $schedule->day }}</td>
                                         <td>
                                             @if ($schedule->timeSlots && $schedule->timeSlots->count() > 0)

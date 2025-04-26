@@ -126,8 +126,11 @@
                                                 </td>
                                             </tr>
                                             <tr>
-                                                <th>Session End Time</th>
-                                                <td>{{ $session->end_time->format('H:i') }}</td>
+                                                <th>Session Time</th>
+                                                <td>
+                                                    {{ $session->start_time->format('H:i') }} -
+                                                    {{ $session->end_time->format('H:i') }}
+                                                </td>
                                             </tr>
                                             <tr>
                                                 <th>Lateness Tolerance</th>
@@ -170,7 +173,10 @@
 
                                     <div class="alert alert-info mt-3">
                                         <i data-feather="clock" class="icon-sm me-2"></i>
-                                        Session ends at <strong>{{ $session->end_time->format('H:i') }}</strong>
+                                        Session starts at <strong>{{ $session->start_time->format('H:i') }}</strong> and
+                                        ends at <strong>{{ $session->end_time->format('H:i') }}</strong>
+                                        <br>
+                                        <small>Total teaching hours: {{ $session->total_hours }}</small>
                                     </div>
 
                                     <!-- Download QR Code Button -->
@@ -255,34 +261,57 @@
 @push('scripts')
     <script>
         $(document).ready(function() {
-            // Initialize feather icons in the modal
-            feather.replace();
+            // Get the complete date-time string from the server
+            const sessionEndTimeStr = '{{ $session->end_time->format('Y-m-d H:i:s') }}';
 
-            // Get session date and end time
-            const sessionDate = '{{ $date }}';
-            const sessionEndTime = '{{ $session->end_time->format('H:i') }}';
+            // Create a proper date object, ensuring timezone is properly handled
+            const sessionEndTimeParts = sessionEndTimeStr.split(' ');
+            const datePart = sessionEndTimeParts[0];
+            const timePart = sessionEndTimeParts[1];
 
-            // Combine date and time for comparison
-            const sessionDateTime = new Date(`${sessionDate}T${sessionEndTime}`);
-            const now = new Date();
+            // Create a new date with explicit parts to avoid timezone issues
+            const endYear = parseInt(datePart.split('-')[0]);
+            const endMonth = parseInt(datePart.split('-')[1]) - 1; // JS months are 0-based
+            const endDay = parseInt(datePart.split('-')[2]);
+            const endHours = parseInt(timePart.split(':')[0]);
+            const endMinutes = parseInt(timePart.split(':')[1]);
+            const endSeconds = parseInt(timePart.split(':')[2]);
 
-            // Disable extension if current datetime is after session datetime
-            if (now > sessionDateTime) {
-                $('#extendSessionModal button[type="button"]').prop('disabled', true);
-                $('#extendSessionModal').on('show.bs.modal', function(e) {
-                    e.preventDefault();
+            // Create the end date object with precise components
+            const sessionEndTime = new Date(endYear, endMonth, endDay, endHours, endMinutes, endSeconds);
 
+            // For debugging
+            // console.log('Parsed session end time:', sessionEndTime.toString());
+
+            function checkSessionStatus() {
+                const now = new Date();
+                // console.log('Current time:', now.toString());
+                // console.log('Time difference (ms):', sessionEndTime - now);
+
+                if (now >= sessionEndTime) {
+                    // Session has ended - show alert and update UI
+                    $('.qr-container').addClass('opacity-50');
+                    $('.alert-info').removeClass('alert-info').addClass('alert-warning')
+                        .html('<i data-feather="alert-circle" class="icon-sm me-2"></i> ' +
+                            'This attendance session has ended at <strong>{{ $session->end_time->format('H:i') }}</strong>'
+                        );
+                    feather.replace();
+
+                    // Show modal
                     Swal.fire({
-                        icon: 'error',
+                        icon: 'info',
                         title: 'Session Ended',
-                        text: 'Attendance session has already ended!',
-                        confirmButtonColor: '#3085d6',
-                        confirmButtonText: 'OK'
+                        text: 'The attendance session has ended. Students can no longer mark attendance for this session.',
+                        confirmButtonColor: '#3085d6'
                     });
-
-                    return false;
-                });
+                }
             }
+
+            // Initial check
+            checkSessionStatus();
+
+            // Check every minute
+            const sessionCheckInterval = setInterval(checkSessionStatus, 60000);
 
             // Modal shown event - reinitialize feather icons
             $('#qrCodeModal').on('shown.bs.modal', function() {

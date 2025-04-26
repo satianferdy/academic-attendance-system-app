@@ -42,8 +42,8 @@ class StudentSeeder extends Seeder
             // Get the study program for this classroom
             $studyProgram = $classroom->studyProgram;
 
-            // Number of students per classroom (random between 15-30)
-            $studentCount = rand(15, 25);
+            // Number of students per classroom (random between 5-10)
+            $studentCount = rand(5, 12);
 
             for ($i = 1; $i <= $studentCount; $i++) {
                 // Create a user with student role

@@ -119,6 +119,13 @@ class SessionAttendanceRepository implements SessionAttendanceRepositoryInterfac
             ->whereDate('session_date', $date)
             ->exists();
     }
+
+    public function findByQrCode(string $qrCode)
+    {
+        return $this->model->where('qr_code', $qrCode)
+            ->where('is_active', true)
+            ->first();
+    }
 }
 
 

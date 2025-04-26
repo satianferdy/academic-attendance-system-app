@@ -43,13 +43,28 @@ class ClassScheduleSeeder extends Seeder
         // Days of the week
         $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 
-        // Common time slots
-        $commonTimeSlots = [
-            ['08:00', '09:00'],
-            ['09:00', '10:00'],
-            ['10:00', '11:00'],
-            ['11:00', '12:00'],
-            ['12:00', '13:00']
+        // Define sequential time slots (2-hour blocks)
+        $timeSlotBlocks = [
+            [
+                ['07:00', '08:00'],
+                ['08:00', '09:00']
+            ],
+            [
+                ['09:00', '10:00'],
+                ['10:00', '11:00']
+            ],
+            [
+                ['11:00', '12:00'],
+                ['12:00', '13:00']
+            ],
+            [
+                ['13:00', '14:00'],
+                ['14:00', '15:00']
+            ],
+            [
+                ['15:00', '16:00'],
+                ['16:00', '17:00']
+            ]
         ];
 
         // Rooms
@@ -72,8 +87,8 @@ class ClassScheduleSeeder extends Seeder
                 continue; // Skip if no courses for this study program
             }
 
-            // Create 5-8 schedules per classroom
-            $schedulesPerClass = rand(5, 8);
+            // Create 3-5 schedules per classroom
+            $schedulesPerClass = rand(3, 5);
 
             // Keep track of assigned days and times to avoid conflicts
             $assignedSlots = [];
@@ -88,24 +103,24 @@ class ClassScheduleSeeder extends Seeder
                 // Pick a random day
                 $day = $days[array_rand($days)];
 
-                // Pick a random time slot
-                $timeSlotIndex = array_rand($commonTimeSlots);
-                $timeSlot = $commonTimeSlots[$timeSlotIndex];
+                // Pick a random time slot block
+                $blockIndex = array_rand($timeSlotBlocks);
+                $timeSlotBlock = $timeSlotBlocks[$blockIndex];
 
                 // Pick a random room
                 $room = $rooms[array_rand($rooms)];
 
                 // Check for conflicts (same day and time)
-                $slotKey = $day . '_' . $timeSlotIndex . '_' . $room;
+                $slotKey = $day . '_' . $blockIndex . '_' . $room;
 
                 // If this slot is already assigned, try up to 5 more times
                 $attempts = 0;
                 while (in_array($slotKey, $assignedSlots) && $attempts < 5) {
                     $day = $days[array_rand($days)];
-                    $timeSlotIndex = array_rand($commonTimeSlots);
-                    $timeSlot = $commonTimeSlots[$timeSlotIndex];
+                    $blockIndex = array_rand($timeSlotBlocks);
+                    $timeSlotBlock = $timeSlotBlocks[$blockIndex];
                     $room = $rooms[array_rand($rooms)];
-                    $slotKey = $day . '_' . $timeSlotIndex . '_' . $room;
+                    $slotKey = $day . '_' . $blockIndex . '_' . $room;
                     $attempts++;
                 }
 
@@ -131,19 +146,21 @@ class ClassScheduleSeeder extends Seeder
                     'meetings_per_week' => 1,
                 ]);
 
-                // Create time slot
-                ScheduleTimeSlot::create([
-                    'class_schedule_id' => $schedule->id,
-                    'start_time' => $timeSlot[0],
-                    'end_time' => $timeSlot[1]
-                ]);
+                // Create two sequential time slots (2 hours)
+                foreach ($timeSlotBlock as $timeSlot) {
+                    ScheduleTimeSlot::create([
+                        'class_schedule_id' => $schedule->id,
+                        'start_time' => $timeSlot[0],
+                        'end_time' => $timeSlot[1]
+                    ]);
+                    $timeSlotsCreated++;
+                }
 
                 $schedulesCreated++;
-                $timeSlotsCreated++;
             }
         }
 
-        $this->command->info("Created {$schedulesCreated} class schedules with {$timeSlotsCreated} time slots.");
+        $this->command->info("Created {$schedulesCreated} class schedules with {$timeSlotsCreated} time slots (2 hours each).");
     }
 
     /**
