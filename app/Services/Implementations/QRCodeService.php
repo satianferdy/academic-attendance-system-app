@@ -6,6 +6,7 @@ use App\Repositories\Interfaces\SessionAttendanceRepositoryInterface;
 use App\Services\Interfaces\QRCodeServiceInterface;
 use Illuminate\Support\Facades\Crypt;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Illuminate\Support\Str;
 
 class QRCodeService implements QRCodeServiceInterface
 {
@@ -18,12 +19,8 @@ class QRCodeService implements QRCodeServiceInterface
 
     public function generateForAttendance(int $classId, string $date): string
     {
-        // Create a token with class ID and date
-        $token = Crypt::encrypt([
-            'class_id' => $classId,
-            'date' => $date,
-            'timestamp' => now()->timestamp,
-        ]);
+         // Generate a short UUID (or use a random string)
+        $token = (string) Str::uuid();
 
         // Store the token in session
         $session = $this->sessionRepository->findByClassAndDate($classId, $date);
@@ -43,17 +40,21 @@ class QRCodeService implements QRCodeServiceInterface
     public function validateToken(string $token): ?array
     {
         try {
-            $data = Crypt::decrypt($token);
+           $session = $this->sessionRepository->findByQrCode($token);
 
-            // Check if token is valid (not expired)
-            $timestamp = $data['timestamp'] ?? 0;
-            $expiryTime = config('services.qrcode.expiry_time', 30); // minutes
-
-            if (now()->subMinutes($expiryTime)->timestamp > $timestamp) {
-                return null; // Token expired
+            if (!$session || !$session->is_active) {
+                return null; // Session not found or not active
             }
 
-            return $data;
+            // Check if current time is past the session end time
+            if (now() > $session->end_time) {
+                return null; // Session has expired
+            }
+
+            return [
+                'class_id' => $session->class_schedule_id,
+                'date' => $session->session_date,
+            ];
         } catch (\Exception $e) {
             return null;
         }
