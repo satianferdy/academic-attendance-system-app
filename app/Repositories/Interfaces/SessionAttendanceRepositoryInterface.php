@@ -25,4 +25,5 @@ interface SessionAttendanceRepositoryInterface
     );
     public function sessionExistsForDate(int $classId, string $date): bool;
     public function findByQrCode(string $qrCode);
+    public function findById(int $id);
 }

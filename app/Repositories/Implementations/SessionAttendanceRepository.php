@@ -62,10 +62,21 @@ class SessionAttendanceRepository implements SessionAttendanceRepositoryInterfac
             ->update(['is_active' => false]);
     }
 
+    // public function getSessionsByClassSchedule(int $classScheduleId)
+    // {
+    //     return $this->model->where('class_schedule_id', $classScheduleId)
+    //         ->select('week', 'meetings')
+    //         ->get();
+    // }
+
     public function getSessionsByClassSchedule(int $classScheduleId)
     {
         return $this->model->where('class_schedule_id', $classScheduleId)
-            ->select('week', 'meetings')
+            // Select all columns explicitly to ensure all data is retrieved
+            ->select('id', 'class_schedule_id', 'session_date', 'week', 'meetings',
+                    'start_time', 'end_time', 'total_hours', 'tolerance_minutes',
+                    'qr_code', 'is_active')
+            ->with(['classSchedule.course', 'classSchedule.classroom']) // Include relationships
             ->get();
     }
 
@@ -151,6 +162,11 @@ class SessionAttendanceRepository implements SessionAttendanceRepositoryInterfac
         return $this->model->where('qr_code', $qrCode)
             ->where('is_active', true)
             ->first();
+    }
+
+    public function findById(int $id)
+    {
+        return $this->model->with(['classSchedule.course', 'classSchedule.classroom'])->findOrFail($id);
     }
 }
 
