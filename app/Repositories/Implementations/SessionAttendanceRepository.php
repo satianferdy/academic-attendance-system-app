@@ -62,13 +62,6 @@ class SessionAttendanceRepository implements SessionAttendanceRepositoryInterfac
             ->update(['is_active' => false]);
     }
 
-    // public function getSessionsByClassSchedule(int $classScheduleId)
-    // {
-    //     return $this->model->where('class_schedule_id', $classScheduleId)
-    //         ->select('week', 'meetings')
-    //         ->get();
-    // }
-
     public function getSessionsByClassSchedule(int $classScheduleId)
     {
         return $this->model->where('class_schedule_id', $classScheduleId)

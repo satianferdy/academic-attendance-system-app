@@ -1,19 +1,19 @@
 @extends('layouts.app')
 
-@section('title', 'Attendance Management')
+@section('title', 'List Sesi Kelas')
 
 @section('content')
     <nav class="page-breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{{ route('lecturer.dashboard') }}">Lecturer</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Attendance</li>
+            <li class="breadcrumb-item active" aria-current="page">Sesi Kelas</li>
         </ol>
     </nav>
     <div class="row">
         <div class="col-md-12 grid-margin stretch-card">
             <div class="card">
                 <div class="card-body">
-                    <h6 class="card-title">Attendance Management</h6>
+                    <h6 class="card-title">List Sesi Kelas</h6>
 
                     @if (session('error'))
                         <div class="alert alert-danger">{{ session('error') }}</div>
@@ -172,6 +172,7 @@
                                                     </div>
                                                 </div>
                                             </div>
+
                                         </td>
                                     </tr>
                                 @empty

@@ -206,8 +206,8 @@
                 <div class="card h-100">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h6 class="card-title fw-semibold mb-0">Recent Attendance Sessions</h6>
-                        <button href="{{ route('lecturer.recent.sessions') }}" class="btn btn-sm btn-outline-primary">View
-                            All</button>
+                        <a href="{{ route('lecturer.attendance-data.index') }}" class="btn btn-sm btn-outline-primary">View
+                            All</a>
                     </div>
                     <div class="card-body p-0">
                         <div class="table-responsive">

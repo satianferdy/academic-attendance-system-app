@@ -106,63 +106,6 @@ class AttendanceDataController extends Controller
         ));
     }
 
-    /**
-     * Update attendance status
-     */
-    // public function updateStatus(Request $request)
-    // {
-    //     $request->validate([
-    //         'attendance_id' => 'required|exists:attendances,id',
-    //         'status' => 'required|in:present,absent,late,excused',
-    //         'hours_present' => 'required|integer|min:0',
-    //         'hours_absent' => 'required|integer|min:0',
-    //         'hours_permitted' => 'required|integer|min:0',
-    //         'hours_sick' => 'required|integer|min:0',
-    //     ]);
-
-    //     try {
-    //         $attendance = $this->attendanceRepository->findById($request->attendance_id);
-
-    //         // Add authorization check
-    //         $this->authorize('update', $attendance);
-
-    //         $totalHours = $request->hours_present + $request->hours_absent +
-    //                       $request->hours_permitted + $request->hours_sick;
-
-    //         $sessionHours = $this->getSessionTotalHours($attendance->class_schedule_id, $attendance->date);
-
-    //         if ($totalHours != $sessionHours) {
-    //             return response()->json([
-    //                 'success' => false,
-    //                 'message' => "Total hours must equal session hours ({$sessionHours})"
-    //             ], 422);
-    //         }
-
-    //         // Update attendance
-    //         $this->attendanceRepository->update($attendance, [
-    //             'status' => $request->status,
-    //             'hours_present' => $request->hours_present,
-    //             'hours_absent' => $request->hours_absent,
-    //             'hours_permitted' => $request->hours_permitted,
-    //             'hours_sick' => $request->hours_sick,
-    //             'remarks' => $request->remarks,
-    //             'last_edited_at' => now(),
-    //             'last_edited_by' => Auth::user()->id,
-    //         ]);
-
-    //         return response()->json([
-    //             'success' => true,
-    //             'message' => 'Attendance updated successfully',
-    //             'status' => $attendance->status
-    //         ]);
-    //     } catch (\Exception $e) {
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => 'Failed to update status: ' . $e->getMessage()
-    //         ], 500);
-    //     }
-    // }
-
     public function updateStatus(Request $request)
     {
         $request->validate([

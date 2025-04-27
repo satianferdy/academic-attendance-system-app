@@ -25,7 +25,7 @@
 @section('content')
     <nav class="page-breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="#">Admin</a></li>
+            <li class="breadcrumb-item"><a href="#">Lecturer</a></li>
             <li class="breadcrumb-item active" aria-current="page">Attendance Management</li>
         </ol>
     </nav>
@@ -48,7 +48,7 @@
                     <div class="card mb-4">
                         <div class="card-body">
                             <h6 class="card-title mb-3">Filter Options</h6>
-                            <form action="{{ route('admin.attendance.index') }}" method="GET" class="filter-form">
+                            <form action="{{ route('lecturer.attendance-data.index') }}" method="GET" class="filter-form">
                                 <div class="row g-3 align-items-center">
                                     <div class="col-auto">
                                         <label for="study_program_id" class="col-form-label">Study Program</label>
