@@ -40,7 +40,7 @@
     <script src="{{ asset('assets/js/template.js') }}"></script>
 
     @stack('scripts')
-    <script src="{{ asset('assets/static/js/initTheme.js') }}"></script>
+
 </body>
 
 </html>

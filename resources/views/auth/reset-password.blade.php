@@ -1,6 +1,6 @@
 @extends('layouts.auth')
 
-@section('title', 'Login')
+@section('title', 'Reset Password')
 
 @push('styles')
     <style>
@@ -58,7 +58,7 @@
             position: relative;
         }
 
-        /* Important fix for the password icon */
+        /* Password toggle styling */
         .password-toggle {
             position: absolute;
             right: 15px;
@@ -67,14 +67,10 @@
             color: #999;
             cursor: pointer;
             z-index: 10;
-            /* Ensure the toggle is above other elements */
             display: block !important;
-            /* Force the toggle to always display */
             pointer-events: auto;
-            /* Ensure clicks are registered */
         }
 
-        /* Ensure the SVG inside remains visible */
         .password-toggle svg {
             display: block !important;
             opacity: 1 !important;
@@ -91,27 +87,39 @@
             margin-top: 10px;
         }
 
-        .forgot-password {
+        .back-to-login {
             text-align: center;
             margin-top: 20px;
         }
 
-        .forgot-password a {
+        .back-to-login a {
             color: #999;
             text-decoration: none;
             font-weight: 600;
             font-size: 14px;
         }
 
-        .forgot-password a span {
+        .back-to-login a span {
             color: #22538a;
         }
 
-        .login-info {
-            text-align: left;
-            margin-bottom: 15px;
-            font-size: 13px;
-            color: #666;
+        .alert {
+            padding: 12px 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .alert-success {
+            background-color: #d1e7dd;
+            color: #0f5132;
+            border: 1px solid #badbcc;
+        }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #842029;
+            border: 1px solid #f5c2c7;
         }
     </style>
 @endpush
@@ -122,10 +130,16 @@
             <img src="{{ asset('assets/images/logo.png') }}" alt="Logo">
         </div>
 
-        <h2>Welcome Back</h2>
+        <h2>Reset Password</h2>
         <p class="subtitle">
-            Enter your credentials to access your account.
+            Create a new password for your account
         </p>
+
+        @if (session('status'))
+            <div class="alert alert-success">
+                {{ session('status') }}
+            </div>
+        @endif
 
         @if ($errors->any())
             <div class="alert alert-danger">
@@ -137,33 +151,43 @@
             </div>
         @endif
 
-        <form action="{{ route('login.submit') }}" method="POST">
+        <form action="{{ route('password.update') }}" method="POST">
             @csrf
+
+            <!-- Password Reset Token -->
+            <input type="hidden" name="token" value="{{ $token }}">
+
             <div class="input-group">
-                <input type="text" class="form-control" id="username" name="username"
-                    placeholder="Enter your NIM/NIP/Email" value="{{ old('username') }}" required>
-            </div>
-            <div class="login-info">
-                <small>* Students use NIM, Lecturers use NIP, Admins use Email</small>
+                <input type="email" class="form-control" id="email" name="email" placeholder="Email address"
+                    value="{{ old('email', request()->email) }}" required>
             </div>
 
             <div class="input-group">
-                <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password"
+                <input type="password" class="form-control" id="password" name="password" placeholder="New password"
                     required>
-                <span class="password-toggle" id="password-toggle" onclick="togglePassword()">
-                    <i data-feather="eye" id="visibilityIcon"></i>
+                <span class="password-toggle" id="password-toggle" onclick="togglePassword('password', 'visibilityIcon1')">
+                    <i data-feather="eye" id="visibilityIcon1"></i>
+                </span>
+            </div>
+
+            <div class="input-group">
+                <input type="password" class="form-control" id="password_confirmation" name="password_confirmation"
+                    placeholder="Confirm new password" required>
+                <span class="password-toggle" id="password-toggle2"
+                    onclick="togglePassword('password_confirmation', 'visibilityIcon2')">
+                    <i data-feather="eye" id="visibilityIcon2"></i>
                 </span>
             </div>
 
             <div class="d-grid gap-2">
-                <button type="submit" class="btn btn-primary">Sign In</button>
+                <button type="submit" class="btn btn-primary">Reset Password</button>
             </div>
         </form>
 
-        <div class="forgot-password">
+        <div class="back-to-login">
             <p>
-                <a href="{{ route('password.request') }}">
-                    <span>Forgot Password?</span>
+                <a href="{{ route('login') }}">
+                    <span>Back to Login</span>
                 </a>
             </p>
         </div>
@@ -177,11 +201,16 @@
             // Initialize Feather icons
             feather.replace();
 
-            // Ensure the password toggle is always visible
-            var passwordToggle = document.getElementById('password-toggle');
-            var passwordField = document.getElementById('password');
+            // Ensure password toggles are visible
+            setupPasswordToggle('password', 'password-toggle', 'visibilityIcon1');
+            setupPasswordToggle('password_confirmation', 'password-toggle2', 'visibilityIcon2');
+        });
 
-            // Prevent the toggle from being hidden when focusing on password
+        function setupPasswordToggle(fieldId, toggleId, iconId) {
+            var passwordToggle = document.getElementById(toggleId);
+            var passwordField = document.getElementById(fieldId);
+
+            // Prevent the toggle from being hidden when focusing
             passwordField.addEventListener('focus', function() {
                 setTimeout(function() {
                     if (passwordToggle) {
@@ -200,11 +229,11 @@
                     passwordToggle.style.opacity = '1';
                 }
             });
-        });
+        }
 
-        function togglePassword() {
-            var password = document.getElementById('password');
-            var icon = document.getElementById('visibilityIcon');
+        function togglePassword(fieldId, iconId) {
+            var password = document.getElementById(fieldId);
+            var icon = document.getElementById(iconId);
 
             if (password.type === 'password') {
                 password.type = 'text';
@@ -217,14 +246,16 @@
             // Reinitialize just this icon to avoid flickering
             feather.replace({
                 icons: {
-                    'visibilityIcon': true
+                    [iconId]: true
                 }
             });
 
             // Ensure the toggle remains visible after icon change
-            document.getElementById('password-toggle').style.display = 'block';
-            document.getElementById('password-toggle').style.visibility = 'visible';
-            document.getElementById('password-toggle').style.opacity = '1';
+            document.getElementById(fieldId === 'password' ? 'password-toggle' : 'password-toggle2').style.display =
+                'block';
+            document.getElementById(fieldId === 'password' ? 'password-toggle' : 'password-toggle2').style.visibility =
+                'visible';
+            document.getElementById(fieldId === 'password' ? 'password-toggle' : 'password-toggle2').style.opacity = '1';
         }
     </script>
 @endpush
