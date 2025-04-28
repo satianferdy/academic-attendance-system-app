@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\Attendance;
 use App\Models\ClassSchedule;
+use App\Models\SessionAttendance;
 use App\Models\User;
 use App\Models\Student;
 use App\Policies\ClassSchedulePolicy;
@@ -25,6 +26,7 @@ class AuthServiceProvider extends ServiceProvider
         Attendance::class => AttendancePolicy::class,
         User::class => UserPolicy::class,
         Student::class => StudentPolicy::class,
+        SessionAttendance::class => AttendancePolicy::class,
     ];
 
     /**

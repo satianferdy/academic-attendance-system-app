@@ -19,6 +19,8 @@ class UserManagementController extends Controller
      */
     public function index()
     {
+        $this->authorize('viewAny', User::class);
+
         // Get all users with their relationships
         $users = User::with(['student', 'lecturer'])->get();
 
@@ -81,6 +83,8 @@ class UserManagementController extends Controller
             'password' => Hash::make($request->password),
             'role' => $request->role,
         ]);
+
+        $user->assignRole($request->role);
 
         // Proses data sesuai role
         if ($request->role === 'student') {

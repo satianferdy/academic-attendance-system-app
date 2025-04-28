@@ -54,6 +54,9 @@ class StudentSeeder extends Seeder
                     'role' => 'student',
                 ]);
 
+                // Assign Spatie role
+                $user->assignRole('student');
+
                 // Generate a unique student ID (NIM)
                 // Format: YY + Program Code + Sequential Number (e.g., 23TI001)
                 $yearPrefix = date('y'); // Current year's last two digits
@@ -67,7 +70,7 @@ class StudentSeeder extends Seeder
                     'nim' => $nim,
                     'study_program_id' => $studyProgram->id,
                     'classroom_id' => $classroom->id,
-                    'face_registered' => fake()->boolean(70), // 70% chance of having face registered
+                    'face_registered' => fake()->boolean(60), // 70% chance of having face registered
                 ]);
 
                 // Increment the global sequential number

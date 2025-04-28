@@ -2,12 +2,10 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Models\Student;
 use App\Models\Attendance;
 use App\Models\StudyProgram;
 use Illuminate\Http\Request;
 use App\Models\ClassSchedule;
-use App\Models\SessionAttendance;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;

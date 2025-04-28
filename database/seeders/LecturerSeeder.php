@@ -40,6 +40,9 @@ class LecturerSeeder extends Seeder
                     'role' => 'lecturer',
                 ]);
 
+                // Assign Spatie role
+                $user->assignRole('lecturer');
+
                 // Generate a unique lecturer ID (NIP)
                 // Format: Program Code + Year + Sequential Number (e.g., TI2301)
                 $programCode = $program->code;

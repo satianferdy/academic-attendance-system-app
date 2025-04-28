@@ -71,12 +71,9 @@ class AuthController extends Controller
             Auth::login($user);
             $request->session()->regenerate();
 
-            // Redirect based on user role
-            $role = $user->role;
-
-            if ($role === 'admin') {
+            if ($user->hasRole('admin')) {
                 return redirect()->route('admin.dashboard');
-            } elseif ($role === 'lecturer') {
+            } elseif ($user->hasRole('lecturer')) {
                 return redirect()->route('lecturer.dashboard');
             } else {
                 return redirect()->route('student.dashboard');
