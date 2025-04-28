@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Auth\Events\PasswordReset;
 
@@ -23,6 +24,14 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
+        if (RateLimiter::tooManyAttempts('login-attempts:'.$request->ip(), 5)) {
+            $seconds = RateLimiter::availableIn('login-attempts:'.$request->ip());
+
+            return redirect()->back()
+                ->withInput($request->only('username'))
+                ->withErrors(['username' => "Too many login attempts. Please try again in {$seconds} seconds."]);
+        }
+
         $validator = Validator::make($request->all(), [
             'username' => 'required|string',
             'password' => 'required',
