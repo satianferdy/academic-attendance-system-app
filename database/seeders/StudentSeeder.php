@@ -70,7 +70,7 @@ class StudentSeeder extends Seeder
                     'nim' => $nim,
                     'study_program_id' => $studyProgram->id,
                     'classroom_id' => $classroom->id,
-                    'face_registered' => fake()->boolean(60), // 70% chance of having face registered
+                    'face_registered' => false, // Default to false
                 ]);
 
                 // Increment the global sequential number

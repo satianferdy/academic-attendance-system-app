@@ -13,7 +13,19 @@
         <div class="col-md-12 grid-margin stretch-card">
             <div class="card">
                 <div class="card-body">
-                    <h6 class="card-title">List Sesi Kelas</h6>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="card-title mb-0">List Sesi Kelas</h6>
+                        <div>
+                            <button type="button" class="btn btn-icon-text btn-xs btn-outline-primary me-1"
+                                id="todaySessionBtn">
+                                <i data-feather="calendar" class="icon-xs"></i> Today
+                            </button>
+                            <button type="button" class="btn btn-icon-text btn-xs btn-outline-secondary"
+                                id="allSessionBtn">
+                                <i data-feather="list" class="icon-xs"></i> All
+                            </button>
+                        </div>
+                    </div>
 
                     @if (session('error'))
                         <div class="alert alert-danger">{{ session('error') }}</div>
@@ -38,7 +50,7 @@
                             </thead>
                             <tbody>
                                 @forelse($schedules as $key => $schedule)
-                                    <tr>
+                                    <tr class="schedule-row" data-day="{{ $schedule->day }}">
                                         <td>{{ $key + 1 }}</td>
                                         <td>
                                             <strong>{{ $schedule->course->code }}</strong><br>
@@ -192,6 +204,54 @@
 @push('scripts')
     <script>
         $(document).ready(function() {
+            // Initialize DataTable
+            var dataTable = $('#dataTableExample').DataTable();
+
+            // Get current day name in English (Monday, Tuesday, etc.)
+            function getCurrentDayName() {
+                const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                const today = new Date();
+                return days[today.getDay()];
+            }
+
+            // Handle Today's Sessions button click
+            $('#todaySessionBtn').on('click', function() {
+                const today = getCurrentDayName();
+
+                // Reset all filters first
+                dataTable.search('').draw();
+
+                // Filter rows by current day
+                $('.schedule-row').each(function() {
+                    const rowDay = $(this).data('day');
+                    if (rowDay === today) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
+
+                // Highlight the active button
+                $(this).removeClass('btn-outline-primary').addClass('btn-primary');
+                $('#allSessionBtn').removeClass('btn-secondary').addClass('btn-outline-secondary');
+
+                // Update icons
+                feather.replace();
+            });
+
+            // Handle All Sessions button click
+            $('#allSessionBtn').on('click', function() {
+                // Show all rows
+                $('.schedule-row').show();
+
+                // Highlight the active button
+                $(this).removeClass('btn-outline-secondary').addClass('btn-secondary');
+                $('#todaySessionBtn').removeClass('btn-primary').addClass('btn-outline-primary');
+
+                // Update icons
+                feather.replace();
+            });
+
             // Get current date in YYYY-MM-DD format
             function getCurrentDate() {
                 const today = new Date();
@@ -341,6 +401,9 @@
                     }
                 }
             }
+
+            // Initialize feather icons for new buttons
+            feather.replace();
         });
     </script>
 @endpush
