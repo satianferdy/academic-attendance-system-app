@@ -388,59 +388,84 @@
             // Start the camera
             async function startCamera() {
                 try {
-                    // Tambahkan kode ini untuk mendapatkan daftar kamera yang tersedia
-                    const devices = await navigator.mediaDevices.enumerateDevices();
-                    const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                    // Check if mediaDevices is supported
+                    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                        throw new Error('Your browser does not support camera access');
+                    }
 
-                    // Tambahkan elemen select untuk memilih kamera
-                    const cameraSelect = document.createElement('select');
-                    cameraSelect.id = 'camera-select';
-                    cameraSelect.className = 'form-select form-select-sm mb-3';
+                    let videoDevices = [];
+                    let cameraSelect = null;
 
-                    videoDevices.forEach((device, index) => {
-                        const option = document.createElement('option');
-                        option.value = device.deviceId;
-                        option.text = device.label || `Kamera ${index + 1}`;
-                        cameraSelect.appendChild(option);
-                    });
+                    // Try to enumerate devices only if the method exists
+                    if (navigator.mediaDevices.enumerateDevices) {
+                        try {
+                            // Request permissions first on iOS Safari
+                            await navigator.mediaDevices.getUserMedia({
+                                video: true
+                            });
 
-                    // Tambahkan elemen select ke dalam DOM
-                    const cameraContainer = document.querySelector('.camera-container');
-                    cameraContainer.insertBefore(cameraSelect, document.getElementById('video-container'));
+                            // Now try to enumerate devices
+                            const devices = await navigator.mediaDevices.enumerateDevices();
+                            videoDevices = devices.filter(device => device.kind === 'videoinput');
 
-                    // Fungsi untuk memulai kamera dengan device ID tertentu
+                            // Only create camera selector if we have multiple cameras
+                            if (videoDevices.length > 1) {
+                                cameraSelect = document.createElement('select');
+                                cameraSelect.id = 'camera-select';
+                                cameraSelect.className = 'form-select form-select-sm mb-3';
+
+                                videoDevices.forEach((device, index) => {
+                                    const option = document.createElement('option');
+                                    option.value = device.deviceId;
+                                    option.text = device.label || `Camera ${index + 1}`;
+                                    cameraSelect.appendChild(option);
+                                });
+
+                                // Add camera selector to DOM
+                                const cameraContainer = document.querySelector('.camera-container');
+                                cameraContainer.insertBefore(cameraSelect, document.getElementById(
+                                    'video-container'));
+
+                                // Add change event listener
+                                cameraSelect.addEventListener('change', function() {
+                                    startVideoStream(this.value);
+                                });
+                            }
+                        } catch (enumError) {
+                            console.warn('Could not enumerate devices:', enumError);
+                            // Continue with default camera if enumeration fails
+                        }
+                    }
+
+                    // Function to start video with specific device ID
                     async function startVideoStream(deviceId = null) {
                         if (stream) {
                             stream.getTracks().forEach(track => track.stop());
                         }
 
-                        stream = await navigator.mediaDevices.getUserMedia({
+                        // For iOS, prefer the environment camera (rear) first if available
+                        const constraints = {
                             video: {
-                                deviceId: deviceId ? {
-                                    exact: deviceId
-                                } : undefined,
-                                facingMode: 'user',
-                                width: {
-                                    ideal: 1280
-                                },
-                                height: {
-                                    ideal: 720
-                                }
+                                facingMode: 'user' // Default to front camera
                             }
-                        });
+                        };
 
+                        // If we have a specific device ID, use it
+                        if (deviceId) {
+                            constraints.video.deviceId = {
+                                exact: deviceId
+                            };
+                        }
+
+                        stream = await navigator.mediaDevices.getUserMedia(constraints);
                         video.srcObject = stream;
                         captureBtn.disabled = false;
                     }
 
-                    // Tambahkan event listener untuk mengubah kamera
-                    cameraSelect.addEventListener('change', function() {
-                        startVideoStream(this.value);
-                    });
-
-                    // Mulai dengan kamera pertama
+                    // Start with first camera or default
                     await startVideoStream(videoDevices.length > 0 ? videoDevices[0].deviceId : null);
                     updateStepIndicators(1);
+
                 } catch (err) {
                     errorText.textContent = 'Error accessing camera: ' + err.message;
                     errorMessage.style.display = 'flex';

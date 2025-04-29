@@ -14,6 +14,7 @@ use App\Http\Controllers\Student\StudentAttendanceController;
 use App\Http\Controllers\Lecturer\LecturerDashboardController;
 use App\Http\Controllers\Lecturer\LecturerAttendanceController;
 use App\Http\Controllers\Lecturer\LecturerAttendanceDataController;
+use App\Http\Controllers\ProfileController;
 
 Route::get('/', function () {
     return view('auth.login');
@@ -38,6 +39,12 @@ Route::group(['middleware' => 'guest'], function () {
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
+// Profile routes - accessible to all authenticated users
+Route::middleware(['auth'])->group(function () {
+    Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
+    Route::get('/profile/change-password', [ProfileController::class, 'changePassword'])->name('profile.change-password');
+    Route::post('/profile/update-password', [ProfileController::class, 'updatePassword'])->name('profile.update-password');
+});
 // Admin routes
 Route::group(['middleware' => ['auth', 'role:admin'], 'prefix' => 'admin', 'as' => 'admin.'], function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
