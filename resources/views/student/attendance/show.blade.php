@@ -454,7 +454,7 @@
                             !label.includes('display');
                     });
 
-                    console.log('Filtered real cameras:', realCameras);
+                    // console.log('Filtered real cameras:', realCameras);
 
                     // If we have real cameras, use the last one (likely external)
                     if (realCameras.length > 0) {
@@ -531,7 +531,7 @@
                             });
                             video.srcObject = stream;
                         } catch (err) {
-                            console.error('Error switching camera:', err);
+                            // console.error('Error switching camera:', err);
                             errorMessageText.textContent = 'Error switching camera: ' + err.message;
                             errorMessage.style.display = 'block';
                         }
@@ -553,6 +553,7 @@
                     // Configure constraints based on available devices
                     const constraints = {
                         video: {
+                            facingMode: 'user', // Use front camera
                             width: {
                                 ideal: 1280
                             },
@@ -580,14 +581,14 @@
                         cameraSelector.value = deviceId;
                     }
 
-                    console.log('Camera started with device ID:', deviceId);
+                    // console.log('Camera started with device ID:', deviceId);
                 } catch (err) {
                     console.error('Camera access error:', err);
 
                     // If specific device fails, try again without specifying device
                     if (err.name === 'OverconstrainedError' || err.name === 'ConstraintNotSatisfiedError') {
                         try {
-                            console.log('Falling back to default camera');
+                            // console.log('Falling back to default camera');
                             stream = await navigator.mediaDevices.getUserMedia({
                                 video: true
                             });
@@ -670,7 +671,7 @@
                     })
                     .then(response => response.json())
                     .then(data => {
-                        console.log('Response data:', data);
+                        // console.log('Response data:', data);
                         loadingOverlay.style.display = 'none';
 
                         if (data.success === true || data.status === 'success') {
@@ -697,7 +698,7 @@
                         }
                     })
                     .catch(error => {
-                        console.error('Fetch error:', error);
+                        // console.error('Fetch error:', error);
                         loadingOverlay.style.display = 'none';
 
                         // Show a generic error message for network or parsing errors
