@@ -532,6 +532,19 @@
                 updateUI();
             });
 
+            // Improve the error display function
+            function showError(message, timeout = 5000) {
+                errorText.textContent = message;
+                errorMessage.style.display = 'flex';
+
+                // Hide after timeout
+                if (timeout > 0) {
+                    setTimeout(() => {
+                        errorMessage.style.display = 'none';
+                    }, timeout);
+                }
+            }
+
             // Validate image quality via API
             async function validateImageQuality(dataURL) {
                 const blob = dataURLtoBlob(dataURL);
@@ -551,15 +564,7 @@
                     const result = await response.json();
 
                     if (result.status === 'error') {
-                        // Display the specific error message from the API
-                        errorText.textContent = result.message || 'Failed to validate image';
-                        errorMessage.style.display = 'flex';
-
-                        // Hide the error message after 5 seconds
-                        setTimeout(() => {
-                            errorMessage.style.display = 'none';
-                        }, 5000);
-
+                        showError(result.message || 'Failed to validate image');
                         throw new Error(result.message || 'Failed to validate image');
                     }
 
@@ -663,8 +668,7 @@
                     }
                 } catch (error) {
                     loadingOverlay.style.display = 'none';
-                    errorText.textContent = error.message;
-                    errorMessage.style.display = 'flex';
+                    showError(error.message, 0); // 0 means don't auto-hide
                 }
             });
 

@@ -189,6 +189,7 @@ class StudentAttendanceController extends Controller
         return response()->json([
             'status' => 'error',
             'message' => $result['message'] ?? 'Face verification failed.',
+            'code' => $result['code'] ?? 'VERIFICATION_ERROR'
         ], 400);
     }
 }

@@ -77,9 +77,13 @@ class FaceRegistrationController extends Controller
                 ]);
             }
 
+            // If we have a specific error code, include it in the response
+            $errorCode = $result['code'] ?? null;
+
             return response()->json([
                 'status' => 'error',
                 'message' => $result['message'] ?? 'Face registration failed.',
+                'code' => $errorCode
             ], 400);
 
         } catch (\Exception $e) {
@@ -92,6 +96,7 @@ class FaceRegistrationController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => 'An error occurred during registration. Please try again.',
+                'code' => 'SYSTEM_ERROR'
             ], 500);
         }
     }
@@ -111,7 +116,8 @@ class FaceRegistrationController extends Controller
 
             return response()->json([
                 'status' => 'error',
-                'message' => 'Quality check failed: ' . $e->getMessage()
+                'message' => 'Quality check failed: ' . $e->getMessage(),
+                'code' => 'VALIDATION_ERROR'
             ], 500);
         }
     }
