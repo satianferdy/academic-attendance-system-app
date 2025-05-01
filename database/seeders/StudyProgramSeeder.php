@@ -27,20 +27,6 @@ class StudyProgramSeeder extends Seeder
                 'faculty' => 'Fakultas Teknik',
                 'description' => 'Program studi diploma empat tahun yang berfokus pada penerapan sistem informasi dalam konteks bisnis.',
             ],
-            [
-                'name' => 'S1 Teknik Elektro',
-                'code' => 'TE',
-                'degree_level' => 'S1',
-                'faculty' => 'Fakultas Teknik',
-                'description' => 'Program sarjana empat tahun yang mempelajari tentang sistem kelistrikan dan elektronika.',
-            ],
-            [
-                'name' => 'D-III Sistem Informasi',
-                'code' => 'SI',
-                'degree_level' => 'D-III',
-                'faculty' => 'Fakultas Teknik',
-                'description' => 'Program studi diploma tiga tahun yang berfokus pada sistem informasi dan teknologi database.',
-            ],
         ];
 
         foreach ($studyPrograms as $program) {

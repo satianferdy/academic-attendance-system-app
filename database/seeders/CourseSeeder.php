@@ -13,17 +13,9 @@ class CourseSeeder extends Seeder
         // Get study programs
         $studyPrograms = StudyProgram::all();
 
-        if ($studyPrograms->isEmpty()) {
-            // Create study programs if none exist
-            $this->call(StudyProgramSeeder::class);
-            $studyPrograms = StudyProgram::all();
-        }
-
         // Assign courses to study programs
         $tiProgram = $studyPrograms->where('code', 'TI')->first();
         $sibProgram = $studyPrograms->where('code', 'SIB')->first();
-        $teProgram = $studyPrograms->where('code', 'TE')->first();
-        $siProgram = $studyPrograms->where('code', 'SI')->first();
 
         // TI Program Courses
         $tiCourses = [
@@ -40,29 +32,11 @@ class CourseSeeder extends Seeder
             ['name' => 'Manajemen Basis Data', 'code' => 'SIB103', 'credits' => 3],
         ];
 
-        // TE Program Courses
-        $teCourses = [
-            ['name' => 'Dasar Teknik Elektro', 'code' => 'TE101', 'credits' => 3],
-            ['name' => 'Rangkaian Listrik', 'code' => 'TE102', 'credits' => 4],
-        ];
-
-        // SI Program Courses
-        $siCourses = [
-            ['name' => 'Pengantar Sistem Informasi', 'code' => 'SI101', 'credits' => 3],
-            ['name' => 'Pemrograman Dasar', 'code' => 'SI102', 'credits' => 4],
-        ];
-
         // Insert courses for TI Program
         $this->insertCourses($tiCourses, $tiProgram->id);
 
         // Insert courses for SIB Program
         $this->insertCourses($sibCourses, $sibProgram->id);
-
-        // Insert courses for TE Program
-        $this->insertCourses($teCourses, $teProgram->id);
-
-        // Insert courses for SI Program
-        $this->insertCourses($siCourses, $siProgram->id);
     }
 
     private function insertCourses($courses, $programId)

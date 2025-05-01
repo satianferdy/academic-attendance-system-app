@@ -18,18 +18,12 @@ class LecturerSeeder extends Seeder
         // Get all study programs
         $studyPrograms = StudyProgram::all();
 
-        // If no study programs exist, call the StudyProgramSeeder first
-        if ($studyPrograms->isEmpty()) {
-            $this->call(StudyProgramSeeder::class);
-            $studyPrograms = StudyProgram::all();
-        }
-
         // Create lecturers for each study program
         $totalLecturers = 0;
 
         foreach ($studyPrograms as $program) {
             // Number of lecturers per study program (random between 3-7)
-            $lecturerCount = rand(3, 5);
+            $lecturerCount = rand(4, 6);
 
             for ($i = 1; $i <= $lecturerCount; $i++) {
                 // Create a user with lecturer role

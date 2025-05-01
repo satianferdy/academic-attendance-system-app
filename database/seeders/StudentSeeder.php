@@ -19,20 +19,8 @@ class StudentSeeder extends Seeder
         // Get all classrooms
         $classrooms = ClassRoom::all();
 
-        // If no classrooms exist, call the ClassroomSeeder first
-        if ($classrooms->isEmpty()) {
-            $this->call(ClassroomSeeder::class);
-            $classrooms = ClassRoom::all();
-        }
-
         // Get all study programs
         $studyPrograms = StudyProgram::all();
-
-        // If no study programs exist, call the StudyProgramSeeder first
-        if ($studyPrograms->isEmpty()) {
-            $this->call(StudyProgramSeeder::class);
-            $studyPrograms = StudyProgram::all();
-        }
 
         // Keep track of global sequential number to ensure unique NIMs
         $globalSequential = 1;
@@ -43,7 +31,7 @@ class StudentSeeder extends Seeder
             $studyProgram = $classroom->studyProgram;
 
             // Number of students per classroom (random between 5-10)
-            $studentCount = rand(5, 12);
+            $studentCount = rand(5, 8);
 
             for ($i = 1; $i <= $studentCount; $i++) {
                 // Create a user with student role
