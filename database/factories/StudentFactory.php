@@ -24,10 +24,14 @@ class StudentFactory extends Factory
      */
     public function definition(): array
     {
+        // Get or create a study program
+        $studyProgram = StudyProgram::inRandomOrder()->first()
+            ?? StudyProgram::factory()->create();
+
         return [
             'user_id' => User::factory()->student(),
             'classroom_id' => ClassRoom::factory(),
-            'study_program_id' => StudyProgram::factory(),
+            'study_program_id' => $studyProgram->id,
             'nim' => $this->faker->unique()->numerify('############'),
             'face_registered' => $this->faker->boolean(30), // 30% chance of being true
         ];
@@ -50,8 +54,6 @@ class StudentFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'study_program_id' => $program->id,
-            'department' => $program->department,
-            'faculty' => $program->faculty,
         ]);
     }
 }

@@ -48,8 +48,6 @@ class ClassRoomFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'name' => $this->faker->randomElement(['1A', '1B', '2A', '2B', '3A', '3B', '4A', '4B']) . ' ' . $program->code,
-            'department' => $program->department,
-            'faculty' => $program->faculty,
             'study_program_id' => $program->id,
         ]);
     }
@@ -61,7 +59,6 @@ class ClassRoomFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'semester_id' => $semester->id,
-            'academic_year' => $semester->academic_year,
         ]);
     }
 }

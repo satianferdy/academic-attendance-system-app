@@ -64,7 +64,6 @@ class ClassScheduleFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'semester_id' => $semester->id,
-            'academic_year' => $semester->academic_year,
         ]);
     }
 
