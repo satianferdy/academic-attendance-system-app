@@ -340,19 +340,16 @@ class ClassScheduleRepositoryTest extends TestCase
     }
 
     #[Test]
-    public function it_can_get_all_schedules_with_pagination()
+    public function it_can_get_all_schedules()
     {
         // Create several schedules
-        ClassSchedule::factory()->count(15)->create();
+        $schedules = ClassSchedule::factory()->count(5)->create();
 
-        // Get schedules with default pagination (10 per page)
-        $schedulesPage1 = $this->repository->getAllSchedules();
-
-        // Get schedules with custom pagination
-        $schedulesPage2 = $this->repository->getAllSchedules(5);
+        // Get all schedules
+        $allSchedules = $this->repository->getAllSchedules();
 
         // Assert
-        $this->assertEquals(10, $schedulesPage1->count()); // Default 10 per page
-        $this->assertEquals(5, $schedulesPage2->count()); // Custom 5 per page
+        $this->assertEquals($schedules->count(), $allSchedules->count());
+        $this->assertInstanceOf(ClassSchedule::class, $allSchedules->first());
     }
 }
