@@ -155,8 +155,9 @@ class ScheduleServiceTest extends TestCase
 
     public function test_creates_schedule_with_time_slots()
     {
-        // Mock DB facade
-        DB::shouldReceive('transaction')
+        // Mock DB facade properly
+        $dbSpy = Mockery::mock('alias:Illuminate\Support\Facades\DB');
+        $dbSpy->shouldReceive('transaction')
             ->once()
             ->andReturnUsing(function ($callback) {
                 return $callback();
@@ -195,8 +196,9 @@ class ScheduleServiceTest extends TestCase
 
     public function test_updates_schedule_with_time_slots()
     {
-        // Mock DB facade
-        DB::shouldReceive('transaction')
+        // Mock DB facade properly
+        $dbSpy = Mockery::mock('alias:Illuminate\Support\Facades\DB');
+        $dbSpy->shouldReceive('transaction')
             ->once()
             ->andReturnUsing(function ($callback) {
                 return $callback();
