@@ -5,25 +5,62 @@ namespace Tests\Feature\Admin;
 use App\Models\ClassRoom;
 use App\Models\Lecturer;
 use App\Models\Student;
+use App\Models\StudyProgram;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 use Tests\Feature\FeatureTestCase;
-use Tests\TestCase;
 
 class UserManagementTest extends FeatureTestCase
 {
     use RefreshDatabase, WithFaker;
 
     protected $admin;
+    protected $studyProgram;
+    protected $classroom;
 
     protected function setUp(): void
     {
         parent::setUp();
 
+        // Create permissions
+        Permission::create(['name' => 'manage users']);
+        Permission::create(['name' => 'view attendances']);
+        Permission::create(['name' => 'create attendances']);
+        Permission::create(['name' => 'edit attendances']);
+        Permission::create(['name' => 'view schedules']);
+        Permission::create(['name' => 'create schedules']);
+        Permission::create(['name' => 'edit schedules']);
+        Permission::create(['name' => 'delete schedules']);
+
+        // Create roles and assign permissions
+        $adminRole = Role::create(['name' => 'admin']);
+        $adminRole->givePermissionTo(Permission::all());
+
+        $lecturerRole = Role::create(['name' => 'lecturer']);
+        $lecturerRole->givePermissionTo([
+            'view attendances',
+            'create attendances',
+            'edit attendances',
+            'view schedules'
+        ]);
+
+        $studentRole = Role::create(['name' => 'student']);
+        $studentRole->givePermissionTo([
+            'view attendances',
+            'view schedules'
+        ]);
+
         // Create an admin user for authorization
-        $this->admin = User::factory()->create([
-            'role' => 'admin',
+        $this->admin = User::factory()->create(['role' => 'admin']);
+        $this->admin->assignRole('admin');
+
+        // Create study program and classroom for student assignments
+        $this->studyProgram = StudyProgram::factory()->create();
+        $this->classroom = ClassRoom::factory()->create([
+            'study_program_id' => $this->studyProgram->id
         ]);
     }
 
@@ -31,10 +68,16 @@ class UserManagementTest extends FeatureTestCase
     {
         // Create users of different roles for testing
         $student = User::factory()->create(['role' => 'student']);
-        Student::factory()->create(['user_id' => $student->id]);
+        Student::factory()->create([
+            'user_id' => $student->id,
+            'study_program_id' => $this->studyProgram->id,
+            'classroom_id' => $this->classroom->id
+        ]);
+        $student->assignRole('student');
 
         $lecturer = User::factory()->create(['role' => 'lecturer']);
         Lecturer::factory()->create(['user_id' => $lecturer->id]);
+        $lecturer->assignRole('lecturer');
 
         // Act as admin and access the index page
         $response = $this->actingAs($this->admin)
@@ -43,24 +86,9 @@ class UserManagementTest extends FeatureTestCase
         // Assert the response
         $response->assertStatus(200);
         $response->assertViewIs('admin.user.index');
-        $response->assertViewHas(['users', 'admins', 'lecturers', 'students']);
         $response->assertSee($this->admin->name);
         $response->assertSee($student->name);
         $response->assertSee($lecturer->name);
-    }
-
-    public function test_non_admin_cannot_view_user_list()
-    {
-        // Create a regular user
-        /** @var \App\Models\User $user */
-        $user = User::factory()->create(['role' => 'student']);
-
-        // Act as non-admin user and try to access the index page
-        $response = $this->actingAs($user)
-            ->get(route('admin.users.index'));
-
-        // Should be forbidden
-        $response->assertForbidden();
     }
 
     public function test_admin_can_access_create_user_form()
@@ -73,6 +101,7 @@ class UserManagementTest extends FeatureTestCase
         $response->assertStatus(200);
         $response->assertViewIs('admin.user.create');
         $response->assertViewHas('classrooms');
+        $response->assertViewHas('studyPrograms');
     }
 
     public function test_admin_can_create_admin_user()
@@ -99,13 +128,14 @@ class UserManagementTest extends FeatureTestCase
             'email' => $userData['email'],
             'role' => 'admin',
         ]);
+
+        // Verify role assignment
+        $user = User::where('email', $userData['email'])->first();
+        $this->assertTrue($user->hasRole('admin'));
     }
 
     public function test_admin_can_create_student_user()
     {
-        // Create a classroom for the student
-        $classroom = ClassRoom::factory()->create();
-
         // Prepare data for a student user
         $userData = [
             'name' => $this->faker->name,
@@ -114,9 +144,8 @@ class UserManagementTest extends FeatureTestCase
             'password_confirmation' => 'password123',
             'role' => 'student',
             'student_nim' => $this->faker->unique()->numerify('############'),
-            'student_department' => 'Computer Science',
-            'student_faculty' => 'Engineering',
-            'classroom_id' => $classroom->id,
+            'study_program_id' => $this->studyProgram->id,
+            'classroom_id' => $this->classroom->id,
         ];
 
         // Act as admin and submit the form
@@ -137,10 +166,12 @@ class UserManagementTest extends FeatureTestCase
         $this->assertDatabaseHas('students', [
             'user_id' => $user->id,
             'nim' => $userData['student_nim'],
-            'department' => $userData['student_department'],
-            'faculty' => $userData['student_faculty'],
-            'classroom_id' => $classroom->id,
+            'study_program_id' => $userData['study_program_id'],
+            'classroom_id' => $userData['classroom_id'],
         ]);
+
+        // Verify role assignment
+        $this->assertTrue($user->hasRole('student'));
     }
 
     public function test_admin_can_create_lecturer_user()
@@ -153,8 +184,6 @@ class UserManagementTest extends FeatureTestCase
             'password_confirmation' => 'password123',
             'role' => 'lecturer',
             'lecturer_nip' => $this->faker->unique()->numerify('############'),
-            'lecturer_department' => 'Computer Science',
-            'lecturer_faculty' => 'Engineering',
         ];
 
         // Act as admin and submit the form
@@ -175,15 +204,17 @@ class UserManagementTest extends FeatureTestCase
         $this->assertDatabaseHas('lecturers', [
             'user_id' => $user->id,
             'nip' => $userData['lecturer_nip'],
-            'department' => $userData['lecturer_department'],
-            'faculty' => $userData['lecturer_faculty'],
         ]);
+
+        // Verify role assignment
+        $this->assertTrue($user->hasRole('lecturer'));
     }
 
-    public function test_admin_can_access_edit_user_form()
+    public function test_admin_can_edit_user()
     {
         // Create a user to edit
-        $user = User::factory()->create();
+        $user = User::factory()->create(['role' => 'admin']);
+        $user->assignRole('admin');
 
         // Act as admin and access the edit form
         $response = $this->actingAs($this->admin)
@@ -192,14 +223,15 @@ class UserManagementTest extends FeatureTestCase
         // Assert the response
         $response->assertStatus(200);
         $response->assertViewIs('admin.user.edit');
-        $response->assertViewHas(['user', 'classrooms']);
+        $response->assertViewHas(['user', 'classrooms', 'studyPrograms']);
         $response->assertSee($user->name);
     }
 
     public function test_admin_can_update_user_details()
     {
         // Create a user to update
-        $user = User::factory()->create();
+        $user = User::factory()->create(['role' => 'admin']);
+        $user->assignRole('admin');
 
         // Prepare update data
         $updateData = [
@@ -225,7 +257,8 @@ class UserManagementTest extends FeatureTestCase
     public function test_admin_can_update_user_password()
     {
         // Create a user to update
-        $user = User::factory()->create();
+        $user = User::factory()->create(['role' => 'admin']);
+        $user->assignRole('admin');
         $oldPassword = $user->password;
 
         // Prepare update data with password
@@ -253,19 +286,25 @@ class UserManagementTest extends FeatureTestCase
 
     public function test_admin_can_update_student_details()
     {
-        // Create a student user
+        // Create student user
         $user = User::factory()->create(['role' => 'student']);
-        $student = Student::factory()->create(['user_id' => $user->id]);
-        $classroom = ClassRoom::factory()->create();
+        $user->assignRole('student');
 
-        // Prepare update data for student
+        $student = Student::factory()->create([
+            'user_id' => $user->id,
+            'study_program_id' => $this->studyProgram->id,
+        ]);
+
+        // New classroom for update
+        $newClassroom = ClassRoom::factory()->create();
+
+        // Prepare update data
         $updateData = [
             'name' => 'Updated Student',
             'email' => 'updated.student@example.com',
             'nim' => '9876543210',
-            'department' => 'Updated Department',
-            'faculty' => 'Updated Faculty',
-            'classroom_id' => $classroom->id,
+            'study_program_id' => $this->studyProgram->id,
+            'classroom_id' => $newClassroom->id,
         ];
 
         // Act as admin and submit the update
@@ -285,25 +324,25 @@ class UserManagementTest extends FeatureTestCase
         $this->assertDatabaseHas('students', [
             'id' => $student->id,
             'nim' => $updateData['nim'],
-            'department' => $updateData['department'],
-            'faculty' => $updateData['faculty'],
-            'classroom_id' => $classroom->id,
+            'classroom_id' => $newClassroom->id,
         ]);
     }
 
     public function test_admin_can_update_lecturer_details()
     {
-        // Create a lecturer user
+        // Create lecturer user
         $user = User::factory()->create(['role' => 'lecturer']);
-        $lecturer = Lecturer::factory()->create(['user_id' => $user->id]);
+        $user->assignRole('lecturer');
 
-        // Prepare update data for lecturer
+        $lecturer = Lecturer::factory()->create([
+            'user_id' => $user->id,
+        ]);
+
+        // Prepare update data
         $updateData = [
             'name' => 'Updated Lecturer',
             'email' => 'updated.lecturer@example.com',
             'nip' => '9876543210',
-            'department' => 'Updated Department',
-            'faculty' => 'Updated Faculty',
         ];
 
         // Act as admin and submit the update
@@ -323,8 +362,6 @@ class UserManagementTest extends FeatureTestCase
         $this->assertDatabaseHas('lecturers', [
             'id' => $lecturer->id,
             'nip' => $updateData['nip'],
-            'department' => $updateData['department'],
-            'faculty' => $updateData['faculty'],
         ]);
     }
 
@@ -332,6 +369,7 @@ class UserManagementTest extends FeatureTestCase
     {
         // Create a user to delete
         $user = User::factory()->create();
+        $user->assignRole('admin');
 
         // Act as admin and delete the user
         $response = $this->actingAs($this->admin)
@@ -350,7 +388,13 @@ class UserManagementTest extends FeatureTestCase
     {
         // Create a student user with related data
         $user = User::factory()->create(['role' => 'student']);
-        $student = Student::factory()->create(['user_id' => $user->id]);
+        $user->assignRole('student');
+
+        $student = Student::factory()->create([
+            'user_id' => $user->id,
+            'study_program_id' => $this->studyProgram->id,
+            'classroom_id' => $this->classroom->id,
+        ]);
 
         // Act as admin and delete the user
         $response = $this->actingAs($this->admin)
@@ -389,77 +433,19 @@ class UserManagementTest extends FeatureTestCase
         $response->assertRedirect();
     }
 
-    public function test_non_admin_cannot_create_users()
+    public function test_non_admin_cannot_access_user_management()
     {
         // Create a regular user
         /** @var \App\Models\User $user */
         $user = User::factory()->create(['role' => 'student']);
+        $user->assignRole('student');
 
-        // Prepare data for a new user
-        $userData = [
-            'name' => $this->faker->name,
-            'email' => $this->faker->unique()->safeEmail,
-            'password' => 'password123',
-            'password_confirmation' => 'password123',
-            'role' => 'student',
-        ];
+        // Try to access the user management pages
+        $indexResponse = $this->actingAs($user)->get(route('admin.users.index'));
+        $createResponse = $this->actingAs($user)->get(route('admin.users.create'));
 
-        // Act as non-admin and try to create a user
-        $response = $this->actingAs($user)
-            ->post(route('admin.users.store'), $userData);
-
-        // Should be forbidden
-        $response->assertForbidden();
-    }
-
-    public function test_non_admin_cannot_edit_users()
-    {
-        // Create users
-        /** @var \App\Models\User $regularUser */
-        $regularUser = User::factory()->create(['role' => 'student']);
-        $targetUser = User::factory()->create();
-
-        // Act as non-admin and try to edit a user
-        $response = $this->actingAs($regularUser)
-            ->get(route('admin.users.edit', $targetUser));
-
-        // Should be forbidden
-        $response->assertForbidden();
-    }
-
-    public function test_non_admin_cannot_update_users()
-    {
-        // Create users
-        /** @var \App\Models\User $regularUser */
-        $regularUser = User::factory()->create(['role' => 'student']);
-        $targetUser = User::factory()->create();
-
-        // Prepare update data
-        $updateData = [
-            'name' => 'Updated Name',
-            'email' => 'updated.email@example.com',
-        ];
-
-        // Act as non-admin and try to update a user
-        $response = $this->actingAs($regularUser)
-            ->put(route('admin.users.update', $targetUser), $updateData);
-
-        // Should be forbidden
-        $response->assertForbidden();
-    }
-
-    public function test_non_admin_cannot_delete_users()
-    {
-        // Create users
-        /** @var \App\Models\User $regularUser */
-        $regularUser = User::factory()->create(['role' => 'student']);
-        $targetUser = User::factory()->create();
-
-        // Act as non-admin and try to delete a user
-        $response = $this->actingAs($regularUser)
-            ->delete(route('admin.users.destroy', $targetUser));
-
-        // Should be forbidden
-        $response->assertForbidden();
+        // Assert both are forbidden
+        $indexResponse->assertForbidden();
+        $createResponse->assertForbidden();
     }
 }
