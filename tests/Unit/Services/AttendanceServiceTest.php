@@ -2,7 +2,6 @@
 
 namespace Tests\Unit\Services;
 
-use App\Exceptions\AttendanceException;
 use App\Models\Attendance;
 use App\Models\ClassSchedule;
 use App\Models\SessionAttendance;
@@ -14,15 +13,13 @@ use App\Repositories\Interfaces\StudentRepositoryInterface;
 use App\Services\Implementations\AttendanceService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Mockery;
 use Tests\TestCase;
+use Illuminate\Support\Facades\Auth;
 
 class AttendanceServiceTest extends TestCase
 {
-    use RefreshDatabase;
-
     protected $attendanceRepository;
     protected $sessionRepository;
     protected $classScheduleRepository;
@@ -63,7 +60,14 @@ class AttendanceServiceTest extends TestCase
 
         // Mock active session with future end time
         $session = Mockery::mock(SessionAttendance::class);
-        $session->shouldReceive('getAttribute')->with('end_time')->andReturn(Carbon::now()->addMinutes(10));
+        $session->shouldReceive('getAttribute')->with('end_time')
+            ->andReturn(Carbon::now()->addMinutes(10));
+        $session->shouldReceive('getAttribute')->with('start_time')  // Add this missing expectation
+            ->andReturn(Carbon::now()->subMinutes(10));
+        $session->shouldReceive('getAttribute')->with('total_hours')
+            ->andReturn(2);
+        $session->shouldReceive('getAttribute')->with('tolerance_minutes')
+            ->andReturn(15);
 
         // Mock attendance record
         $attendance = Mockery::mock(Attendance::class);
@@ -82,7 +86,10 @@ class AttendanceServiceTest extends TestCase
         $this->attendanceRepository->shouldReceive('update')
             ->once()
             ->with($attendance, Mockery::on(function ($data) {
-                return $data['status'] === 'present' && isset($data['attendance_time']);
+                return $data['status'] === 'present' &&
+                       isset($data['attendance_time']) &&
+                       isset($data['hours_present']) &&
+                       isset($data['hours_absent']);
             }))
             ->andReturn($attendance);
 
@@ -92,6 +99,7 @@ class AttendanceServiceTest extends TestCase
         // Assert the result
         $this->assertEquals('success', $result['status']);
         $this->assertEquals('Attendance marked successfully.', $result['message']);
+        $this->assertArrayHasKey('attendance_hours', $result);
     }
 
     public function test_it_fails_to_mark_attendance_without_active_session()
@@ -124,7 +132,8 @@ class AttendanceServiceTest extends TestCase
 
         // Mock active session with past end time
         $session = Mockery::mock(SessionAttendance::class);
-        $session->shouldReceive('getAttribute')->with('end_time')->andReturn(Carbon::now()->subMinutes(10));
+        $session->shouldReceive('getAttribute')->with('end_time')
+            ->andReturn(Carbon::now()->subMinutes(10));
 
         // Setup repository expectations
         $this->sessionRepository->shouldReceive('findActiveByClassAndDate')
@@ -234,18 +243,57 @@ class AttendanceServiceTest extends TestCase
 
     public function test_it_updates_attendance_status()
     {
-        // Mock attendance
-        $attendance = Mockery::mock(Attendance::class);
-        $status = 'absent';
+        // Mock Auth facade
+        Auth::shouldReceive('check')->andReturn(true);
+        Auth::shouldReceive('id')->andReturn(10); // Teacher ID
+
+        // Create a real collection for timeSlots
+        $timeSlots = new Collection([1, 2]); // Two time slots
+
+        // Create a class schedule instance using a standard class instead of a mock
+        $classSchedule = new \stdClass();
+        $classSchedule->timeSlots = $timeSlots;
+
+        // Create an attendance model instance with realistic data
+        $attendance = new Attendance();
+        $attendance->id = 1;
+        $attendance->class_schedule_id = 1;
+        $attendance->student_id = 1;
+        $attendance->date = '2023-07-01';
+        $attendance->status = 'present';
+        $attendance->hours_present = 2;
+        $attendance->hours_absent = 0;
+        $attendance->hours_permitted = 0;
+        $attendance->hours_sick = 0;
+        $attendance->remarks = null;
+
+        // Set the class schedule relation
+        $attendance->classSchedule = $classSchedule;
+
+        // Data to update
+        $data = [
+            'status' => 'absent',
+            'hours_present' => 0,
+            'hours_absent' => 2,
+            'edit_notes' => 'Student was not present'
+        ];
 
         // Setup repository expectations
         $this->attendanceRepository->shouldReceive('update')
             ->once()
-            ->with($attendance, ['status' => $status])
+            ->withArgs(function($att, $updateData) use ($attendance, $data) {
+                return $att === $attendance &&
+                       $updateData['status'] === $data['status'] &&
+                       $updateData['hours_present'] === $data['hours_present'] &&
+                       $updateData['hours_absent'] === $data['hours_absent'] &&
+                       $updateData['edit_notes'] === $data['edit_notes'] &&
+                       isset($updateData['last_edited_at']) &&
+                       $updateData['last_edited_by'] === 10;
+            })
             ->andReturn($attendance);
 
         // Call the method
-        $result = $this->attendanceService->updateAttendanceStatus($attendance, $status);
+        $result = $this->attendanceService->updateAttendanceStatus($attendance, $data);
 
         // Assert the result
         $this->assertEquals('success', $result['status']);
@@ -254,13 +302,16 @@ class AttendanceServiceTest extends TestCase
 
     public function test_it_generates_session_attendance_successfully()
     {
-        // Mock DB facade
-        DB::shouldReceive('beginTransaction')->once();
-        DB::shouldReceive('commit')->once();
+        // Instead of mocking DB facade, we'll spy on it
+        $dbSpy = Mockery::spy('alias:' . DB::class);
 
         // Test data
         $classId = 1;
         $date = '2023-07-01';
+        $week = 1;
+        $meetings = 1;
+        $totalHours = 2;
+        $toleranceMinutes = 15;
 
         // Mock class schedule
         $classSchedule = Mockery::mock(ClassSchedule::class);
@@ -286,8 +337,33 @@ class AttendanceServiceTest extends TestCase
             ->with($classId)
             ->andReturn($classSchedule);
 
+        $this->sessionRepository->shouldReceive('sessionExistsForDate')
+            ->once()
+            ->with($classId, $date)
+            ->andReturn(false);
+
+        $this->sessionRepository->shouldReceive('findByClassWeekAndMeeting')
+            ->once()
+            ->with($classId, $week, $meetings)
+            ->andReturn(null);
+
         $this->sessionRepository->shouldReceive('createOrUpdate')
             ->once()
+            ->with(
+                Mockery::on(function ($attributes) use ($classId, $date, $week, $meetings) {
+                    return $attributes['class_schedule_id'] == $classId &&
+                           $attributes['session_date'] == $date &&
+                           $attributes['week'] == $week &&
+                           $attributes['meetings'] == $meetings;
+                }),
+                Mockery::on(function ($values) {
+                    return isset($values['start_time']) &&
+                           isset($values['end_time']) &&
+                           $values['is_active'] === true &&
+                           isset($values['total_hours']) &&
+                           isset($values['tolerance_minutes']);
+                })
+            )
             ->andReturn($session);
 
         $this->attendanceRepository->shouldReceive('createOrUpdateByClassStudentDate')
@@ -295,23 +371,28 @@ class AttendanceServiceTest extends TestCase
             ->andReturn(Mockery::mock(Attendance::class));
 
         // Call the method
-        $result = $this->attendanceService->generateSessionAttendance($classId, $date);
+        $result = $this->attendanceService->generateSessionAttendance($classId, $date, $week, $meetings, $totalHours, $toleranceMinutes);
 
         // Assert the result
         $this->assertEquals('success', $result['status']);
         $this->assertStringContainsString('Session and attendances generated successfully', $result['message']);
         $this->assertEquals(1, $result['session_id']);
+
+        // Verify DB transactions were called
+        $dbSpy->shouldHaveReceived('beginTransaction');
+        $dbSpy->shouldHaveReceived('commit');
     }
 
     public function test_it_fails_to_generate_session_attendance_without_students()
     {
-        // Mock DB facade
-        DB::shouldReceive('beginTransaction')->once();
-        DB::shouldReceive('rollBack')->once();
+        // Instead of mocking DB facade, we'll spy on it
+        $dbSpy = Mockery::spy('alias:' . DB::class);
 
         // Test data
         $classId = 1;
         $date = '2023-07-01';
+        $week = 1;
+        $meetings = 1;
 
         // Mock class schedule
         $classSchedule = Mockery::mock(ClassSchedule::class);
@@ -324,11 +405,113 @@ class AttendanceServiceTest extends TestCase
             ->with($classId)
             ->andReturn($classSchedule);
 
+        $this->sessionRepository->shouldReceive('sessionExistsForDate')
+            ->once()
+            ->with($classId, $date)
+            ->andReturn(false);
+
+        $this->sessionRepository->shouldReceive('findByClassWeekAndMeeting')
+            ->once()
+            ->with($classId, $week, $meetings)
+            ->andReturn(null);
+
         // Call the method
-        $result = $this->attendanceService->generateSessionAttendance($classId, $date);
+        $result = $this->attendanceService->generateSessionAttendance($classId, $date, $week, $meetings);
 
         // Assert the result
         $this->assertEquals('error', $result['status']);
         $this->assertStringContainsString('Failed to generate attendances', $result['message']);
+
+        // Verify DB transactions were called
+        $dbSpy->shouldHaveReceived('beginTransaction');
+        $dbSpy->shouldHaveReceived('rollBack');
+    }
+
+    public function test_it_calculates_cumulative_attendance()
+    {
+        // Test data
+        $classId = 1;
+        $studentId = 1;
+
+        // Mock attendance records
+        $attendances = new Collection([
+            (object)[
+                'hours_present' => 2,
+                'hours_absent' => 0,
+                'hours_permitted' => 0,
+                'hours_sick' => 0
+            ],
+            (object)[
+                'hours_present' => 1,
+                'hours_absent' => 1,
+                'hours_permitted' => 0,
+                'hours_sick' => 0
+            ],
+            (object)[
+                'hours_present' => 0,
+                'hours_absent' => 0,
+                'hours_permitted' => 2,
+                'hours_sick' => 0
+            ]
+        ]);
+
+        // Setup repository expectations
+        $this->attendanceRepository->shouldReceive('getAttendancesByClassAndStudent')
+            ->once()
+            ->with($classId, $studentId)
+            ->andReturn($attendances);
+
+        // Call the method
+        $result = $this->attendanceService->getCumulativeAttendance($classId, $studentId);
+
+        // Assert the result
+        $this->assertEquals(3, $result['total_present']);
+        $this->assertEquals(1, $result['total_absent']);
+        $this->assertEquals(2, $result['total_permitted']);
+        $this->assertEquals(0, $result['total_sick']);
+    }
+
+    public function test_it_calculates_hourly_attendance_based_on_arrival_time()
+    {
+        // Create a new instance of the service to call the protected method
+        $service = new AttendanceService(
+            $this->attendanceRepository,
+            $this->sessionRepository,
+            $this->classScheduleRepository,
+            $this->studentRepository
+        );
+
+        // Test data - class starts at 9:00 AM, 2 hour session, 15 min tolerance
+        $startTime = Carbon::parse('09:00:00');
+        $totalHours = 2;
+        $toleranceMinutes = 15;
+
+        // Test case 1: Student arrives on time (9:05 AM)
+        $arrivalTime1 = Carbon::parse('09:05:00');
+        $result1 = $service->calculateHourlyAttendance($startTime, $arrivalTime1, $totalHours, $toleranceMinutes);
+
+        $this->assertEquals(2, $result1['hours_present'], 'Student arriving at 9:05 should get 2 hours present');
+        $this->assertEquals(0, $result1['hours_absent'], 'Student arriving at 9:05 should get 0 hours absent');
+
+        // Test case 2: Student arrives late but within tolerance (9:14 AM)
+        $arrivalTime2 = Carbon::parse('09:14:00');
+        $result2 = $service->calculateHourlyAttendance($startTime, $arrivalTime2, $totalHours, $toleranceMinutes);
+
+        $this->assertEquals(2, $result2['hours_present'], 'Student arriving at 9:14 should get 2 hours present');
+        $this->assertEquals(0, $result2['hours_absent'], 'Student arriving at 9:14 should get 0 hours absent');
+
+        // Test case 3: Student arrives after tolerance for first hour (9:20 AM)
+        $arrivalTime3 = Carbon::parse('09:20:00');
+        $result3 = $service->calculateHourlyAttendance($startTime, $arrivalTime3, $totalHours, $toleranceMinutes);
+
+        $this->assertEquals(1, $result3['hours_present'], 'Student arriving at 9:20 should get 1 hour present');
+        $this->assertEquals(1, $result3['hours_absent'], 'Student arriving at 9:20 should get 1 hour absent');
+
+        // Test case 4: Student arrives very late (10:20 AM)
+        $arrivalTime4 = Carbon::parse('10:20:00');
+        $result4 = $service->calculateHourlyAttendance($startTime, $arrivalTime4, $totalHours, $toleranceMinutes);
+
+        $this->assertEquals(0, $result4['hours_present'], 'Student arriving at 10:20 should get 0 hours present');
+        $this->assertEquals(2, $result4['hours_absent'], 'Student arriving at 10:20 should get 2 hours absent');
     }
 }

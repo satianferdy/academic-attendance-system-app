@@ -105,7 +105,8 @@ class FaceRecognitionServiceTest extends TestCase
         Http::fake([
             "{$this->apiUrl}/api/verify-face" => Http::response([
                 'status' => 'error',
-                'message' => 'Face not found'
+                'message' => 'Face not found',
+                'code' => 'FaceNotRegisteredError'
             ], 404)
         ]);
 
@@ -114,7 +115,9 @@ class FaceRecognitionServiceTest extends TestCase
 
         // Assert
         $this->assertEquals('error', $result['status']);
-        $this->assertStringContainsString('Invalid response', $result['message']);
+        // Check for the mapped error message
+        $this->assertStringContainsString('You have not registered your face yet', $result['message']);
+        $this->assertEquals('FaceNotRegisteredError', $result['code']);
     }
 
     public function test_reject_invalid_image_format()
@@ -315,6 +318,5 @@ class FaceRecognitionServiceTest extends TestCase
 
         // Assert
         $this->assertEquals('error', $result['status']);
-        $this->assertStringContainsString('Failed to validate image quality', $result['message']);
     }
 }

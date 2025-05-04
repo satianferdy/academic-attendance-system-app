@@ -8,7 +8,6 @@ use App\Models\SessionAttendance;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Crypt;
 use Mockery;
 use SimpleSoftwareIO\QrCode\Facades\QrCode as QrCodeFacade;
 use Tests\TestCase;
@@ -97,17 +96,31 @@ class QRCodeServiceTest extends TestCase
         // Test data
         $classId = 1;
         $date = '2023-07-01';
-        $tokenData = [
-            'class_id' => $classId,
-            'date' => $date,
-            'timestamp' => now()->timestamp
-        ];
+        $token = 'valid-token';
 
-        // Create encrypted token
-        $token = Crypt::encrypt($tokenData);
+        // Mock session with active status and future end time
+        $session = Mockery::mock(SessionAttendance::class);
+        $session->shouldReceive('getAttribute')
+            ->with('class_schedule_id')
+            ->andReturn($classId);
 
-        // Setup config
-        Config::set('services.qrcode.expiry_time', 30);
+        $session->shouldReceive('getAttribute')
+            ->with('session_date')
+            ->andReturn(Carbon::parse($date));
+
+        $session->shouldReceive('getAttribute')
+            ->with('is_active')
+            ->andReturn(true);
+
+        $session->shouldReceive('getAttribute')
+            ->with('end_time')
+            ->andReturn(Carbon::now()->addHours(1));
+
+        // Setup repository expectations
+        $this->sessionRepository->shouldReceive('findByQrCode')
+            ->once()
+            ->with($token)
+            ->andReturn($session);
 
         // Call the method
         $result = $this->qrCodeService->validateToken($token);
@@ -115,7 +128,7 @@ class QRCodeServiceTest extends TestCase
         // Assert the result
         $this->assertNotNull($result);
         $this->assertEquals($classId, $result['class_id']);
-        $this->assertEquals($date, $result['date']);
+        $this->assertEquals($date, $result['date']->format('Y-m-d'));
     }
 
     /**
@@ -124,19 +137,47 @@ class QRCodeServiceTest extends TestCase
     public function test_invalidates_expired_token()
     {
         // Test data with timestamp more than expiry time ago
-        $classId = 1;
-        $date = '2023-07-01';
-        $tokenData = [
-            'class_id' => $classId,
-            'date' => $date,
-            'timestamp' => now()->subMinutes(35)->timestamp // Set to 35 minutes ago
-        ];
+        $token = 'expired-token';
 
-        // Create encrypted token
-        $token = Crypt::encrypt($tokenData);
+        // Mock session with active status but expired end time
+        $session = Mockery::mock(SessionAttendance::class);
+        $session->shouldReceive('getAttribute')
+            ->with('is_active')
+            ->andReturn(true);
 
-        // Setup config with 30 minutes expiry
-        Config::set('services.qrcode.expiry_time', 30);
+        $session->shouldReceive('getAttribute')
+            ->with('end_time')
+            ->andReturn(Carbon::now()->subMinutes(30));
+
+        // Setup repository expectations
+        $this->sessionRepository->shouldReceive('findByQrCode')
+            ->once()
+            ->with($token)
+            ->andReturn($session);
+
+        // Call the method
+        $result = $this->qrCodeService->validateToken($token);
+
+        // Assert the result
+        $this->assertNull($result);
+    }
+
+    public function test_invalidates_inactive_token()
+    {
+        // Test data with inactive session
+        $token = 'inactive-token';
+
+        // Mock session with inactive status
+        $session = Mockery::mock(SessionAttendance::class);
+        $session->shouldReceive('getAttribute')
+            ->with('is_active')
+            ->andReturn(false);
+
+        // Setup repository expectations
+        $this->sessionRepository->shouldReceive('findByQrCode')
+            ->once()
+            ->with($token)
+            ->andReturn($session);
 
         // Call the method
         $result = $this->qrCodeService->validateToken($token);
