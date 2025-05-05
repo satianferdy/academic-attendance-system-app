@@ -302,8 +302,10 @@ class AttendanceServiceTest extends TestCase
 
     public function test_it_generates_session_attendance_successfully()
     {
-        // Instead of mocking DB facade, we'll spy on it
-        $dbSpy = Mockery::spy('alias:' . DB::class);
+        // Use a cleaner approach to mock DB facade
+        DB::shouldReceive('beginTransaction')->once();
+        DB::shouldReceive('commit')->once();
+        DB::shouldReceive('rollBack')->never();
 
         // Test data
         $classId = 1;
@@ -377,25 +379,26 @@ class AttendanceServiceTest extends TestCase
         $this->assertEquals('success', $result['status']);
         $this->assertStringContainsString('Session and attendances generated successfully', $result['message']);
         $this->assertEquals(1, $result['session_id']);
-
-        // Verify DB transactions were called
-        $dbSpy->shouldHaveReceived('beginTransaction');
-        $dbSpy->shouldHaveReceived('commit');
     }
 
     public function test_it_fails_to_generate_session_attendance_without_students()
     {
-        // Instead of mocking DB facade, we'll spy on it
-        $dbSpy = Mockery::spy('alias:' . DB::class);
+        // Use a cleaner approach to mock DB facade
+        DB::shouldReceive('beginTransaction')->once();
+        DB::shouldReceive('rollBack')->once();
+        DB::shouldReceive('commit')->never();
 
         // Test data
         $classId = 1;
         $date = '2023-07-01';
         $week = 1;
         $meetings = 1;
+        $totalHours = 2;
+        $toleranceMinutes = 15;
 
         // Mock class schedule
         $classSchedule = Mockery::mock(ClassSchedule::class);
+        $classSchedule->shouldReceive('getAttribute')->with('id')->andReturn($classId);
         $classSchedule->shouldReceive('getAttribute')->with('students')->andReturn(new Collection([]));
         $classSchedule->shouldIgnoreMissing();
 
@@ -416,15 +419,11 @@ class AttendanceServiceTest extends TestCase
             ->andReturn(null);
 
         // Call the method
-        $result = $this->attendanceService->generateSessionAttendance($classId, $date, $week, $meetings);
+        $result = $this->attendanceService->generateSessionAttendance($classId, $date, $week, $meetings, $totalHours, $toleranceMinutes);
 
         // Assert the result
         $this->assertEquals('error', $result['status']);
         $this->assertStringContainsString('Failed to generate attendances', $result['message']);
-
-        // Verify DB transactions were called
-        $dbSpy->shouldHaveReceived('beginTransaction');
-        $dbSpy->shouldHaveReceived('rollBack');
     }
 
     public function test_it_calculates_cumulative_attendance()
