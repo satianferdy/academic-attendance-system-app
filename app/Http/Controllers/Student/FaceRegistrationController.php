@@ -3,11 +3,10 @@
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
-use App\Models\Student;
 use App\Services\Interfaces\FaceRecognitionServiceInterface;
+use App\Repositories\Interfaces\StudentRepositoryInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 use App\Http\Requests\Face\RegistrationRequest;
 use App\Http\Requests\Face\QualityValidationRequest;
@@ -15,11 +14,15 @@ use App\Http\Requests\Face\QualityValidationRequest;
 class FaceRegistrationController extends Controller
 {
     protected $faceRecognitionService;
+    protected $studentRepository;
     protected const REQUIRED_IMAGES = 5;
 
-    public function __construct(FaceRecognitionServiceInterface $faceRecognitionService)
-    {
+    public function __construct(
+        FaceRecognitionServiceInterface $faceRecognitionService,
+        StudentRepositoryInterface $studentRepository,
+    ) {
         $this->faceRecognitionService = $faceRecognitionService;
+        $this->studentRepository = $studentRepository;
     }
 
     public function index()
@@ -64,7 +67,7 @@ class FaceRegistrationController extends Controller
 
             if ($result['status'] === 'success') {
                 // Update student status
-                $student->update(['face_registered' => true]);
+                $this->studentRepository->updateFaceRegistered($student->id, true);
 
                 return response()->json([
                     'status' => 'success',
@@ -74,9 +77,13 @@ class FaceRegistrationController extends Controller
                 ]);
             }
 
+            // If we have a specific error code, include it in the response
+            $errorCode = $result['code'] ?? null;
+
             return response()->json([
                 'status' => 'error',
                 'message' => $result['message'] ?? 'Face registration failed.',
+                'code' => $errorCode
             ], 400);
 
         } catch (\Exception $e) {
@@ -89,6 +96,7 @@ class FaceRegistrationController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => 'An error occurred during registration. Please try again.',
+                'code' => 'SYSTEM_ERROR'
             ], 500);
         }
     }
@@ -108,7 +116,8 @@ class FaceRegistrationController extends Controller
 
             return response()->json([
                 'status' => 'error',
-                'message' => 'Quality check failed: ' . $e->getMessage()
+                'message' => 'Quality check failed: ' . $e->getMessage(),
+                'code' => 'VALIDATION_ERROR'
             ], 500);
         }
     }

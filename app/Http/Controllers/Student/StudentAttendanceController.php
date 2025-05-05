@@ -3,41 +3,59 @@
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
-use App\Models\Attendance;
 use App\Models\ClassSchedule;
-use App\Models\SessionAttendance;
-use App\Models\Student;
 use App\Services\Interfaces\AttendanceServiceInterface;
 use App\Services\Interfaces\FaceRecognitionServiceInterface;
 use App\Services\Interfaces\QRCodeServiceInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\Attendance\VerifyAttendanceRequest;
+use App\Repositories\Interfaces\SessionAttendanceRepositoryInterface;
 
 class StudentAttendanceController extends Controller
 {
     protected $attendanceService;
     protected $qrCodeService;
     protected $faceRecognitionService;
+    protected $sessionRepository;
 
     public function __construct(
         AttendanceServiceInterface $attendanceService,
         QRCodeServiceInterface $qrCodeService,
-        FaceRecognitionServiceInterface $faceRecognitionService
+        FaceRecognitionServiceInterface $faceRecognitionService,
+        SessionAttendanceRepositoryInterface $sessionRepository
     ) {
         $this->attendanceService = $attendanceService;
         $this->qrCodeService = $qrCodeService;
         $this->faceRecognitionService = $faceRecognitionService;
+        $this->sessionRepository = $sessionRepository;
     }
 
     public function index()
     {
-        $this->authorize('viewAny', Attendance::class);
+        // Ensure user is authorized to view their own attendances
         $student = Auth::user()->student;
-        $attendances = Attendance::with(['classSchedule.course', 'classSchedule.lecturer.user'])
-            ->where('student_id', $student->id)
-            ->orderBy('date', 'desc')
-            ->get();
+
+        if (!$student) {
+            return redirect()->route('login')->with('error', 'Student profile not found.');
+        }
+
+        // Get attendances with all related data
+        $attendances = $this->attendanceService->getStudentAttendances($student->id);
+
+        // For each attendance, fetch the session data to get week/meeting information
+        foreach ($attendances as $attendance) {
+            $session = $this->sessionRepository->findByClassAndDate(
+                $attendance->class_schedule_id,
+                $attendance->date->format('Y-m-d')
+            );
+
+            if ($session) {
+                // Add week and meeting number to attendance object
+                $attendance->week = $session->week;
+                $attendance->meeting = $session->meetings;
+            }
+        }
 
         return view('student.attendance.index', compact('attendances'));
     }
@@ -61,7 +79,7 @@ class StudentAttendanceController extends Controller
         }
 
         // Check if attendance is already marked
-        if ($this->isAttendanceAlreadyMarked($student->id, $classId, $date)) {
+        if ($this->attendanceService->isAttendanceAlreadyMarked($student->id, $classId, $date)) {
             return redirect()->route('student.attendance.index')
                 ->with('info', 'You have already marked your attendance for this session.');
         }
@@ -73,7 +91,7 @@ class StudentAttendanceController extends Controller
         $this->authorize('view', $classSchedule);
 
         // Check if student is enrolled in this class
-        if (!$this->isStudentEnrolled($student, $classSchedule)) {
+        if (!$this->attendanceService->isStudentEnrolled($student->id, $classSchedule->id)) {
             return redirect()->route('student.attendance.index')
                 ->with('error', 'You are not enrolled in this class.');
         }
@@ -97,12 +115,25 @@ class StudentAttendanceController extends Controller
         $classId = $tokenData['class_id'];
         $date = $tokenData['date'];
 
+        // Get the session and check its end time
+        $session = $this->sessionRepository->findByClassAndDate($classId, $date);
+
+        $currentTime = now()->setTimezone(config('app.timezone'));
+        $sessionEndTime = $session->end_time->setTimezone(config('app.timezone'));
+
+        if (!$session || !$session->is_active || $currentTime > $sessionEndTime) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'This session has expired or is no longer active.',
+            ], 400);
+        }
+
         // Check if class is valid and student is enrolled
         try {
             $classSchedule = ClassSchedule::findOrFail($classId);
             $this->authorize('view', $classSchedule);
 
-            if (!$this->isStudentEnrolled($student, $classSchedule)) {
+            if (!$this->attendanceService->isStudentEnrolled($student->id, $classSchedule->id)) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'You are not enrolled in this class.',
@@ -116,7 +147,7 @@ class StudentAttendanceController extends Controller
         }
 
         // Check if attendance already marked
-        if ($this->isAttendanceAlreadyMarked($student->id, $classId, $date)) {
+        if ($this->attendanceService->isAttendanceAlreadyMarked($student->id, $classId, $date)) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'You have already marked your attendance for this session.',
@@ -124,7 +155,7 @@ class StudentAttendanceController extends Controller
         }
 
         // Check if session is active
-        if (!$this->isSessionActive($classId, $date)) {
+        if (!$this->attendanceService->isSessionActive($classId, $date)) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'This session is no longer active.',
@@ -158,28 +189,7 @@ class StudentAttendanceController extends Controller
         return response()->json([
             'status' => 'error',
             'message' => $result['message'] ?? 'Face verification failed.',
+            'code' => $result['code'] ?? 'VERIFICATION_ERROR'
         ], 400);
-    }
-
-    private function isStudentEnrolled(Student $student, ClassSchedule $classSchedule): bool
-    {
-        return $classSchedule->classroom_id == $student->classroom_id;
-    }
-
-    private function isAttendanceAlreadyMarked(int $studentId, int $classId, string $date): bool
-    {
-        return Attendance::where('class_schedule_id', $classId)
-            ->where('student_id', $studentId)
-            ->where('date', $date)
-            ->where('status', 'present')
-            ->exists();
-    }
-
-    private function isSessionActive(int $classId, string $date): bool
-    {
-        return SessionAttendance::where('class_schedule_id', $classId)
-            ->where('session_date', $date)
-            ->where('is_active', true)
-            ->exists();
     }
 }

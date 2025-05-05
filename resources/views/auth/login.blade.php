@@ -161,7 +161,11 @@
         </form>
 
         <div class="forgot-password">
-            <a href="{{ route('register') }}">Dont have an account? <span>Sign up now</span></a>
+            <p>
+                <a href="{{ route('password.request') }}">
+                    <span>Forgot Password?</span>
+                </a>
+            </p>
         </div>
     </div>
 @endsection

@@ -1,0 +1,64 @@
+name: Laravel Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch: # Manual trigger option
+
+permissions:
+  contents: read
+
+jobs:
+  laravel-tests:
+    name: PHP ${{ matrix.php-version }} - Laravel Tests
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: ["8.2", "8.3"]
+
+    services:
+      # If you need a database service other than SQLite, uncomment below
+      # mysql:
+      #   image: mysql:8.0
+      #   env:
+      #     MYSQL_ROOT_PASSWORD: password
+      #     MYSQL_DATABASE: academic_attendance_system_app_test
+      #   ports:
+      #     - 3306:3306
+      #   options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite
+          coverage: none
+
+      - name: Install Composer dependencies
+        uses: ramsey/composer-install@v3
+        with:
+          composer-options: "--prefer-dist --no-interaction"
+
+      - name: Prepare Laravel Application
+        run: |
+          cp .env.testing .env
+          php artisan key:generate
+
+      - name: Run Static Analysis (PHP CS Fixer)
+        run: composer check-style || true
+
+      - name: Run Unit and Feature Tests
+        run: |
+          php artisan config:clear
+          php artisan cache:clear
+          php artisan route:clear
+          php artisan migrate:fresh --env=testing
+          php artisan test --parallel

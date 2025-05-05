@@ -14,10 +14,13 @@ class ClassSchedule extends Model
         'course_id',
         'lecturer_id',
         'classroom_id',
+        'semester_id',        // Add semester_id
+        'study_program_id',   // Add study_program_id
         'room',
         'day',
-        'semester',
-        'academic_year',
+        'semester',           // This will be deprecated in favor of semester_id
+        'total_weeks',
+        'meetings_per_week',
     ];
 
     protected $casts = [
@@ -37,7 +40,17 @@ class ClassSchedule extends Model
 
     public function classroom()
     {
-        return $this->belongsTo(ClassRoom::class);
+        return $this->belongsTo(ClassRoom::class, 'classroom_id');
+    }
+
+    public function semesters()
+    {
+        return $this->belongsTo(Semester::class, 'semester_id');
+    }
+
+    public function studyProgram()
+    {
+        return $this->belongsTo(StudyProgram::class);
     }
 
     public function attendances()
@@ -76,78 +89,11 @@ class ClassSchedule extends Model
         return $excludeId ? $query->where('id', '!=', $excludeId) : $query;
     }
 
-    // Static method to check for time slot availability
-    public static function checkTimeOverlap($start1, $end1, $start2, $end2)
+    public function scopeCurrentSemester($query)
     {
-        $start1 = Carbon::createFromFormat('H:i', $start1);
-        $end1 = Carbon::createFromFormat('H:i', $end1);
-        $start2 = Carbon::createFromFormat('H:i', $start2);
-        $end2 = Carbon::createFromFormat('H:i', $end2);
-
-        return
-            // Start time is within an existing slot
-            ($start1->gte($start2) && $start1->lt($end2)) ||
-            // End time is within an existing slot
-            ($end1->gt($start2) && $end1->lte($end2)) ||
-            // Selected time encloses an existing slot
-            ($start1->lte($start2) && $end1->gte($end2));
-    }
-
-    public static function findConflictingTimeSlots($room, $day, $startTime, $endTime, $lecturer_id = null, $excludeId = null)
-    {
-        $conflicts = [
-            'room' => [],
-            'lecturer' => []
-        ];
-
-        // Check room conflicts
-        $roomSchedules = self::byRoom($room)
-            ->onDay($day)
-            ->exclude($excludeId)
-            ->with(['timeSlots', 'lecturer.user'])
-            ->get();
-
-        foreach ($roomSchedules as $schedule) {
-            foreach ($schedule->timeSlots as $timeSlot) {
-                if (self::checkTimeOverlap(
-                    $startTime,
-                    $endTime,
-                    $timeSlot->start_time->format('H:i'),
-                    $timeSlot->end_time->format('H:i')
-                )) {
-                    $conflicts['room'][] = [
-                        'slot' => $timeSlot->start_time->format('H:i') . ' - ' . $timeSlot->end_time->format('H:i'),
-                        'schedule' => $schedule
-                    ];
-                }
-            }
+        if ($activeSemester = Semester::where('is_active', true)->first()) {
+            return $query->where('semester_id', $activeSemester->id);
         }
-
-        // Check lecturer conflicts
-        if ($lecturer_id) {
-            $lecturerSchedules = self::byLecturer($lecturer_id)
-                ->onDay($day)
-                ->exclude($excludeId)
-                ->with(['timeSlots', 'lecturer.user'])
-                ->get();
-
-            foreach ($lecturerSchedules as $schedule) {
-                foreach ($schedule->timeSlots as $timeSlot) {
-                    if (self::checkTimeOverlap(
-                        $startTime,
-                        $endTime,
-                        $timeSlot->start_time->format('H:i'),
-                        $timeSlot->end_time->format('H:i')
-                    )) {
-                        $conflicts['lecturer'][] = [
-                            'slot' => $timeSlot->start_time->format('H:i') . ' - ' . $timeSlot->end_time->format('H:i'),
-                            'schedule' => $schedule
-                        ];
-                    }
-                }
-            }
-        }
-
-        return $conflicts;
+        return $query;
     }
 }

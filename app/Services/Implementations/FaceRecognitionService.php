@@ -3,6 +3,8 @@
 namespace App\Services\Implementations;
 
 use App\Services\Interfaces\FaceRecognitionServiceInterface;
+use App\Repositories\Interfaces\StudentRepositoryInterface;
+use App\Repositories\Interfaces\FaceDataRepositoryInterface;
 use App\Exceptions\FaceRecognitionException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
@@ -17,12 +19,20 @@ class FaceRecognitionService implements FaceRecognitionServiceInterface
     protected $apiUrl;
     protected $apiKey;
     protected $imageFolderPath;
+    protected $studentRepository;
+    protected $faceDataRepository;
 
-    public function __construct()
+    public function __construct(
+        // Inject repositories if needed
+        StudentRepositoryInterface $studentRepository,
+        FaceDataRepositoryInterface $faceDataRepository
+    )
     {
         $this->apiUrl = config('services.face_recognition.url');
         $this->apiKey = config('services.face_recognition.key');
         $this->imageFolderPath = config('services.face_recognition.storage_path', 'face_images');
+        $this->studentRepository = $studentRepository;
+        $this->faceDataRepository = $faceDataRepository;
     }
 
     public function verifyFace(UploadedFile $image, int $classId, string $nim): array
@@ -41,16 +51,22 @@ class FaceRecognitionService implements FaceRecognitionServiceInterface
                 'nim' => $nim,
             ]);
 
-            // Check if the response is successful and contains JSON
-            if ($response->successful() && $response->json() !== null) {
+            // If successful, just return the response
+            if ($response->successful() && $response->json('status') === 'success') {
                 return $response->json();
             }
+
+            // For errors, map error codes to user-friendly messages
+            $errorData = $response->json();
+            $errorCode = $errorData['code'] ?? 'UNKNOWN_ERROR';
+            $errorMessage = $this->mapErrorCodeToMessage($errorCode, $errorData['message'] ?? 'Face verification failed');
 
             // Handle unsuccessful responses or invalid JSON
             Log::error('Face verification API error: ' . $response->body());
             return [
                 'status' => 'error',
-                'message' => 'Invalid response from face recognition service. Status: ' . $response->status(),
+                'message' => $errorMessage,
+                'code' => $errorCode
             ];
         } catch (FaceRecognitionException $e) {
             Log::error('Face verification validation error', [
@@ -60,6 +76,7 @@ class FaceRecognitionService implements FaceRecognitionServiceInterface
             return [
                 'status' => 'error',
                 'message' => $e->getMessage(),
+                'code' => 'VALIDATION_ERROR'
             ];
         } catch (\Exception $e) {
             Log::error('Face recognition verification error', [
@@ -69,6 +86,7 @@ class FaceRecognitionService implements FaceRecognitionServiceInterface
             return [
                 'status' => 'error',
                 'message' => 'Failed to verify face. Please try again later.',
+                'code' => 'SYSTEM_ERROR'
             ];
         }
     }
@@ -78,10 +96,10 @@ class FaceRecognitionService implements FaceRecognitionServiceInterface
    {
        try {
            $embeddings = [];
-           $imagePaths = [];
+           $imagePaths = null;
 
            // Process each image
-           foreach ($images as $image) {
+           foreach ($images as $index => $image) {
                $this->validateImage($image);
 
                // Send to Flask for embedding extraction
@@ -112,22 +130,28 @@ class FaceRecognitionService implements FaceRecognitionServiceInterface
                $embeddings[] = $responseData['data']['embedding'];
 
                // Store image to storage
-               $imagePaths[] = $this->storeImage($image, $nim);
+               if ($index === 0) {
+                   $imagePaths = $this->storeImage($image, $nim);
+               }
            }
 
            // Calculate average embedding
            $averageEmbedding = $this->averageEmbeddings($embeddings);
 
            // Save to database
-           $student = Student::where('nim', $nim)->firstOrFail();
+           $student = $this->studentRepository->findByNim($nim);
 
-           FaceData::updateOrCreate(
-               ['student_id' => $student->id],
-               [
-                   'face_embedding' => json_encode($averageEmbedding),
-                   'image_path' => json_encode($imagePaths),
-                   'is_active' => true
-               ]
+            if (!$student) {
+                throw new FaceRecognitionException("Student with NIM {$nim} not found");
+            }
+
+           $this->faceDataRepository->createOrUpdate(
+                $student->id,
+                [
+                    'face_embedding' => json_encode($averageEmbedding),
+                    'image_path' => json_encode($imagePaths),
+                    'is_active' => true
+                ]
            );
 
            return [
@@ -136,7 +160,7 @@ class FaceRecognitionService implements FaceRecognitionServiceInterface
                'data' => [
                    'student_id' => $student->id,
                    'nim' => $nim,
-                   'image_count' => count($imagePaths)
+                   'image_count' => 1,
                ]
            ];
 
@@ -180,11 +204,17 @@ class FaceRecognitionService implements FaceRecognitionServiceInterface
                 return $response->json();
             }
 
+             // For errors, map error codes to user-friendly messages
+            $errorData = $response->json();
+            $errorCode = $errorData['code'] ?? 'UNKNOWN_ERROR';
+            $errorMessage = $this->mapErrorCodeToMessage($errorCode, $errorData['message'] ?? 'Unknown error occurred');
+
             // Handle error response
             Log::error('Face quality validation failed: ' . $response->body());
             return [
                 'status' => 'error',
-                'message' => 'Failed to validate image quality. Please try again.',
+                'message' => $errorMessage,
+                'code' => $errorCode
             ];
         } catch (FaceRecognitionException $e) {
             Log::error('Face quality validation parameter error', [
@@ -193,6 +223,7 @@ class FaceRecognitionService implements FaceRecognitionServiceInterface
             return [
                 'status' => 'error',
                 'message' => $e->getMessage(),
+                'code' => 'VALIDATION_ERROR'
             ];
         } catch (\Exception $e) {
             Log::error('Face quality validation error', [
@@ -201,6 +232,7 @@ class FaceRecognitionService implements FaceRecognitionServiceInterface
             return [
                 'status' => 'error',
                 'message' => 'An error occurred during quality validation. Please try again.',
+                'code' => 'SYSTEM_ERROR'
             ];
         }
     }
@@ -277,5 +309,21 @@ class FaceRecognitionService implements FaceRecognitionServiceInterface
         if (!in_array($mimeType, $allowedTypes)) {
             throw new FaceRecognitionException('Invalid image format. Only JPEG and PNG are supported');
         }
+    }
+
+    private function mapErrorCodeToMessage(string $errorCode, string $defaultMessage): string
+    {
+        $errorMessages = [
+            'NoFaceDetectedError' => 'No face detected in the image. Please ensure your face is clearly visible.',
+            'MultipleFacesError' => 'Multiple faces detected. Please ensure only your face is in the frame.',
+            'FaceDetectionError' => 'Could not properly detect face features. Please try with better lighting.',
+            'LOW_QUALITY_IMAGE' => 'The image quality is too low. Please try again with better lighting and less blur.',
+            'StudentNotFoundError' => 'Student record not found. Please contact administrator.',
+            'FaceNotRegisteredError' => 'You have not registered your face yet. Please register first.',
+            'PROCESSING_ERROR' => 'There was an error processing your face image. Please try again.',
+            'QUALITY_VALIDATION_ERROR' => 'There was an error validating the image quality. Please try again.'
+        ];
+
+        return $errorMessages[$errorCode] ?? $defaultMessage;
     }
 }

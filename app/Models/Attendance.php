@@ -15,13 +15,21 @@ class Attendance extends Model
         'date',
         'status',
         'remarks',
+        'edit_notes',
+        'hours_present',
+        'hours_absent',
+        'hours_permitted',
+        'hours_sick',
         'qr_token',
         'attendance_time',
+        'last_edited_by',
+        'last_edited_at',
     ];
 
     protected $casts = [
         'date' => 'date',
         'attendance_time' => 'datetime',
+        'last_edited_at' => 'datetime',
     ];
 
     public function classSchedule()

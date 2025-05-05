@@ -206,7 +206,8 @@
                 <div class="card h-100">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h6 class="card-title fw-semibold mb-0">Recent Attendance Sessions</h6>
-                        <button class="btn btn-sm btn-outline-primary">View All</button>
+                        <a href="{{ route('lecturer.attendance-data.index') }}" class="btn btn-sm btn-outline-primary">View
+                            All</a>
                     </div>
                     <div class="card-body p-0">
                         <div class="table-responsive">
@@ -218,7 +219,6 @@
                                         <th>Present</th>
                                         <th>Absent</th>
                                         <th>Rate</th>
-                                        <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -237,11 +237,6 @@
                                                     </div>
                                                     <span class="small">{{ $stat['presentPercentage'] }}%</span>
                                                 </div>
-                                            </td>
-                                            <td>
-                                                <a href="#" class="btn btn-sm btn-outline-info">
-                                                    <i data-feather="eye" style="width: 14px; height: 14px;"></i>
-                                                </a>
                                             </td>
                                         </tr>
                                     @empty
@@ -279,31 +274,6 @@
                             <small class="text-muted mt-2 d-block">{{ $studentsWithFace }} out of
                                 {{ $totalStudents }} students have registered their face</small>
                         </div>
-
-                        {{-- <div class="card p-3 mb-3 bg-light border-0">
-                            <h6 class="fw-medium mb-3">Quick Actions</h6>
-                            <div class="d-flex gap-2 mb-2">
-                                <button class="btn btn-sm btn-primary">
-                                    <i data-feather="camera" class="me-1" style="width: 14px; height: 14px;"></i> Face
-                                    Registration
-                                </button>
-                                <button class="btn btn-sm btn-outline-secondary">
-                                    <i data-feather="list" class="me-1" style="width: 14px; height: 14px;"></i>
-                                    Unregistered
-                                </button>
-                            </div>
-                            <div class="d-flex gap-2">
-                                <button class="btn btn-sm btn-outline-primary">
-                                    <i data-feather="download" class="me-1" style="width: 14px; height: 14px;"></i>
-                                    Export Data
-                                </button>
-                                <button class="btn btn-sm btn-outline-info">
-                                    <i data-feather="mail" class="me-1" style="width: 14px; height: 14px;"></i> Notify
-                                    Students
-                                </button>
-                            </div>
-                        </div> --}}
-
                         <div class="mt-3">
                             <h6 class="fw-medium mb-3">Upcoming Classes</h6>
                             <div class="list-group list-group-flush">

@@ -151,8 +151,6 @@
                                             <th>NIP</th>
                                             <th>Name</th>
                                             <th>Email</th>
-                                            <th>Department</th>
-                                            <th>Faculty</th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
@@ -163,8 +161,6 @@
                                                 <td>{{ $item->lecturer->nip }}</td>
                                                 <td>{{ $item->name }}</td>
                                                 <td>{{ $item->email }}</td>
-                                                <td>{{ $item->lecturer->department }}</td>
-                                                <td>{{ $item->lecturer->faculty }}</td>
                                                 <td>
                                                     <a href="{{ route('admin.users.edit', $item->id) }}"
                                                         class="btn btn-sm btn-primary btn-icon">
@@ -213,7 +209,7 @@
                                                 <td>{{ $item->student->nim }}</td>
                                                 <td>{{ $item->name }}</td>
                                                 <td>{{ $item->email }}</td>
-                                                <td>{{ $item->student->department }}</td>
+                                                <td>{{ $item->student->studyProgram->name ?? '-' }}</td>
                                                 <td>
                                                     @if ($item->student->face_registered)
                                                         <span class="badge bg-success">Registered</span>

@@ -37,10 +37,10 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script src="{{ asset('assets/vendors/feather-icons/feather.min.js') }}"></script>
-    <script src="{{ asset('assets/js/template.js') }}"></script>
+    {{-- <script src="{{ asset('assets/js/template.js') }}"></script> --}}
 
     @stack('scripts')
-    <script src="{{ asset('assets/static/js/initTheme.js') }}"></script>
+
 </body>
 
 </html>

@@ -6,20 +6,24 @@ use Illuminate\Http\Request;
 use App\Models\ClassSchedule;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use App\Repositories\Interfaces\ClassScheduleRepositoryInterface;
 
 class LecturerScheduleController extends Controller
 {
+    protected $classScheduleRepository;
+
+    public function __construct(ClassScheduleRepositoryInterface $classScheduleRepository)
+    {
+        $this->classScheduleRepository = $classScheduleRepository;
+    }
+
     public function index()
     {
         $this->authorize('viewAny', ClassSchedule::class);
         // Get the associated lecturer model
         $lecturer = Auth::user()->lecturer;
 
-        // get class schedules with course, classroom, and lecturer data
-        $schedules = ClassSchedule::where('lecturer_id', $lecturer->id)
-            ->with(['course', 'classroom', 'lecturer'])
-            ->get();
-        // dd($schedules);
+         $schedules = $this->classScheduleRepository->getSchedulesByLecturerId($lecturer->id);
 
         return view('lecturer.schedule.index', compact('schedules'));
     }

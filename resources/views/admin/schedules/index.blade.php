@@ -32,7 +32,7 @@
                                     <th>No</th>
                                     <th>Course</th>
                                     <th>Lecturer</th>
-                                    <th>Room</th>
+                                    <th>Class/Room</th>
                                     <th>Day</th>
                                     <th>Time Slots</th>
                                     <th>Semester/Year</th>
@@ -42,13 +42,13 @@
                             <tbody>
                                 @forelse($schedules as $key => $schedule)
                                     <tr>
-                                        <td>{{ $schedules->firstItem() + $key }}</td>
+                                        <td>{{ $key + 1 }}</td>
                                         <td>
                                             <strong>{{ $schedule->course->code }}</strong><br>
                                             <small>{{ $schedule->course->name }}</small>
                                         </td>
                                         <td>{{ $schedule->lecturer->user->name ?? 'Unknown' }}</td>
-                                        <td>{{ $schedule->room }}</td>
+                                        <td>{{ $schedule->classroom->name }} | {{ $schedule->room }}</td>
                                         <td>{{ $schedule->day }}</td>
                                         <td>
                                             @if ($schedule->timeSlots->count() > 0)
@@ -60,7 +60,12 @@
                                                 <span class="text-muted">No time slots</span>
                                             @endif
                                         </td>
-                                        <td>{{ $schedule->semester }} / {{ $schedule->academic_year }}</td>
+                                        <td>
+                                            {{ $schedule->semester }} / {{ $schedule->semesters->name }}
+                                            <br>
+                                            <small>{{ $schedule->total_weeks }} weeks, {{ $schedule->meetings_per_week }}
+                                                meeting(s)/week</small>
+                                        </td>
                                         <td>
                                             <a href="{{ route('admin.schedules.show', $schedule->id) }}"
                                                 class="btn btn-sm btn-info btn-icon">

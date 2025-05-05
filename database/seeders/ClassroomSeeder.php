@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\Semester;
+use App\Models\StudyProgram;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -13,22 +15,37 @@ class ClassroomSeeder extends Seeder
      */
     public function run(): void
     {
-        // Reset auto-increment jika diperlukan
+        // Reset auto-increment if needed
         Schema::disableForeignKeyConstraints();
         DB::table('classrooms')->truncate();
         Schema::enableForeignKeyConstraints();
 
-        // Insert dummy classrooms
-        DB::table('classrooms')->insert([
-            ['name' => 'TI 1A', 'department' => 'Teknik Informatika', 'faculty' => 'Fakultas Teknik'],
-            ['name' => 'TI 1B', 'department' => 'Teknik Informatika', 'faculty' => 'Fakultas Teknik'],
-            ['name' => 'TI 1C', 'department' => 'Teknik Informatika', 'faculty' => 'Fakultas Teknik'],
-            ['name' => 'TI 1D', 'department' => 'Teknik Informatika', 'faculty' => 'Fakultas Teknik'],
-            ['name' => 'TI 1E', 'department' => 'Teknik Informatika', 'faculty' => 'Fakultas Teknik'],
-            ['name' => 'TI 1F', 'department' => 'Teknik Informatika', 'faculty' => 'Fakultas Teknik'],
-            ['name' => 'TI 1G', 'department' => 'Teknik Informatika', 'faculty' => 'Fakultas Teknik'],
-            ['name' => 'TI 1H', 'department' => 'Teknik Informatika', 'faculty' => 'Fakultas Teknik'],
-        ]);
+        // Get study programs
+        $studyPrograms = StudyProgram::all();
 
+        // Get the active semester
+        $activeSemester = Semester::where('is_active', true)->first();
+
+        if (!$activeSemester) {
+            // Create semesters if none exist
+            $this->call(SemesterSeeder::class);
+            $activeSemester = Semester::where('is_active', true)->first();
+        }
+
+        // Create classrooms for each study program
+        foreach ($studyPrograms as $program) {
+            $classLevels = ['1A', '1B', '2A', '2B'];
+
+            foreach ($classLevels as $level) {
+                DB::table('classrooms')->insert([
+                    'name' => $level,
+                    'study_program_id' => $program->id,
+                    'semester_id' => $activeSemester->id,
+                    'capacity' => rand(25, 40),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        }
     }
 }

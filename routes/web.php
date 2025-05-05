@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Admin\ClassScheduleController;
 use App\Http\Controllers\Admin\AdminDashboardController;
-use App\Http\Controllers\Admin\AttendanceListController;
+use App\Http\Controllers\Admin\AttendanceDataController;
 use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\Student\StudentScheduleController;
 use App\Http\Controllers\Student\FaceRegistrationController;
@@ -13,6 +13,8 @@ use App\Http\Controllers\Lecturer\LecturerScheduleController;
 use App\Http\Controllers\Student\StudentAttendanceController;
 use App\Http\Controllers\Lecturer\LecturerDashboardController;
 use App\Http\Controllers\Lecturer\LecturerAttendanceController;
+use App\Http\Controllers\Lecturer\LecturerAttendanceDataController;
+use App\Http\Controllers\ProfileController;
 
 Route::get('/', function () {
     return view('auth.login');
@@ -22,12 +24,27 @@ Route::get('/', function () {
 Route::group(['middleware' => 'guest'], function () {
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
-    Route::get('/register', [AuthController::class, 'showRegistrationForm'])->name('register');
-    Route::post('/register', [AuthController::class, 'register'])->name('register.submit');
+    // Add these to your routes/web.php
+    Route::get('/forgot-password', function () {
+        return view('auth.forgot-password');
+    })->name('password.request');
+    Route::post('/forgot-password', [AuthController::class, 'sendResetLink'])
+        ->name('password.email');
+    Route::get('/reset-password/{token}', function ($token) {
+        return view('auth.reset-password', ['token' => $token]);
+    })->name('password.reset');
+    Route::post('/reset-password', [AuthController::class, 'resetPassword'])
+        ->name('password.update');
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
+// Profile routes - accessible to all authenticated users
+Route::middleware(['auth'])->group(function () {
+    Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
+    Route::get('/profile/change-password', [ProfileController::class, 'changePassword'])->name('profile.change-password');
+    Route::post('/profile/update-password', [ProfileController::class, 'updatePassword'])->name('profile.update-password');
+});
 // Admin routes
 Route::group(['middleware' => ['auth', 'role:admin'], 'prefix' => 'admin', 'as' => 'admin.'], function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
@@ -41,9 +58,10 @@ Route::group(['middleware' => ['auth', 'role:admin'], 'prefix' => 'admin', 'as' 
     // User management routes
     Route::resource('users', UserManagementController::class);
 
-    // Attendance list
-    Route::get('attendance', [AttendanceListController::class, 'index'])->name('attendance.index');
-    Route::post('attendance/update-status', [AttendanceListController::class, 'updateStatus'])->name('attendance.update-status');
+    // Attendance management routes
+    Route::get('attendance', [AttendanceDataController::class, 'index'])->name('attendance.index');
+    Route::get('attendance/session/{session}', [AttendanceDataController::class, 'editSession'])->name('attendance.edit-session');
+    Route::post('attendance/update-status', [AttendanceDataController::class, 'updateStatus'])->name('attendance.update-status');
 });
 
 // Lecturer routes
@@ -63,11 +81,18 @@ Route::group(['middleware' => ['auth', 'role:lecturer'], 'prefix' => 'lecturer',
         ->where('date', '\d{4}-\d{2}-\d{2}');
     Route::post('/attendance/extend-time/{classSchedule}/{date}', [LecturerAttendanceController::class, 'extendTime'])
         ->name('attendance.extend_time');
+    // Inside lecturer routes group
+    Route::get('/attendance/get-used-sessions/{classSchedule}', [LecturerAttendanceController::class, 'getUsedSessions'])
+    ->name('attendance.get-used-sessions');
 
     // General routes - THESE COME AFTER THE SPECIFIC ONES
     Route::get('/attendance/{classSchedule}', [LecturerAttendanceController::class, 'show'])->name('attendance.show');
     Route::get('/attendance/{classSchedule}/edit', [LecturerAttendanceController::class, 'edit'])->name('attendance.edit');
     Route::put('/attendance/update/{attendance}', [LecturerAttendanceController::class, 'update'])->name('attendance.update');
+
+    Route::get('data', [LecturerAttendanceDataController::class, 'index'])->name('attendance-data.index');
+    Route::get('data/session/{session}', [LecturerAttendanceDataController::class, 'editSession'])->name('attendance-data.edit-session');
+    Route::post('data/update-status', [LecturerAttendanceDataController::class, 'updateStatus'])->name('attendance-data.update-status');
 });
 
 // Student routes

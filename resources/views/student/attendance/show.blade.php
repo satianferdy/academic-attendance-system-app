@@ -405,6 +405,20 @@
 
             let stream;
 
+            // Add this function at the top of your script
+            function showError(message, timeout = 5000) {
+                errorMessageText.textContent = message;
+                errorMessage.style.display = 'block';
+
+                // Optional: scroll to error message to ensure visibility
+                if (typeof errorMessage.scrollIntoView === 'function') {
+                    errorMessage.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'nearest'
+                    });
+                }
+            }
+
             // Function to get available video devices and select the appropriate one
             async function getVideoDevices() {
                 try {
@@ -440,7 +454,7 @@
                             !label.includes('display');
                     });
 
-                    console.log('Filtered real cameras:', realCameras);
+                    // console.log('Filtered real cameras:', realCameras);
 
                     // If we have real cameras, use the last one (likely external)
                     if (realCameras.length > 0) {
@@ -517,7 +531,7 @@
                             });
                             video.srcObject = stream;
                         } catch (err) {
-                            console.error('Error switching camera:', err);
+                            // console.error('Error switching camera:', err);
                             errorMessageText.textContent = 'Error switching camera: ' + err.message;
                             errorMessage.style.display = 'block';
                         }
@@ -539,6 +553,7 @@
                     // Configure constraints based on available devices
                     const constraints = {
                         video: {
+                            facingMode: 'user', // Use front camera
                             width: {
                                 ideal: 1280
                             },
@@ -566,14 +581,14 @@
                         cameraSelector.value = deviceId;
                     }
 
-                    console.log('Camera started with device ID:', deviceId);
+                    // console.log('Camera started with device ID:', deviceId);
                 } catch (err) {
                     console.error('Camera access error:', err);
 
                     // If specific device fails, try again without specifying device
                     if (err.name === 'OverconstrainedError' || err.name === 'ConstraintNotSatisfiedError') {
                         try {
-                            console.log('Falling back to default camera');
+                            // console.log('Falling back to default camera');
                             stream = await navigator.mediaDevices.getUserMedia({
                                 video: true
                             });
@@ -617,6 +632,7 @@
             // Submit the photo for attendance verification
             submitBtn.addEventListener('click', function() {
                 loadingOverlay.style.display = 'flex';
+                errorMessage.style.display = 'none'; // Hide any previous error
 
                 // Convert base64 to blob
                 const base64 = imageData.value.split(',')[1];
@@ -655,9 +671,8 @@
                     })
                     .then(response => response.json())
                     .then(data => {
+                        // console.log('Response data:', data);
                         loadingOverlay.style.display = 'none';
-
-                        console.log(data);
 
                         if (data.success === true || data.status === 'success') {
                             // Show SweetAlert
@@ -673,19 +688,25 @@
                                     "{{ route('student.attendance.index') }}";
                             });
                         } else {
-                            errorMessageText.textContent = data.message ||
-                                'Verification failed. Please try again.';
-                            errorMessage.style.display = 'block';
+                            // Just display the error message from the server
+                            const errorMsg = data.message || 'Verification failed. Please try again.';
+                            // Show the error message
+                            showError(errorMsg);
+
                             videoContainer.style.display = 'block';
                             previewContainer.style.display = 'none';
                         }
                     })
                     .catch(error => {
+                        // console.error('Fetch error:', error);
                         loadingOverlay.style.display = 'none';
-                        errorMessageText.textContent =
-                            'An error occurred during verification. Please try again.';
-                        errorMessage.style.display = 'block';
-                        console.error('Error:', error);
+
+                        // Show a generic error message for network or parsing errors
+                        showError('A network error occurred during verification. Please try again.');
+
+                        // Return to camera view
+                        videoContainer.style.display = 'block';
+                        previewContainer.style.display = 'none';
                     });
             });
 

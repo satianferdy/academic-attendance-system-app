@@ -27,15 +27,15 @@
                         </div>
                         <ul class="list-unstyled p-1">
                             <li class="dropdown-item py-2">
-                                <a href="#" class="text-body ms-0">
+                                <a href="{{ route('profile.index') }}" class="text-body ms-0">
                                     <i class="me-2 icon-md" data-feather="user"></i>
                                     <span>Profile</span>
                                 </a>
                             </li>
                             <li class="dropdown-item py-2">
-                                <a href="#" class="text-body ms-0">
+                                <a href="{{ route('profile.change-password') }}" class="text-body ms-0">
                                     <i class="me-2 icon-md" data-feather="edit"></i>
-                                    <span>Edit Profile</span>
+                                    <span>Change Password</span>
                                 </a>
                             </li>
                             <li class="dropdown-item py-2">

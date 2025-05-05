@@ -10,6 +10,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
+use Illuminate\Auth\Events\PasswordReset;
 
 class AuthController extends Controller
 {
@@ -20,6 +24,14 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
+        if (RateLimiter::tooManyAttempts('login-attempts:'.$request->ip(), 5)) {
+            $seconds = RateLimiter::availableIn('login-attempts:'.$request->ip());
+
+            return redirect()->back()
+                ->withInput($request->only('username'))
+                ->withErrors(['username' => "Too many login attempts. Please try again in {$seconds} seconds."]);
+        }
+
         $validator = Validator::make($request->all(), [
             'username' => 'required|string',
             'password' => 'required',
@@ -59,12 +71,9 @@ class AuthController extends Controller
             Auth::login($user);
             $request->session()->regenerate();
 
-            // Redirect based on user role
-            $role = $user->role;
-
-            if ($role === 'admin') {
+            if ($user->hasRole('admin')) {
                 return redirect()->route('admin.dashboard');
-            } elseif ($role === 'lecturer') {
+            } elseif ($user->hasRole('lecturer')) {
                 return redirect()->route('lecturer.dashboard');
             } else {
                 return redirect()->route('student.dashboard');
@@ -85,81 +94,42 @@ class AuthController extends Controller
         return redirect('/');
     }
 
-    public function showRegistrationForm()
+    public function sendResetLink(Request $request)
     {
-        return view('auth.register');
+        $request->validate(['email' => 'required|email']);
+
+        $status = Password::sendResetLink(
+            $request->only('email')
+        );
+
+        return $status === Password::RESET_LINK_SENT
+                    ? back()->with(['status' => __($status)])
+                    : back()->withErrors(['email' => __($status)]);
     }
 
-    public function register(Request $request)
+    public function resetPassword(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-            'role' => 'required|in:student,lecturer',
+        $request->validate([
+            'token' => 'required',
+            'email' => 'required|email',
+            'password' => 'required|min:8|confirmed',
         ]);
 
-        if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
-        }
+        $status = Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function ($user, $password) {
+                $user->forceFill([
+                    'password' => Hash::make($password)
+                ])->setRememberToken(Str::random(60));
 
-        // Create user
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role' => $request->role,
-        ]);
+                $user->save();
 
-        // Create role-specific profile
-        if ($request->role === 'student') {
-            $validator = Validator::make($request->all(), [
-                'nim' => 'required|string|max:20|unique:students',
-                'student_department' => 'required|string|max:100',
-                'student_faculty' => 'required|string|max:100',
-            ]);
-
-            if ($validator->fails()) {
-                $user->delete();
-                return redirect()->back()
-                    ->withErrors($validator)
-                    ->withInput();
+                event(new PasswordReset($user));
             }
+        );
 
-            Student::create([
-                'user_id' => $user->id,
-                'nim' => $request->nim,
-                'department' => $request->student_department,
-                'faculty' => $request->student_faculty,
-                'face_registered' => false,
-            ]);
-        } else {
-            $validator = Validator::make($request->all(), [
-                'nip' => 'required|string|max:20|unique:lecturers',
-                'lecturer_department' => 'required|string|max:100',
-                'lecturer_faculty' => 'required|string|max:100',
-            ]);
-
-            if ($validator->fails()) {
-                $user->delete();
-                return redirect()->back()
-                    ->withErrors($validator)
-                    ->withInput();
-            }
-
-            Lecturer::create([
-                'user_id' => $user->id,
-                'nip' => $request->nip,
-                'department' => $request->lecturer_department,
-                'faculty' => $request->lecturer_faculty,
-            ]);
-        }
-
-        // Log in the user
-        Auth::login($user);
-
-        return redirect()->route($user->role . '.dashboard');
+        return $status === Password::PASSWORD_RESET
+                    ? redirect()->route('login')->with('status', __($status))
+                    : back()->withErrors(['email' => [__($status)]]);
     }
 }

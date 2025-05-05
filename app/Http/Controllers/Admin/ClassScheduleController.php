@@ -9,24 +9,29 @@ use App\Models\ClassSchedule;
 use App\Models\Lecturer;
 use App\Models\ClassRoom;
 use App\Models\Course;
+use App\Models\Semester;
 use App\Services\Interfaces\ScheduleServiceInterface;
+use App\Repositories\Interfaces\ClassScheduleRepositoryInterface;
 use Illuminate\Http\Request;
 
 class ClassScheduleController extends Controller
 {
     protected $scheduleService;
+    protected $classScheduleRepository;
 
     public function __construct(
-        ScheduleServiceInterface $scheduleService
+        ScheduleServiceInterface $scheduleService,
+        ClassScheduleRepositoryInterface $classScheduleRepository
     ) {
         $this->scheduleService = $scheduleService;
+        $this->classScheduleRepository = $classScheduleRepository;
     }
 
     public function index()
     {
         $this->authorize('viewAny', ClassSchedule::class);
 
-        $schedules = ClassSchedule::with(['lecturer.user', 'course', 'classroom'])->paginate(10);
+        $schedules = $this->classScheduleRepository->getAllSchedules();
         return view('admin.schedules.index', compact('schedules'));
     }
 
@@ -35,12 +40,13 @@ class ClassScheduleController extends Controller
         $this->authorize('create', ClassSchedule::class);
 
         $courses = Course::all();
-        $classrooms = ClassRoom::all();
+        $classrooms = ClassRoom::with('studyProgram')->get();
         $lecturers = Lecturer::with('user')->get();
         $days = $this->scheduleService->getWeekdays();
         $timeSlots = $this->scheduleService->generateTimeSlots();
+        $semesters = Semester::orderBy('is_active', 'desc')->orderBy('start_date', 'desc')->get();
 
-        return view('admin.schedules.create', compact('lecturers', 'days', 'timeSlots', 'classrooms', 'courses'));
+        return view('admin.schedules.create', compact('lecturers', 'days', 'timeSlots', 'classrooms', 'courses', 'semesters'));
     }
 
     public function store(StoreScheduleRequest $request)
@@ -74,7 +80,7 @@ class ClassScheduleController extends Controller
     {
         $this->authorize('view', $schedule);
 
-        $schedule->load(['timeSlots', 'lecturer.user', 'course', 'classroom']);
+        $schedule->load(['lecturer.user', 'course', 'classroom', 'timeSlots', 'semesters', 'studyProgram']);
         return view('admin.schedules.show', compact('schedule'));
     }
 
@@ -89,10 +95,12 @@ class ClassScheduleController extends Controller
         $selectedTimeSlots = $schedule->timeSlots->map(function($slot) {
             return $slot->start_time->format('H:i') . ' - ' . $slot->end_time->format('H:i');
         })->toArray();
-        $classrooms = ClassRoom::all();
+        $classrooms = ClassRoom::with('studyProgram')->get();
         $courses = Course::all();
+        $semesters = Semester::orderBy('is_active', 'desc')->orderBy('start_date', 'desc')->get();
 
-        return view('admin.schedules.edit', compact('schedule', 'lecturers', 'days', 'timeSlots', 'selectedTimeSlots', 'classrooms', 'courses'));
+
+        return view('admin.schedules.edit', compact('schedule', 'lecturers', 'days', 'timeSlots', 'selectedTimeSlots', 'classrooms', 'courses', 'semesters'));
     }
 
     public function update(UpdateScheduleRequest $request, ClassSchedule $schedule)
@@ -127,7 +135,7 @@ class ClassScheduleController extends Controller
     {
         $this->authorize('delete', $schedule);
 
-        $schedule->delete();
+        $this->classScheduleRepository->deleteSchedule($schedule->id);
         return redirect()->route('admin.schedules.index')
             ->with('success', 'Class schedule deleted successfully.');
     }
