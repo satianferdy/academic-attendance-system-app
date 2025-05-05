@@ -47,10 +47,7 @@ jobs:
         run: |
           mkdir -p database
           touch database/database.sqlite
-          php artisan migrate --env=testing --force
-          php artisan cache:table
-          php artisan migrate --env=testing
+          echo "CACHE_DRIVER=array" >> .env
           php artisan config:clear
-          php artisan cache:clear
-          php artisan route:clear
+          php artisan migrate:fresh --env=testing --seed --force
           php artisan test
