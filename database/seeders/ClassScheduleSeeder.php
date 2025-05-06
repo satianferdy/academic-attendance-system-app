@@ -62,8 +62,7 @@ class ClassScheduleSeeder extends Seeder
                 ['14:00', '15:00']
             ],
             [
-                ['15:00', '16:00'],
-                ['16:00', '17:00']
+                ['15:00', '16:00']
             ]
         ];
 
@@ -78,7 +77,7 @@ class ClassScheduleSeeder extends Seeder
         $schedulesCreated = 0;
         $timeSlotsCreated = 0;
 
-        // For each classroom, create some schedules
+        // For each classroom, create schedules for ALL courses in the study program
         foreach ($classrooms as $classroom) {
             // Get courses for this classroom's study program
             $courses = Course::where('study_program_id', $classroom->study_program_id)->get();
@@ -87,50 +86,47 @@ class ClassScheduleSeeder extends Seeder
                 continue; // Skip if no courses for this study program
             }
 
-            // Create 3-5 schedules per classroom
-            $schedulesPerClass = rand(3, 5);
-
             // Keep track of assigned days and times to avoid conflicts
             $assignedSlots = [];
 
-            for ($i = 0; $i < $schedulesPerClass; $i++) {
-                // Pick a random course from this study program
-                $course = $courses->random();
-
+            // Create a schedule for EACH course (not randomly selected ones)
+            foreach ($courses as $course) {
                 // Pick a random lecturer
                 $lecturer = $lecturers->random();
 
-                // Pick a random day
-                $day = $days[array_rand($days)];
-
-                // Pick a random time slot block
-                $blockIndex = array_rand($timeSlotBlocks);
-                $timeSlotBlock = $timeSlotBlocks[$blockIndex];
-
-                // Pick a random room
-                $room = $rooms[array_rand($rooms)];
-
-                // Check for conflicts (same day and time)
-                $slotKey = $day . '_' . $blockIndex . '_' . $room;
-
-                // If this slot is already assigned, try up to 5 more times
+                // Try to find a non-conflicting day and time slot
+                $slotAssigned = false;
+                $maxAttempts = 10; // Limit attempts to prevent infinite loops
                 $attempts = 0;
-                while (in_array($slotKey, $assignedSlots) && $attempts < 5) {
+
+                while (!$slotAssigned && $attempts < $maxAttempts) {
+                    // Pick a random day
                     $day = $days[array_rand($days)];
+
+                    // Pick a random time slot block
                     $blockIndex = array_rand($timeSlotBlocks);
                     $timeSlotBlock = $timeSlotBlocks[$blockIndex];
+
+                    // Pick a random room
                     $room = $rooms[array_rand($rooms)];
+
+                    // Check for conflicts (same day and time)
                     $slotKey = $day . '_' . $blockIndex . '_' . $room;
+
+                    if (!in_array($slotKey, $assignedSlots)) {
+                        // Mark this slot as assigned
+                        $assignedSlots[] = $slotKey;
+                        $slotAssigned = true;
+                    }
+
                     $attempts++;
                 }
 
-                // If still conflict after 5 attempts, skip this schedule
-                if (in_array($slotKey, $assignedSlots)) {
+                // If couldn't find a non-conflicting slot after max attempts, continue to next course
+                if (!$slotAssigned) {
+                    $this->command->warning("Could not find non-conflicting slot for {$course->name} in {$classroom->name} after {$maxAttempts} attempts.");
                     continue;
                 }
-
-                // Mark this slot as assigned
-                $assignedSlots[] = $slotKey;
 
                 // Create class schedule
                 $schedule = ClassSchedule::create([
@@ -146,7 +142,7 @@ class ClassScheduleSeeder extends Seeder
                     'meetings_per_week' => 1,
                 ]);
 
-                // Create two sequential time slots (2 hours)
+                // Create time slots for this schedule
                 foreach ($timeSlotBlock as $timeSlot) {
                     ScheduleTimeSlot::create([
                         'class_schedule_id' => $schedule->id,
@@ -160,7 +156,7 @@ class ClassScheduleSeeder extends Seeder
             }
         }
 
-        $this->command->info("Created {$schedulesCreated} class schedules with {$timeSlotsCreated} time slots (2 hours each).");
+        $this->command->info("Created {$schedulesCreated} class schedules with {$timeSlotsCreated} time slots.");
     }
 
     /**
