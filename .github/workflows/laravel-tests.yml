@@ -45,8 +45,6 @@ jobs:
 
       - name: Run Unit and Feature Tests
         run: |
-          mkdir -p database
-          touch database/database.sqlite
           echo "CACHE_DRIVER=array" >> .env
           php artisan config:clear
           php artisan migrate:fresh --env=testing --seed --force

@@ -82,7 +82,7 @@ class LecturerAttendanceDataController extends Controller
             // Verify the selected schedule belongs to this lecturer
             $schedule = ClassSchedule::find($selectedScheduleId);
             if (!$schedule || $schedule->lecturer_id != $lecturer->id) {
-                return redirect()->route('lecturer.attendance.data.index')
+                return redirect()->route('lecturer.attendance-data.index')
                     ->with('error', 'Unauthorized access to this class schedule');
             }
 
@@ -313,68 +313,4 @@ class LecturerAttendanceDataController extends Controller
         return $session ? $session->total_hours : 4; // Default to 4 if session not found
     }
 
-    /**
-     * Export attendance data for a class
-     */
-    // public function exportAttendance(Request $request, $classScheduleId)
-    // {
-    //     $lecturer = Auth::user()->lecturer;
-
-    //     // Verify the selected schedule belongs to this lecturer
-    //     $schedule = ClassSchedule::with(['course', 'classroom', 'students.user'])
-    //         ->find($classScheduleId);
-
-    //     if (!$schedule || $schedule->lecturer_id != $lecturer->id) {
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => 'Unauthorized access to this class schedule'
-    //         ], 403);
-    //     }
-
-    //     // Get all sessions
-    //     $sessions = $this->sessionRepository->getSessionsByClassSchedule($classScheduleId);
-
-    //     // Get all students
-    //     $students = $schedule->students()->with('user')->get();
-
-    //     // Prepare data for export
-    //     $exportData = [];
-
-    //     foreach ($students as $student) {
-    //         $studentData = [
-    //             'student_id' => $student->nim,
-    //             'name' => $student->user->name,
-    //             'sessions' => []
-    //         ];
-
-    //         foreach ($sessions as $session) {
-    //             $attendance = Attendance::where('class_schedule_id', $classScheduleId)
-    //                 ->where('student_id', $student->id)
-    //                 ->whereDate('date', $session->session_date)
-    //                 ->first();
-
-    //             $sessionData = [
-    //                 'date' => $session->session_date->format('Y-m-d'),
-    //                 'week' => $session->week,
-    //                 'meeting' => $session->meetings,
-    //                 'status' => $attendance ? $attendance->status : 'absent',
-    //                 'hours_present' => $attendance ? $attendance->hours_present : 0,
-    //                 'hours_absent' => $attendance ? $attendance->hours_absent : $session->total_hours,
-    //                 'hours_permitted' => $attendance ? $attendance->hours_permitted : 0,
-    //                 'hours_sick' => $attendance ? $attendance->hours_sick : 0,
-    //             ];
-
-    //             $studentData['sessions'][] = $sessionData;
-    //         }
-
-    //         $exportData[] = $studentData;
-    //     }
-
-    //     return response()->json([
-    //         'success' => true,
-    //         'course' => $schedule->course->name,
-    //         'classroom' => $schedule->classroom->name,
-    //         'data' => $exportData
-    //     ]);
-    // }
 }

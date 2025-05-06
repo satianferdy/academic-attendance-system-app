@@ -23,6 +23,7 @@ class CourseSeeder extends Seeder
             ['name' => 'Basis Data Lanjut', 'code' => 'TI102', 'credits' => 3],
             ['name' => 'Pemrograman Web', 'code' => 'TI103', 'credits' => 4],
             ['name' => 'Jaringan Komputer', 'code' => 'TI104', 'credits' => 3],
+            ['name' => 'Kecerdasan Buatan', 'code' => 'TI107', 'credits' => 3],
         ];
 
         // SIB Program Courses
@@ -30,6 +31,8 @@ class CourseSeeder extends Seeder
             ['name' => 'Sistem Informasi Bisnis', 'code' => 'SIB101', 'credits' => 3],
             ['name' => 'Analisis Proses Bisnis', 'code' => 'SIB102', 'credits' => 3],
             ['name' => 'Manajemen Basis Data', 'code' => 'SIB103', 'credits' => 3],
+            ['name' => 'Pengembangan Sistem Informasi', 'code' => 'SIB104', 'credits' => 4],
+            ['name' => 'Keamanan Sistem Informasi', 'code' => 'SIB105', 'credits' => 3],
         ];
 
         // Insert courses for TI Program
