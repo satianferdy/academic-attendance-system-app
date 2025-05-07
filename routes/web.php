@@ -16,6 +16,7 @@ use App\Http\Controllers\Student\StudentAttendanceController;
 use App\Http\Controllers\Lecturer\LecturerDashboardController;
 use App\Http\Controllers\Lecturer\LecturerAttendanceController;
 use App\Http\Controllers\Lecturer\LecturerAttendanceDataController;
+use App\Http\Controllers\FaceImageController;
 
 Route::get('/', function () {
     return view('auth.login');
@@ -45,6 +46,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
     Route::get('/profile/change-password', [ProfileController::class, 'changePassword'])->name('profile.change-password');
     Route::post('/profile/update-password', [ProfileController::class, 'updatePassword'])->name('profile.update-password');
+
+    Route::get('/face-images/{studentId}', [FaceImageController::class, 'show'])
+    ->name('face-images.show');
 });
 // Admin routes
 Route::group(['middleware' => ['auth', 'role:admin'], 'prefix' => 'admin', 'as' => 'admin.'], function () {

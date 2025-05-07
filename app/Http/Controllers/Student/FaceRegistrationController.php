@@ -157,7 +157,7 @@ class FaceRegistrationController extends Controller
                 // Update student status
                 $this->studentRepository->updateFaceRegistered($student->id, true);
 
-                // If this was an update from an approved request, mark it as completed
+               // If this was an update from an approved request, mark it as completed
                 if ($isUpdate && $updateRequestId) {
                     $updateRequest = FaceUpdateRequest::where('id', $updateRequestId)
                         ->where('student_id', $student->id)
@@ -165,10 +165,9 @@ class FaceRegistrationController extends Controller
                         ->first();
 
                     if ($updateRequest) {
-                        // You could add a 'completed' status or just keep it as approved
-                        // This is optional and depends on your business requirements
+                        // Change this part - add a new 'completed' status instead of keeping it 'approved'
                         $updateRequest->update([
-                            'status' => 'approved',
+                            'status' => 'completed', // Change from 'approved' to 'completed'
                             'admin_notes' => ($updateRequest->admin_notes ? $updateRequest->admin_notes . ' | ' : '') . 'Update completed on ' . now()->format('Y-m-d H:i:s'),
                         ]);
                     }

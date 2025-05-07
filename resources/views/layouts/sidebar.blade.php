@@ -51,6 +51,18 @@
                                 Management</span>
                         </a>
                     </li>
+
+                    {{-- face-rquests --}}
+                    <li class="nav-item">
+                        <a href="{{ route('admin.face-requests.index') }}"
+                            class="nav-link {{ request()->routeIs('admin.face-requests.*') ? 'active' : '' }}">
+                            <i class="link-icon" data-feather="camera"></i>
+                            <span
+                                class="link-title
+                                {{ request()->routeIs('admin.face-requests.*') ? 'active' : '' }}">Face
+                                Update Requests</span>
+                        </a>
+                    </li>
                 @endif
 
 

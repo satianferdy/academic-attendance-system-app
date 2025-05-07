@@ -15,10 +15,6 @@
             text-align: center;
         }
 
-        .action-btn {
-            margin-right: 5px;
-        }
-
         .face-image {
             max-width: 100%;
             height: auto;
@@ -33,12 +29,23 @@
             min-width: 80px;
         }
 
-        .request-reason {
-            background-color: #f8f9fa;
+        .face-image {
+            max-width: 100%;
+            height: auto;
             border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 15px;
-            border-left: 4px solid #6571ff;
+            transition: opacity 0.3s;
+        }
+
+        .face-image.loading {
+            opacity: 0.6;
+        }
+
+        /* Add a fancy background for the image container */
+        .image-container {
+            background: #f5f5f5;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: inline-block;
         }
     </style>
 @endpush
@@ -59,25 +66,29 @@
                         <h6 class="card-title">Face Update Requests</h6>
 
                         <div class="d-flex gap-2">
-                            <a href="{{ route('admin.face-requests.index', ['status' => 'pending']) }}"
-                                class="btn btn-sm {{ $status === 'pending' ? 'btn-primary' : 'btn-outline-primary' }}">
-                                Pending
+                            <button type="button"
+                                onclick="window.location.href='{{ route('admin.face-requests.index', ['status' => 'pending']) }}'"
+                                class="btn btn-icon-text btn-xs {{ $status === 'pending' ? 'btn-primary' : 'btn-outline-primary' }} me-1">
+                                <i data-feather="clock" class="icon-xs"></i> Pending
                                 @if ($pendingCount = \App\Models\FaceUpdateRequest::where('status', 'pending')->count())
                                     <span class="badge badge-counter bg-danger">{{ $pendingCount }}</span>
                                 @endif
-                            </a>
-                            <a href="{{ route('admin.face-requests.index', ['status' => 'approved']) }}"
-                                class="btn btn-sm {{ $status === 'approved' ? 'btn-success' : 'btn-outline-success' }}">
-                                Approved
-                            </a>
-                            <a href="{{ route('admin.face-requests.index', ['status' => 'rejected']) }}"
-                                class="btn btn-sm {{ $status === 'rejected' ? 'btn-danger' : 'btn-outline-danger' }}">
-                                Rejected
-                            </a>
-                            <a href="{{ route('admin.face-requests.index', ['status' => 'all']) }}"
-                                class="btn btn-sm {{ $status === 'all' ? 'btn-secondary' : 'btn-outline-secondary' }}">
-                                All
-                            </a>
+                            </button>
+                            <button type="button"
+                                onclick="window.location.href='{{ route('admin.face-requests.index', ['status' => 'approved']) }}'"
+                                class="btn btn-icon-text btn-xs {{ $status === 'approved' ? 'btn-success' : 'btn-outline-success' }} me-1">
+                                <i data-feather="check-circle" class="icon-xs"></i> Approved
+                            </button>
+                            <button type="button"
+                                onclick="window.location.href='{{ route('admin.face-requests.index', ['status' => 'rejected']) }}'"
+                                class="btn btn-icon-text btn-xs {{ $status === 'rejected' ? 'btn-danger' : 'btn-outline-danger' }} me-1">
+                                <i data-feather="x-circle" class="icon-xs"></i> Rejected
+                            </button>
+                            <button type="button"
+                                onclick="window.location.href='{{ route('admin.face-requests.index', ['status' => 'all']) }}'"
+                                class="btn btn-icon-text btn-xs {{ $status === 'all' ? 'btn-secondary' : 'btn-outline-secondary' }} me-1">
+                                <i data-feather="list" class="icon-xs"></i> All
+                            </button>
                         </div>
                     </div>
 
@@ -126,23 +137,25 @@
                                                 data-nim="{{ $request->student->nim }}"
                                                 data-created="{{ $request->created_at->format('M d, Y H:i') }}"
                                                 data-reason="{{ $request->reason }}" data-status="{{ $request->status }}"
-                                                data-face-img="{{ $request->student->faceData && isset(json_decode($request->student->faceData->image_path, true)['path'])
-                                                    ? Storage::url(json_decode($request->student->faceData->image_path, true)['path'])
-                                                    : asset('assets/images/placeholder-face.jpg') }}">
+                                                data-face-img="{{ route('face-images.show', $request->student_id) }}">
                                                 <i class="btn-icon-prepend" data-feather="eye"></i>
                                             </a>
 
                                             @if ($request->status === 'pending')
-                                                <button class="btn btn-sm btn-success" data-bs-toggle="modal"
-                                                    data-bs-target="#approveModal" data-id="{{ $request->id }}"
-                                                    data-name="{{ $request->student->user->name }}">
-                                                    Approve
-                                                </button>
-                                                <button class="btn btn-sm btn-danger" data-bs-toggle="modal"
-                                                    data-bs-target="#rejectModal" data-id="{{ $request->id }}"
-                                                    data-name="{{ $request->student->user->name }}">
-                                                    Reject
-                                                </button>
+                                                <a href="#" class="btn btn-sm btn-success btn-icon"
+                                                    data-bs-toggle="modal" data-bs-target="#approveModal"
+                                                    data-id="{{ $request->id }}"
+                                                    data-name="{{ $request->student->user->name }}"
+                                                    data-bs-toggle="tooltip" title="Approve">
+                                                    <i data-feather="check"></i>
+                                                </a>
+                                                <a href="#" class="btn btn-sm btn-danger btn-icon"
+                                                    data-bs-toggle="modal" data-bs-target="#rejectModal"
+                                                    data-id="{{ $request->id }}"
+                                                    data-name="{{ $request->student->user->name }}"
+                                                    data-bs-toggle="tooltip" title="Reject">
+                                                    <i data-feather="x"></i>
+                                                </a>
                                             @endif
                                         </td>
                                     </tr>
@@ -180,13 +193,15 @@
                         <p class="text-muted request-date mb-0"></p>
                     </div>
 
-                    <div class="request-reason mb-3">
+                    <div class="mb-3">
                         <h6 class="mb-2">Reason for Update:</h6>
                         <p class="reason-text mb-0"></p>
                     </div>
 
                     <h6 class="mb-3">Current Face Image:</h6>
-                    <img src="" alt="Face Image" class="face-image mb-3" id="faceImage">
+                    <div class="image-container">
+                        <img src="" alt="Face Image" class="face-image mb-3" id="faceImage">
+                    </div>
 
                     <div class="request-status">
                         <span class="badge status-badge"></span>
@@ -285,9 +300,22 @@
                 viewFaceModal.querySelector('.student-nim').textContent = 'NIM: ' + studentNim;
                 viewFaceModal.querySelector('.request-date').textContent = 'Submitted: ' + createdDate;
                 viewFaceModal.querySelector('.reason-text').textContent = reason;
-                viewFaceModal.querySelector('#faceImage').src = faceImg;
 
-                // Set status badge
+                // Set the face image source - this is the key change
+                const faceImage = viewFaceModal.querySelector('#faceImage');
+                faceImage.src = faceImg;
+
+                // Add loading indicator and error handling
+                faceImage.classList.add('loading');
+                faceImage.onload = function() {
+                    faceImage.classList.remove('loading');
+                };
+                faceImage.onerror = function() {
+                    faceImage.src = '/assets/images/reg-face.jpg'; // Fallback image
+                    faceImage.classList.remove('loading');
+                };
+
+                // Set status badge (unchanged)
                 const statusBadge = viewFaceModal.querySelector('.status-badge');
                 statusBadge.textContent = status.charAt(0).toUpperCase() + status.slice(1);
                 statusBadge.className = 'badge status-badge';
