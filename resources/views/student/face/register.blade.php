@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Register Face')
+@section('title', isset($isUpdate) ? 'Update Face' : 'Register Face')
 
 @push('styles')
     <style>
@@ -239,6 +239,22 @@
             margin-bottom: 0;
             font-size: 0.9rem;
         }
+
+        /* Previous face image styles */
+        .previous-face {
+            max-width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Update notification */
+        .update-notification {
+            background-color: rgba(13, 110, 253, 0.1);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-left: 4px solid #0d6efd;
+        }
     </style>
 @endpush
 
@@ -246,7 +262,7 @@
     <div class="dashboard-container">
         <!-- Header Banner -->
         <div class="dashboard-header bg-primary mb-4">
-            <h4 class="text-white mb-0">Face Registration</h4>
+            <h4 class="text-white mb-0">{{ isset($isUpdate) ? 'Update Face Registration' : 'Face Registration' }}</h4>
         </div>
 
         <!-- Content Area -->
@@ -257,7 +273,7 @@
                         <div class="custom-icon user-icon me-2">
                             <i data-feather="user" class="icon-inner"></i>
                         </div>
-                        <h5 class="mb-0">REGISTER YOUR FACE</h5>
+                        <h5 class="mb-0">{{ isset($isUpdate) ? 'UPDATE YOUR FACE' : 'REGISTER YOUR FACE' }}</h5>
                     </div>
                     <a href="{{ route('student.face.index') }}" class="btn btn-icon-text btn-sm btn-outline-secondary">
                         <i class="btn-icon-prepend" data-feather="chevron-left"></i>Back
@@ -284,11 +300,21 @@
                         </div>
                     </div>
 
+                    @if (isset($isUpdate) && $isUpdate)
+                        <div class="update-notification d-flex align-items-center mb-4">
+                            <i data-feather="refresh-cw" class="me-3 text-primary"></i>
+                            <div>
+                                <h6 class="mb-1">Face Update Mode</h6>
+                                <p class="mb-0">You are updating your face registration based on an approved request. Take
+                                    5 new photos to update your face data.</p>
+                            </div>
+                        </div>
+                    @endif
+
                     <div class="alert alert-info d-flex align-items-center" role="alert">
                         <div>
                             Please position your face clearly in the camera frame. Ensure good lighting and remove
-                            glasses
-                            or face coverings for better accuracy.
+                            glasses or face coverings for better accuracy.
                         </div>
                     </div>
 
@@ -320,7 +346,8 @@
 
                                 <div class="preview-container text-center mt-4" id="preview-container">
                                     <button id="submit-btn" class="btn btn-icon-text btn-sm btn-success" disabled>
-                                        <i data-feather="send" class="btn-icon-prepend"></i>Register Face
+                                        <i data-feather="send"
+                                            class="btn-icon-prepend"></i>{{ isset($isUpdate) ? 'Update Face' : 'Register Face' }}
                                     </button>
                                 </div>
                             </div>
@@ -343,6 +370,10 @@
     <form id="face-form" style="display: none;">
         @csrf
         <input type="hidden" name="redirect_url" value="{{ $redirectUrl }}">
+        @if (isset($isUpdate) && $isUpdate)
+            <input type="hidden" name="is_update" value="1">
+            <input type="hidden" name="update_request_id" value="{{ $updateRequest->id }}">
+        @endif
     </form>
 @endsection
 
