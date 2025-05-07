@@ -45,19 +45,49 @@ class FaceRegistrationController extends Controller
             ->latest()
             ->first();
 
-        // Get rejected request if any
-        $rejectedRequest = FaceUpdateRequest::where('student_id', $student->id)
-            ->where('status', 'rejected')
+        // Get completed request if any
+        $completedRequest = FaceUpdateRequest::where('student_id', $student->id)
+            ->where('status', 'completed')
             ->latest()
             ->first();
 
-        return view('student.face.index', compact('student', 'pendingRequest', 'approvedRequest', 'rejectedRequest'));
+        // Get rejected request if any (only if no completed request exists or if rejected is more recent)
+        $rejectedRequest = null;
+        if (!$completedRequest) {
+            $rejectedRequest = FaceUpdateRequest::where('student_id', $student->id)
+                ->where('status', 'rejected')
+                ->latest()
+                ->first();
+        } elseif ($completedRequest) {
+            // Check if there's a rejected request that's newer than the completed one
+            $rejectedRequest = FaceUpdateRequest::where('student_id', $student->id)
+                ->where('status', 'rejected')
+                ->where('created_at', '>', $completedRequest->created_at)
+                ->latest()
+                ->first();
+        }
+
+        return view('student.face.index', compact('student', 'pendingRequest', 'approvedRequest', 'rejectedRequest', 'completedRequest'));
     }
 
     public function register(Request $request, $token = null)
     {
         $student = Auth::user()->student;
         $this->authorize('update', $student);
+
+        // Block access if student has already registered face but has no approved update request
+        if ($student->face_registered) {
+            // Check for an approved update request
+            $approvedRequest = FaceUpdateRequest::where('student_id', $student->id)
+                ->where('status', 'approved')
+                ->first();
+
+            // If no approved request exists, redirect back
+            if (!$approvedRequest) {
+                return redirect()->route('student.face.index')
+                    ->with('error', 'You have already registered your face. To update it, you need an approved update request.');
+            }
+        }
 
         $redirectUrl = $token
             ? route('student.attendance.show', ['token' => $token])
