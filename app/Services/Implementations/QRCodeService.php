@@ -40,7 +40,7 @@ class QRCodeService implements QRCodeServiceInterface
     public function validateToken(string $token): ?array
     {
         try {
-           $session = $this->sessionRepository->findByQrCode($token);
+            $session = $this->sessionRepository->findByQrCode($token);
 
             if (!$session || !$session->is_active) {
                 return null; // Session not found or not active
@@ -49,6 +49,11 @@ class QRCodeService implements QRCodeServiceInterface
             // Check if current time is past the session end time
             $currentTime = now()->setTimezone(config('app.timezone'));
             $sessionEndTime = $session->end_time->setTimezone(config('app.timezone'));
+
+            // Add this check for session date being in the past
+            if ($currentTime->startOfDay()->isAfter($session->session_date)) {
+                return null; // Session date is in the past
+            }
 
             if ($currentTime > $sessionEndTime) {
                 return null; // Session has expired

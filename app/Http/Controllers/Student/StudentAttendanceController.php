@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers\Student;
 
-use App\Http\Controllers\Controller;
-use App\Models\ClassSchedule;
-use App\Services\Interfaces\AttendanceServiceInterface;
-use App\Services\Interfaces\FaceRecognitionServiceInterface;
-use App\Services\Interfaces\QRCodeServiceInterface;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use App\Models\ClassSchedule;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use App\Services\Interfaces\QRCodeServiceInterface;
+use App\Services\Interfaces\AttendanceServiceInterface;
 use App\Http\Requests\Attendance\VerifyAttendanceRequest;
+use App\Services\Interfaces\FaceRecognitionServiceInterface;
 use App\Repositories\Interfaces\SessionAttendanceRepositoryInterface;
 
 class StudentAttendanceController extends Controller
@@ -120,6 +121,15 @@ class StudentAttendanceController extends Controller
 
         $currentTime = now()->setTimezone(config('app.timezone'));
         $sessionEndTime = $session->end_time->setTimezone(config('app.timezone'));
+        $sessionDate = Carbon::parse($date)->setTimezone(config('app.timezone'));
+
+        // Add this check to verify session date is not in the past
+        if ($currentTime->startOfDay()->isAfter($sessionDate)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'This session has expired (session date is in the past).',
+            ], 400);
+        }
 
         if (!$session || !$session->is_active || $currentTime > $sessionEndTime) {
             return response()->json([

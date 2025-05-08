@@ -88,12 +88,14 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="session-info-item">
-                                    <div class="session-info-label">Course:</div>
-                                    <div>{{ $session->classSchedule->course->name }}</div>
+                                    <div class="session-info-label">Course/Class:</div>
+                                    <div>{{ $session->classSchedule->course->name }} |
+                                        {{ $session->classSchedule->classroom->name }}
+                                    </div>
                                 </div>
                                 <div class="session-info-item">
-                                    <div class="session-info-label">Class:</div>
-                                    <div>{{ $session->classSchedule->classroom->name }}</div>
+                                    <div class="session-info-label">Instructor:</div>
+                                    <div>{{ $session->classSchedule->lecturer->user->name }}</div>
                                 </div>
                                 <div class="session-info-item">
                                     <div class="session-info-label">Date:</div>
@@ -107,11 +109,12 @@
                                 </div>
                                 <div class="session-info-item">
                                     <div class="session-info-label">Total Hours:</div>
-                                    <div>{{ $session->total_hours }}</div>
+                                    <div>{{ $session->total_hours }} Hours</div>
                                 </div>
                                 <div class="session-info-item">
                                     <div class="session-info-label">Time:</div>
-                                    <div>{{ $session->start_time->format('H:i') }} - {{ $session->end_time->format('H:i') }}
+                                    <div>{{ $session->start_time->format('H:i') }} -
+                                        {{ $session->end_time->format('H:i') }}
                                     </div>
                                 </div>
                             </div>

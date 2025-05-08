@@ -263,17 +263,48 @@
     <script>
         $(document).ready(function() {
             // Use ISO string format which includes timezone information
-            const sessionEndTimeIso = '{{ $session->end_time->toISOString() }}';
-            const sessionEndTime = new Date(sessionEndTimeIso);
+            // const sessionEndTimeIso = '{{ $session->end_time->toISOString() }}';
+            // const sessionEndTime = new Date(sessionEndTimeIso);
+            // const sessionDate = new Date('{{ $session->session_date->format('Y-m-d') }}');
 
             // For debugging
             // console.log('Parsed session end time:', sessionEndTime.toString());
 
             function checkSessionStatus() {
                 const now = new Date();
-                // console.log('Current time:', now.toString());
-                // console.log('Time difference (ms):', sessionEndTime - now);
+                const sessionEndTimeIso = '{{ $session->end_time->toISOString() }}';
+                const sessionEndTime = new Date(sessionEndTimeIso);
+                const sessionDate = new Date('{{ $session->session_date->format('Y-m-d') }}');
 
+                // Format today's date (without time) for comparison
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+
+                // Format session date (without time) for comparison
+                const sessionDateOnly = new Date(sessionDate);
+                sessionDateOnly.setHours(0, 0, 0, 0);
+
+                // Check if session date is in the past
+                if (today > sessionDateOnly) {
+                    // Session date is in the past, mark session as expired
+                    $('.qr-container').addClass('opacity-50');
+                    $('.alert-info').removeClass('alert-info').addClass('alert-warning')
+                        .html('<i data-feather="alert-circle" class="icon-sm me-2"></i> ' +
+                            'This attendance session has expired. Session date was <strong>{{ $session->session_date->format('l, d F Y') }}</strong>'
+                        );
+                    feather.replace();
+
+                    // Show modal
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Session Expired',
+                        text: 'The attendance session has expired because the session date is in the past.',
+                        confirmButtonColor: '#3085d6'
+                    });
+                    return;
+                }
+
+                // Original time check
                 if (now >= sessionEndTime) {
                     // Session has ended - show alert and update UI
                     $('.qr-container').addClass('opacity-50');

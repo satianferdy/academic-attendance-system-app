@@ -106,7 +106,21 @@ class AttendanceService implements AttendanceServiceInterface
 
     public function isSessionActive(int $classId, string $date): bool
     {
-        return $this->sessionRepository->findActiveByClassAndDate($classId, $date) !== null;
+        $session = $this->sessionRepository->findActiveByClassAndDate($classId, $date);
+
+        if(!$session) {
+            return false;
+        }
+
+        // Add check for past session date
+        $currentTime = now()->setTimezone(config('app.timezone'));
+        $sessionDate = Carbon::parse($date)->setTimezone(config('app.timezone'));
+
+        if ($currentTime->startOfDay()->isAfter($sessionDate)) {
+            return false; // Session date is in the past
+        }
+
+        return $currentTime <= $session->end_time->setTimezone(config('app.timezone'));
     }
 
     public function getStudentAttendances(int $studentId)
