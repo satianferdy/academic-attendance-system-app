@@ -264,32 +264,31 @@
         $(document).ready(function() {
 
             function checkSessionStatus() {
-                // Get current time
+                // Get current time in milliseconds since epoch for consistent comparison
                 const now = new Date();
+                const nowMs = now.getTime();
 
-                // Parse session end time
+                // Parse session end time and get milliseconds
                 const sessionEndTimeIso =
                     '{{ $session->end_time->setTimezone(config('app.timezone'))->toISOString() }}';
                 const sessionEndTime = new Date(sessionEndTimeIso);
+                const sessionEndMs = sessionEndTime.getTime();
 
-                // CRITICAL FIX: Special handling for same-day sessions where end time appears earlier than start time
-                // This happens when session is created late in day but end time is saved as early morning same day
-                const isSameDay = now.toDateString() === sessionEndTime.toDateString();
+                // Add debug info
+                console.log('Current time:', now.toString());
+                console.log('Session end time:', sessionEndTime.toString());
+                console.log('Time difference (ms):', sessionEndMs - nowMs);
+
+                // Add important debugging information about potential date issues
                 const currentHour = now.getHours();
                 const endHour = sessionEndTime.getHours();
+                console.log('Current hour:', currentHour, 'End hour:', endHour);
 
-                // If we're on the same day, and current time is evening but end time is early morning,
-                // then we should consider the session still active
-                const isEveningToMorningCase = isSameDay && currentHour >= 12 && endHour < 12;
+                // Only show the session as expired if the current time is truly after the end time
+                // This means the time difference should be negative
+                if (nowMs > sessionEndMs) {
+                    console.log('⚠️ Session has expired (nowMs > sessionEndMs)');
 
-                // Debug log
-                console.log('Current time:', now.toString(), 'Hour:', currentHour);
-                console.log('Session end time:', sessionEndTime.toString(), 'Hour:', endHour);
-                console.log('Is same day:', isSameDay);
-                console.log('Is evening-to-morning case:', isEveningToMorningCase);
-
-                // Show expired only if it's not the special case
-                if (now > sessionEndTime && !isEveningToMorningCase) {
                     // Session has ended - show alert and update UI
                     $('.qr-container').addClass('opacity-50');
                     $('.alert-info').removeClass('alert-info').addClass('alert-warning')
@@ -305,6 +304,8 @@
                         text: 'The attendance session has ended. Students can no longer mark attendance for this session.',
                         confirmButtonColor: '#3085d6'
                     });
+                } else {
+                    console.log('✅ Session is still active (nowMs <= sessionEndMs)');
                 }
             }
 
