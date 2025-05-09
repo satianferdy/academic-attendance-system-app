@@ -262,50 +262,34 @@
 @push('scripts')
     <script>
         $(document).ready(function() {
-            // Use ISO string format which includes timezone information
-            // const sessionEndTimeIso = '{{ $session->end_time->toISOString() }}';
-            // const sessionEndTime = new Date(sessionEndTimeIso);
-            // const sessionDate = new Date('{{ $session->session_date->format('Y-m-d') }}');
-
-            // For debugging
-            // console.log('Parsed session end time:', sessionEndTime.toString());
 
             function checkSessionStatus() {
+                // Get current time
                 const now = new Date();
-                const sessionEndTimeIso = '{{ $session->end_time->toISOString() }}';
+
+                // Parse session end time
+                const sessionEndTimeIso =
+                    '{{ $session->end_time->setTimezone(config('app.timezone'))->toISOString() }}';
                 const sessionEndTime = new Date(sessionEndTimeIso);
-                const sessionDate = new Date('{{ $session->session_date->format('Y-m-d') }}');
 
-                // Format today's date (without time) for comparison
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
+                // CRITICAL FIX: Special handling for same-day sessions where end time appears earlier than start time
+                // This happens when session is created late in day but end time is saved as early morning same day
+                const isSameDay = now.toDateString() === sessionEndTime.toDateString();
+                const currentHour = now.getHours();
+                const endHour = sessionEndTime.getHours();
 
-                // Format session date (without time) for comparison
-                const sessionDateOnly = new Date(sessionDate);
-                sessionDateOnly.setHours(0, 0, 0, 0);
+                // If we're on the same day, and current time is evening but end time is early morning,
+                // then we should consider the session still active
+                const isEveningToMorningCase = isSameDay && currentHour >= 12 && endHour < 12;
 
-                // Check if session date is in the past
-                if (today > sessionDateOnly) {
-                    // Session date is in the past, mark session as expired
-                    $('.qr-container').addClass('opacity-50');
-                    $('.alert-info').removeClass('alert-info').addClass('alert-warning')
-                        .html('<i data-feather="alert-circle" class="icon-sm me-2"></i> ' +
-                            'This attendance session has expired. Session date was <strong>{{ $session->session_date->format('l, d F Y') }}</strong>'
-                        );
-                    feather.replace();
+                // Debug log
+                console.log('Current time:', now.toString(), 'Hour:', currentHour);
+                console.log('Session end time:', sessionEndTime.toString(), 'Hour:', endHour);
+                console.log('Is same day:', isSameDay);
+                console.log('Is evening-to-morning case:', isEveningToMorningCase);
 
-                    // Show modal
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Session Expired',
-                        text: 'The attendance session has expired because the session date is in the past.',
-                        confirmButtonColor: '#3085d6'
-                    });
-                    return;
-                }
-
-                // Original time check
-                if (now >= sessionEndTime) {
+                // Show expired only if it's not the special case
+                if (now > sessionEndTime && !isEveningToMorningCase) {
                     // Session has ended - show alert and update UI
                     $('.qr-container').addClass('opacity-50');
                     $('.alert-info').removeClass('alert-info').addClass('alert-warning')

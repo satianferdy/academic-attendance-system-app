@@ -2,11 +2,12 @@
 
 namespace App\Services\Implementations;
 
-use App\Repositories\Interfaces\SessionAttendanceRepositoryInterface;
-use App\Services\Interfaces\QRCodeServiceInterface;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Crypt;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
-use Illuminate\Support\Str;
+use App\Services\Interfaces\QRCodeServiceInterface;
+use App\Repositories\Interfaces\SessionAttendanceRepositoryInterface;
 
 class QRCodeService implements QRCodeServiceInterface
 {
@@ -50,12 +51,8 @@ class QRCodeService implements QRCodeServiceInterface
             $currentTime = now()->setTimezone(config('app.timezone'));
             $sessionEndTime = $session->end_time->setTimezone(config('app.timezone'));
 
-            // Add this check for session date being in the past
-            if ($currentTime->startOfDay()->isAfter($session->session_date)) {
-                return null; // Session date is in the past
-            }
-
-            if ($currentTime > $sessionEndTime) {
+            // Compare as timestamps to avoid timezone issues
+            if ($currentTime->timestamp > $sessionEndTime->timestamp) {
                 return null; // Session has expired
             }
 

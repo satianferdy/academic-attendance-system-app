@@ -187,9 +187,17 @@ class AttendanceService implements AttendanceServiceInterface
                 throw new AttendanceException('Attendance session for this week and meeting already exists.');
             }
 
-            // Set session duration (30 minutes from now)
-            $startTime = now();
-            $endTime = $startTime->copy()->addHours($totalHours);
+            // CRITICAL FIX: Calculate end time properly
+            $startTime = now()->setTimezone(config('app.timezone'));
+
+            // For sessions created late in the day, ensure end time is set properly
+            // If adding total hours would make it go to the next day, it's better to
+            // set a reasonable end time (e.g., 11:59 PM of the same day)
+            $maxEndTime = Carbon::parse($date)->setTimezone(config('app.timezone'))->endOfDay();
+            $calculatedEndTime = $startTime->copy()->addHours($totalHours);
+
+            // Use the earlier of calculated end time or end of day
+            $endTime = ($calculatedEndTime > $maxEndTime) ? $maxEndTime : $calculatedEndTime;
 
             // Create session if it doesn't exist
             $session = $this->sessionRepository->createOrUpdate(
