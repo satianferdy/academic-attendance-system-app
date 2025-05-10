@@ -160,6 +160,12 @@ class SessionAttendanceRepository implements SessionAttendanceRepositoryInterfac
     {
         return $this->model->with(['classSchedule.course', 'classSchedule.classroom'])->findOrFail($id);
     }
+
+    public function getSessionTotalHours(int $classScheduleId, string $date): int
+    {
+        $session = $this->findByClassAndDate($classScheduleId, $date);
+        return $session ? $session->total_hours : 4; // Default to 4 if session not found
+    }
 }
 
 

@@ -90,7 +90,7 @@ class LecturerAttendanceDataController extends Controller
             $sessionsList = $this->sessionRepository->getSessionsByClassSchedule($selectedScheduleId);
 
             // Get cumulative attendance data for all students in the class
-            $cumulativeData = $this->getCumulativeAttendanceData($selectedScheduleId);
+            $cumulativeData = $this->attendanceRepository->getCumulativeAttendanceData($selectedScheduleId);
         }
 
         // dd($studyPrograms);
@@ -174,7 +174,10 @@ class LecturerAttendanceDataController extends Controller
                 $totalHours = $data['hours_present'] + $data['hours_absent'] +
                             $data['hours_permitted'] + $data['hours_sick'];
 
-                $sessionHours = $this->getSessionTotalHours($attendance->class_schedule_id, $attendance->date);
+                $sessionHours = $this->sessionRepository->getSessionTotalHours(
+                        $attendance->class_schedule_id,
+                        $attendance->date
+                    );
 
                 if ($totalHours != $sessionHours) {
                     $errorCount++;
@@ -211,106 +214,4 @@ class LecturerAttendanceDataController extends Controller
             ], 500);
         }
     }
-
-    /**
-     * Get attendance data for a specific student
-     */
-    public function getStudentAttendance(Request $request, $studentId, $classScheduleId)
-    {
-        $lecturer = Auth::user()->lecturer;
-
-        // Verify the selected schedule belongs to this lecturer
-        $schedule = ClassSchedule::find($classScheduleId);
-        if (!$schedule || $schedule->lecturer_id != $lecturer->id) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized access to this class schedule'
-            ], 403);
-        }
-
-        // Get student
-        $student = Student::find($studentId);
-        if (!$student) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Student not found'
-            ], 404);
-        }
-
-        // Get attendance records
-        $attendances = Attendance::with(['classSchedule.course'])
-            ->where('class_schedule_id', $classScheduleId)
-            ->where('student_id', $studentId)
-            ->orderBy('date', 'desc')
-            ->get();
-
-        // Calculate statistics
-        $totalHours = $attendances->sum('hours_present') +
-                     $attendances->sum('hours_absent') +
-                     $attendances->sum('hours_permitted') +
-                     $attendances->sum('hours_sick');
-
-        $presentPercentage = $totalHours > 0
-            ? round(($attendances->sum('hours_present') / $totalHours) * 100)
-            : 0;
-
-        return response()->json([
-            'success' => true,
-            'student' => $student,
-            'attendances' => $attendances,
-            'statistics' => [
-                'total_hours' => $totalHours,
-                'hours_present' => $attendances->sum('hours_present'),
-                'hours_absent' => $attendances->sum('hours_absent'),
-                'hours_permitted' => $attendances->sum('hours_permitted'),
-                'hours_sick' => $attendances->sum('hours_sick'),
-                'present_percentage' => $presentPercentage
-            ]
-        ]);
-    }
-
-    /**
-     * Get cumulative attendance data for all students in a class
-     */
-    private function getCumulativeAttendanceData($classScheduleId)
-    {
-        $classSchedule = ClassSchedule::findOrFail($classScheduleId);
-        $students = $classSchedule->students()->with('user')->get();
-
-        $result = collect();
-
-        foreach ($students as $student) {
-            // Get all attendance records for this student
-            $attendances = Attendance::where('class_schedule_id', $classScheduleId)
-                ->where('student_id', $student->id)
-                ->get();
-
-            // Calculate cumulative attendance hours
-            $hoursPresent = $attendances->sum('hours_present');
-            $hoursAbsent = $attendances->sum('hours_absent');
-            $hoursPermitted = $attendances->sum('hours_permitted');
-            $hoursSick = $attendances->sum('hours_sick');
-
-            $result->push([
-                'student' => $student,
-                'hours_present' => $hoursPresent,
-                'hours_absent' => $hoursAbsent,
-                'hours_permitted' => $hoursPermitted,
-                'hours_sick' => $hoursSick,
-                'total_hours' => $hoursPresent + $hoursAbsent + $hoursPermitted + $hoursSick
-            ]);
-        }
-
-        return $result;
-    }
-
-    /**
-     * Get total hours for a session
-     */
-    private function getSessionTotalHours($classScheduleId, $date)
-    {
-        $session = $this->sessionRepository->findByClassAndDate($classScheduleId, $date);
-        return $session ? $session->total_hours : 4; // Default to 4 if session not found
-    }
-
 }

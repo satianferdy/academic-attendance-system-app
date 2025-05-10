@@ -5,8 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
-use App\Models\Student;
-use App\Models\Lecturer;
 use App\Models\ClassRoom;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
