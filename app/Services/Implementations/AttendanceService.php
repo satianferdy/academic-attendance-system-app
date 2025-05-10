@@ -116,11 +116,12 @@ class AttendanceService implements AttendanceServiceInterface
         $currentTime = now()->setTimezone(config('app.timezone'));
         $sessionDate = Carbon::parse($date)->setTimezone(config('app.timezone'));
 
-        if ($currentTime->startOfDay()->isAfter($sessionDate)) {
+        if ($currentTime->copy()->startOfDay()->isAfter($sessionDate->copy()->startOfDay())) {
             return false; // Session date is in the past
         }
 
-        return $currentTime <= $session->end_time->setTimezone(config('app.timezone'));
+        // Check if current time is after session end time
+        return $currentTime->lessThanOrEqualTo($session->end_time);
     }
 
     public function getStudentAttendances(int $studentId)
