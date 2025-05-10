@@ -14,4 +14,10 @@ class StudentPolicy
     {
         return $user->isStudent() && $user->student->id === $student->id;
     }
+
+    public function viewFaceImages(User $user)
+    {
+        // Only admin users can view face images
+        return $user->isAdmin();
+    }
 }

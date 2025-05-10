@@ -32,17 +32,14 @@
 
         .user-icon {
             background-color: #FFC107;
-            /* Yellow/amber color */
         }
 
         .info-icon {
             background-color: #4DD0E1;
-            /* Teal color */
         }
 
         .camera-icon {
             background-color: #8C9EFF;
-            /* Light purple color */
         }
 
         .icon-inner {
@@ -75,6 +72,10 @@
 
         .bg-warning-subtle {
             background-color: rgba(255, 193, 7, 0.1);
+        }
+
+        .bg-info-subtle {
+            background-color: rgba(13, 202, 240, 0.1);
         }
 
         .card {
@@ -139,6 +140,36 @@
             padding: 12px;
             background-color: white;
         }
+
+        .request-form {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            border-left: 4px solid #0d6efd;
+        }
+
+        .update-status {
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid;
+        }
+
+        .update-status.pending {
+            background-color: rgba(255, 193, 7, 0.1);
+            border-left-color: #ffc107;
+        }
+
+        .update-status.approved {
+            background-color: rgba(25, 135, 84, 0.1);
+            border-left-color: #198754;
+        }
+
+        .update-status.rejected {
+            background-color: rgba(220, 53, 69, 0.1);
+            border-left-color: #dc3545;
+        }
     </style>
 @endpush
 
@@ -183,38 +214,206 @@
                             <h5 class="mb-0">FACE REGISTRATION STATUS</h5>
                         </div>
                         <div class="card-body">
-                            <div
-                                class="status-box p-3 rounded-3 mb-4 {{ $student->face_registered ? 'bg-success-subtle' : 'bg-warning-subtle' }}">
-                                @if ($student->face_registered)
+                            @if (!$student->face_registered)
+                                <!-- Not Registered State -->
+                                <div class="status-box p-4 rounded-3 mb-4 bg-warning-subtle">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <span class="badge bg-warning me-2">Not Registered</span>
+                                        <span class="text-warning fw-bold">Action Required</span>
+                                    </div>
+                                    <p class="mb-3">You need to register your face to use the facial recognition
+                                        attendance system.</p>
+
+                                    <div class="text-center">
+                                        <a href="{{ route('student.face.register') }}"
+                                            class="btn btn-sm btn-icon-text btn-primary" type="button">
+                                            <i class="btn-icon-prepend" data-feather="user-plus"></i> Register Now
+                                        </a>
+                                    </div>
+                                </div>
+                            @else
+                                <!-- Face Registered State -->
+                                <div class="status-box p-4 rounded-3 mb-4 bg-success-subtle">
                                     <div class="d-flex align-items-center mb-2">
                                         <span class="badge bg-success me-2">Registered</span>
                                         <span class="text-success fw-bold">Ready for Verification</span>
                                     </div>
-                                    <p class="mb-0">Your face is registered in our system and ready for attendance
+                                    <p class="mb-3">Your face is registered in our system and ready for attendance
                                         verification.</p>
-                                @else
-                                    <div class="d-flex align-items-center mb-2">
-                                        <span class="badge bg-warning me-2">Not Registered</span>
-                                        <span class="text-warning fw-bold">Action Required</span>
-                                    </div>
-                                    <p class="mb-0">You need to register your face to use the facial recognition
-                                        attendance system.</p>
-                                @endif
-                            </div>
+                                </div>
 
-                            <div class="text-center">
-                                @if ($student->face_registered)
-                                    <a href="{{ route('student.face.register') }}"
-                                        class="btn btn-icon-text btn-outline-primary">
-                                        <i class="btn-icon-prepend" data-feather="refresh-cw" class="me-2"></i>Update
-                                        Registration
-                                    </a>
+                                <!-- Check for Update Request Status -->
+                                @if (isset($pendingRequest))
+                                    <!-- Pending Update Request -->
+                                    <div class="update-status pending">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <i data-feather="clock" class="me-2 text-warning"></i>
+                                            <h6 class="mb-0 text-warning">Update Request Pending</h6>
+                                        </div>
+                                        <p class="mb-2">Your face update request is currently under review.</p>
+                                        <p class="mb-2"><strong>Submitted:</strong>
+                                            {{ $pendingRequest->created_at->format('M d, Y') }}</p>
+                                        <p class="mb-0"><strong>Reason:</strong> {{ $pendingRequest->reason }}</p>
+                                    </div>
+                                @elseif(isset($approvedRequest))
+                                    <!-- Approved Update Request -->
+                                    <div class="update-status approved">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <i data-feather="check-circle" class="me-2 text-success"></i>
+                                            <h6 class="mb-0 text-success">Update Request Approved!</h6>
+                                        </div>
+                                        <p class="mb-3">Your request to update your face data has been approved by an
+                                            administrator.</p>
+                                        @if ($approvedRequest->admin_notes)
+                                            <p class="mb-3"><strong>Admin Notes:</strong>
+                                                {{ $approvedRequest->admin_notes }}</p>
+                                        @endif
+                                        <div class="text-center">
+                                            <a href="{{ route('student.face.update', $approvedRequest->id) }}"
+                                                class="btn btn-sm btn-icon-text btn-success" type="button">
+                                                <i class="btn-icon-prepend" data-feather="camera"></i> Update Your Face
+                                            </a>
+                                        </div>
+                                    </div>
+                                @elseif(isset($rejectedRequest))
+                                    <!-- Rejected Update Request -->
+                                    <div class="update-status rejected">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <i data-feather="x-circle" class="me-2 text-danger"></i>
+                                            <h6 class="mb-0 text-danger">Update Request Rejected</h6>
+                                        </div>
+                                        <p class="mb-2">Your request to update your face data was rejected.</p>
+                                        <p class="mb-3"><strong>Reason:</strong> {{ $rejectedRequest->admin_notes }}</p>
+
+                                        <!-- Allow requesting again after rejection -->
+                                        <div id="request-update-section">
+                                            <button type="button" class="btn btn-sm btn-icon-text btn-outline-primary"
+                                                id="show-request-form">
+                                                <i class="btn-icon-prepend" data-feather="refresh-cw"></i> Request Update
+                                                Again
+                                            </button>
+                                        </div>
+
+                                        <!-- Hidden request form (will be shown on button click) -->
+                                        <div class="request-form mt-3" id="update-request-form" style="display: none;">
+                                            <h6 class="mb-3">Request Face Update</h6>
+                                            <form action="{{ route('student.face.store-request') }}" method="POST">
+                                                @csrf
+                                                <div class="mb-3">
+                                                    <label for="reason" class="form-label">Reason for Update <span
+                                                            class="text-danger">*</span></label>
+                                                    <textarea class="form-control @error('reason') is-invalid @enderror" id="reason" name="reason" rows="3"
+                                                        required></textarea>
+                                                    @error('reason')
+                                                        <div class="invalid-feedback">{{ $message }}</div>
+                                                    @enderror
+                                                </div>
+                                                <div class="d-flex justify-content-end">
+                                                    <button type="button" class="btn btn-outline-secondary btn-sm me-2"
+                                                        id="cancel-request">
+                                                        Cancel
+                                                    </button>
+                                                    <button type="submit" class="btn btn-primary btn-sm">
+                                                        Submit Request
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                @elseif(isset($completedRequest))
+                                    <!-- Completed Update Request -->
+                                    <div class="update-status approved">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <i data-feather="check-circle" class="me-2 text-success"></i>
+                                            <h6 class="mb-0 text-success">Face Update Completed!</h6>
+                                        </div>
+                                        <p class="mb-2">Your face data was successfully updated on
+                                            {{ $completedRequest->updated_at->format('M d, Y') }}.</p>
+                                        @if ($completedRequest->admin_notes)
+                                            <p class="mb-3"><strong>Admin Notes:</strong>
+                                                {{ $completedRequest->admin_notes }}</p>
+                                        @endif
+
+                                        <!-- Allow requesting again -->
+                                        <div id="request-update-section" class="text-center mt-4">
+                                            <p class="mb-3">Need to update your face data again?</p>
+                                            <button type="button" class="btn btn-sm btn-icon-text btn-outline-primary"
+                                                id="show-request-form">
+                                                <i data-feather="refresh-cw" class="btn-icon-prepend"></i> Request Face
+                                                Update
+                                            </button>
+                                        </div>
+
+                                        <div class="request-form mt-3" id="update-request-form" style="display: none;">
+                                            <h6 class="mb-3">Request Face Update</h6>
+                                            <form action="{{ route('student.face.store-request') }}" method="POST">
+                                                @csrf
+                                                <div class="mb-3">
+                                                    <label for="reason" class="form-label">Reason for Update <span
+                                                            class="text-danger">*</span></label>
+                                                    <textarea class="form-control @error('reason') is-invalid @enderror" id="reason" name="reason" rows="3"
+                                                        placeholder="Please explain why you need to update your face data" required></textarea>
+                                                    @error('reason')
+                                                        <div class="invalid-feedback">{{ $message }}</div>
+                                                    @enderror
+                                                    <div class="form-text">
+                                                        Provide a clear reason why you need to update your face data. This
+                                                        will be reviewed by administrators.
+                                                    </div>
+                                                </div>
+                                                <div class="d-flex justify-content-end">
+                                                    <button type="button" class="btn btn-outline-secondary btn-sm me-2"
+                                                        id="cancel-request">
+                                                        Cancel
+                                                    </button>
+                                                    <button type="submit" class="btn btn-primary btn-sm">
+                                                        Submit Request
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
                                 @else
-                                    <a href="{{ route('student.face.register') }}" class="btn btn-icon-text btn-primary">
-                                        <i class="btn-icon-prepend" data-feather="user-plus" class="me-2"></i>Register Now
-                                    </a>
+                                    <!-- No Update Request Yet -->
+                                    <div id="request-update-section" class="text-center mt-4">
+                                        <p class="mb-3">Need to update your face data?</p>
+                                        <button type="button" class="btn btn-icon-text btn-sm btn-outline-primary"
+                                            id="show-request-form">
+                                            <i data-feather="refresh-cw" class="btn-icon-prepend"></i> Request Face Update
+                                        </button>
+                                    </div>
+
+                                    <!-- Hidden request form (will be shown on button click) -->
+                                    <div class="request-form mt-3" id="update-request-form" style="display: none;">
+                                        <h6 class="mb-3">Request Face Update</h6>
+                                        <form action="{{ route('student.face.store-request') }}" method="POST">
+                                            @csrf
+                                            <div class="mb-3">
+                                                <label for="reason" class="form-label">Reason for Update <span
+                                                        class="text-danger">*</span></label>
+                                                <textarea class="form-control @error('reason') is-invalid @enderror" id="reason" name="reason" rows="3"
+                                                    placeholder="Please explain why you need to update your face data" required></textarea>
+                                                @error('reason')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                                <div class="form-text">
+                                                    Provide a clear reason why you need to update your face data. This will
+                                                    be reviewed by administrators.
+                                                </div>
+                                            </div>
+                                            <div class="d-flex justify-content-end">
+                                                <button type="button" class="btn btn-outline-secondary btn-sm me-2"
+                                                    id="cancel-request">
+                                                    Cancel
+                                                </button>
+                                                <button type="submit" class="btn btn-primary btn-sm">
+                                                    Submit Request
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
                                 @endif
-                            </div>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -263,13 +462,28 @@
                                 </div>
                             </div>
 
-                            <div class="bg-light p-2 rounded-3 mt-3">
+                            <div class="bg-light p-3 rounded-3 mt-3">
                                 <div class="d-flex align-items-start">
                                     <i data-feather="zap" class="text-warning me-2 mt-2"></i>
                                     <p class="mb-0"><strong>Tip:</strong> Ensure good lighting and a clear view of
                                         your face when registering or verifying to improve recognition accuracy.</p>
                                 </div>
                             </div>
+
+                            @if ($student->face_registered)
+                                <div class="bg-info-subtle p-3 rounded-3 mt-4">
+                                    <div class="d-flex align-items-start">
+                                        <i data-feather="info" class="text-info me-2 mt-1"></i>
+                                        <div>
+                                            <h6 class="mb-1">About Face Update Requests</h6>
+                                            <p class="mb-0">If you need to update your face data (e.g., appearance
+                                                change,
+                                                glasses, new hairstyle), you can request an update. Admin approval is
+                                                required for face updates to ensure system security.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -378,3 +592,34 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Feather icons
+            if (typeof feather !== 'undefined') {
+                feather.replace();
+            }
+
+            // Show/hide update request form
+            const showFormButton = document.getElementById('show-request-form');
+            const updateForm = document.getElementById('update-request-form');
+            const cancelButton = document.getElementById('cancel-request');
+            const requestSection = document.getElementById('request-update-section');
+
+            if (showFormButton && updateForm) {
+                showFormButton.addEventListener('click', function() {
+                    updateForm.style.display = 'block';
+                    requestSection.style.display = 'none';
+                });
+            }
+
+            if (cancelButton && updateForm && requestSection) {
+                cancelButton.addEventListener('click', function() {
+                    updateForm.style.display = 'none';
+                    requestSection.style.display = 'block';
+                });
+            }
+        });
+    </script>
+@endpush

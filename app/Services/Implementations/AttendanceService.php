@@ -106,7 +106,22 @@ class AttendanceService implements AttendanceServiceInterface
 
     public function isSessionActive(int $classId, string $date): bool
     {
-        return $this->sessionRepository->findActiveByClassAndDate($classId, $date) !== null;
+        $session = $this->sessionRepository->findActiveByClassAndDate($classId, $date);
+
+        if(!$session) {
+            return false;
+        }
+
+        // Add check for past session date
+        $currentTime = now()->setTimezone(config('app.timezone'));
+        $sessionDate = Carbon::parse($date)->setTimezone(config('app.timezone'));
+
+        if ($currentTime->copy()->startOfDay()->isAfter($sessionDate->copy()->startOfDay())) {
+            return false; // Session date is in the past
+        }
+
+        // Check if current time is after session end time
+        return $currentTime->lessThanOrEqualTo($session->end_time);
     }
 
     public function getStudentAttendances(int $studentId)
@@ -173,9 +188,17 @@ class AttendanceService implements AttendanceServiceInterface
                 throw new AttendanceException('Attendance session for this week and meeting already exists.');
             }
 
-            // Set session duration (30 minutes from now)
-            $startTime = now();
-            $endTime = $startTime->copy()->addHours($totalHours);
+            // CRITICAL FIX: Calculate end time properly
+            $startTime = now()->setTimezone(config('app.timezone'));
+
+            // For sessions created late in the day, ensure end time is set properly
+            // If adding total hours would make it go to the next day, it's better to
+            // set a reasonable end time (e.g., 11:59 PM of the same day)
+            $maxEndTime = Carbon::parse($date)->setTimezone(config('app.timezone'))->endOfDay();
+            $calculatedEndTime = $startTime->copy()->addHours($totalHours);
+
+            // Use the earlier of calculated end time or end of day
+            $endTime = ($calculatedEndTime > $maxEndTime) ? $maxEndTime : $calculatedEndTime;
 
             // Create session if it doesn't exist
             $session = $this->sessionRepository->createOrUpdate(

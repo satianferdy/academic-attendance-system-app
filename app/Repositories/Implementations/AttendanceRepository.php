@@ -3,6 +3,8 @@
 namespace App\Repositories\Implementations;
 
 use App\Models\Attendance;
+use App\Models\ClassSchedule;
+use Illuminate\Support\Collection;
 use App\Repositories\Interfaces\AttendanceRepositoryInterface;
 
 class AttendanceRepository implements AttendanceRepositoryInterface
@@ -105,5 +107,37 @@ class AttendanceRepository implements AttendanceRepositoryInterface
         }
 
         return $query->get();
+    }
+
+    public function getCumulativeAttendanceData(int $classScheduleId): Collection
+    {
+        $classSchedule = ClassSchedule::findOrFail($classScheduleId);
+        $students = $classSchedule->students()->with('user')->get();
+
+        $result = collect();
+
+        foreach ($students as $student) {
+            // Get all attendance records for this student
+            $attendances = $this->model->where('class_schedule_id', $classScheduleId)
+                ->where('student_id', $student->id)
+                ->get();
+
+            // Calculate cumulative attendance hours
+            $hoursPresent = $attendances->sum('hours_present');
+            $hoursAbsent = $attendances->sum('hours_absent');
+            $hoursPermitted = $attendances->sum('hours_permitted');
+            $hoursSick = $attendances->sum('hours_sick');
+
+            $result->push([
+                'student' => $student,
+                'hours_present' => $hoursPresent,
+                'hours_absent' => $hoursAbsent,
+                'hours_permitted' => $hoursPermitted,
+                'hours_sick' => $hoursSick,
+                'total_hours' => $hoursPresent + $hoursAbsent + $hoursPermitted + $hoursSick
+            ]);
+        }
+
+        return $result;
     }
 }

@@ -297,8 +297,7 @@
                                     {{ $faceRecognitionStatus['lastUpdate']->format('d M Y, H:i') }}</p>
 
                                 <div class="d-flex justify-content-center gap-2">
-                                    <a href="{{ route('student.face.register') }}"
-                                        class="btn btn-sm btn-outline-primary">
+                                    <a href="{{ route('student.face.index') }}" class="btn btn-sm btn-outline-primary">
                                         <i data-feather="refresh-cw" class="icon-sm me-1"></i> Update
                                     </a>
                                     <button class="btn btn-sm btn-outline-danger">

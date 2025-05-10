@@ -2,11 +2,12 @@
 
 namespace App\Services\Implementations;
 
-use App\Repositories\Interfaces\SessionAttendanceRepositoryInterface;
-use App\Services\Interfaces\QRCodeServiceInterface;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Crypt;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
-use Illuminate\Support\Str;
+use App\Services\Interfaces\QRCodeServiceInterface;
+use App\Repositories\Interfaces\SessionAttendanceRepositoryInterface;
 
 class QRCodeService implements QRCodeServiceInterface
 {
@@ -40,7 +41,7 @@ class QRCodeService implements QRCodeServiceInterface
     public function validateToken(string $token): ?array
     {
         try {
-           $session = $this->sessionRepository->findByQrCode($token);
+            $session = $this->sessionRepository->findByQrCode($token);
 
             if (!$session || !$session->is_active) {
                 return null; // Session not found or not active
@@ -50,7 +51,8 @@ class QRCodeService implements QRCodeServiceInterface
             $currentTime = now()->setTimezone(config('app.timezone'));
             $sessionEndTime = $session->end_time->setTimezone(config('app.timezone'));
 
-            if ($currentTime > $sessionEndTime) {
+            // Compare as timestamps to avoid timezone issues
+            if ($currentTime->timestamp > $sessionEndTime->timestamp) {
                 return null; // Session has expired
             }
 

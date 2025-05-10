@@ -8,9 +8,9 @@
             <div class="card">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h6 class="card-title">Create New User</h6>
+                        <h6 class="card-title">Buat User Baru</h6>
                         <a href="{{ route('admin.users.index') }}" class="btn btn-sm btn-icon-text btn-secondary">
-                            <i class="btn-icon-prepend" data-feather="arrow-left"></i> Back
+                            <i class="btn-icon-prepend" data-feather="arrow-left"></i> Kembali
                         </a>
                     </div>
 
@@ -29,7 +29,7 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="name" class="form-label">Name</label>
+                                    <label for="name" class="form-label">Nama</label>
                                     <input type="text" class="form-control @error('name') is-invalid @enderror"
                                         id="name" name="name" value="{{ old('name') }}" placeholder="Enter name"
                                         required>
@@ -64,7 +64,7 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="password_confirmation" class="form-label">Confirm Password</label>
+                                    <label for="password_confirmation" class="form-label">Konfirmasi Password</label>
                                     <input type="password" class="form-control" id="password_confirmation"
                                         name="password_confirmation" placeholder="Confirm password" required>
                                 </div>
@@ -79,9 +79,9 @@
                                         name="role" required>
                                         <option value="">Select Role</option>
                                         <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin</option>
-                                        <option value="lecturer" {{ old('role') == 'lecturer' ? 'selected' : '' }}>Lecturer
+                                        <option value="lecturer" {{ old('role') == 'lecturer' ? 'selected' : '' }}>Dosen
                                         </option>
-                                        <option value="student" {{ old('role') == 'student' ? 'selected' : '' }}>Student
+                                        <option value="student" {{ old('role') == 'student' ? 'selected' : '' }}>Mahasiswa
                                         </option>
                                     </select>
                                     @error('role')
@@ -96,7 +96,7 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label for="student_nim" class="form-label">Student ID (NIM)</label>
+                                        <label for="student_nim" class="form-label">Mahasiswa ID (NIM)</label>
                                         <input type="text"
                                             class="form-control @error('student_nim') is-invalid @enderror" id="student_nim"
                                             name="student_nim" value="{{ old('student_nim') }}" placeholder="Enter NIM"
@@ -108,7 +108,7 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label for="study_program_id" class="form-label">Study Program</label>
+                                        <label for="study_program_id" class="form-label">Program Studi</label>
                                         <select class="form-select @error('study_program_id') is-invalid @enderror"
                                             id="study_program_id" name="study_program_id" data-required>
                                             <option value="">Select Study Program</option>
@@ -130,7 +130,7 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label for="classroom_id" class="form-label">Classroom</label>
+                                        <label for="classroom_id" class="form-label">elas</label>
                                         <select class="form-select @error('classroom_id') is-invalid @enderror"
                                             id="classroom_id" name="classroom_id" data-required disabled>
                                             <option value="">Select Study Program First</option>
@@ -148,7 +148,7 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label for="lecturer_nip" class="form-label">Lecturer ID (NIP)</label>
+                                        <label for="lecturer_nip" class="form-label">Dosen ID (NIP)</label>
                                         <input type="text"
                                             class="form-control @error('lecturer_nip') is-invalid @enderror"
                                             id="lecturer_nip" name="lecturer_nip" value="{{ old('lecturer_nip') }}"
@@ -162,8 +162,8 @@
                         </div>
 
                         <div class="mt-4">
-                            <button type="submit" class="btn btn-sm btn-primary me-2">Submit</button>
-                            <a href="{{ route('admin.users.index') }}" class="btn btn-sm btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-sm btn-primary me-2">Simpan</button>
+                            <a href="{{ route('admin.users.index') }}" class="btn btn-sm btn-secondary">Batal</a>
                         </div>
                     </form>
                 </div>

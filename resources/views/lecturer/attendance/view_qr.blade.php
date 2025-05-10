@@ -67,7 +67,8 @@
             <div class="card">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h6 class="card-title">QR Code - {{ $classSchedule->course->code }}</h6>
+                        <h6 class="card-title">QR Code - {{ $classSchedule->studyProgram->name }} -
+                            {{ $classSchedule->course->code }}</h6>
                         <div>
                             <a href="{{ route('lecturer.attendance.show', ['classSchedule' => $classSchedule->id, 'date' => $date]) }}"
                                 class="btn btn-secondary btn-sm btn-icon-text" type="button">
@@ -262,19 +263,33 @@
 @push('scripts')
     <script>
         $(document).ready(function() {
-            // Use ISO string format which includes timezone information
-            const sessionEndTimeIso = '{{ $session->end_time->toISOString() }}';
-            const sessionEndTime = new Date(sessionEndTimeIso);
-
-            // For debugging
-            // console.log('Parsed session end time:', sessionEndTime.toString());
 
             function checkSessionStatus() {
+                // Get current time in milliseconds since epoch for consistent comparison
                 const now = new Date();
-                // console.log('Current time:', now.toString());
-                // console.log('Time difference (ms):', sessionEndTime - now);
+                const nowMs = now.getTime();
 
-                if (now >= sessionEndTime) {
+                // Parse session end time and get milliseconds
+                const sessionEndTimeIso =
+                    '{{ $session->end_time->setTimezone(config('app.timezone'))->toISOString() }}';
+                const sessionEndTime = new Date(sessionEndTimeIso);
+                const sessionEndMs = sessionEndTime.getTime();
+
+                // Add debug info
+                console.log('Current time:', now.toString());
+                console.log('Session end time:', sessionEndTime.toString());
+                console.log('Time difference (ms):', sessionEndMs - nowMs);
+
+                // Add important debugging information about potential date issues
+                const currentHour = now.getHours();
+                const endHour = sessionEndTime.getHours();
+                console.log('Current hour:', currentHour, 'End hour:', endHour);
+
+                // Only show the session as expired if the current time is truly after the end time
+                // This means the time difference should be negative
+                if (nowMs > sessionEndMs) {
+                    console.log('⚠️ Session has expired (nowMs > sessionEndMs)');
+
                     // Session has ended - show alert and update UI
                     $('.qr-container').addClass('opacity-50');
                     $('.alert-info').removeClass('alert-info').addClass('alert-warning')
@@ -290,6 +305,8 @@
                         text: 'The attendance session has ended. Students can no longer mark attendance for this session.',
                         confirmButtonColor: '#3085d6'
                     });
+                } else {
+                    console.log('✅ Session is still active (nowMs <= sessionEndMs)');
                 }
             }
 

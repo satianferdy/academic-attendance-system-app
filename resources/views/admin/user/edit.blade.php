@@ -10,7 +10,7 @@
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h6 class="card-title">Edit User</h6>
                         <a href="{{ route('admin.users.index') }}" class="btn btn-sm btn-icon-text btn-secondary">
-                            <i class="btn-icon-prepend" data-feather="arrow-left"></i> Back
+                            <i class="btn-icon-prepend" data-feather="arrow-left"></i> Kembali
                         </a>
                     </div>
 
@@ -31,7 +31,7 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="name" class="form-label">Name</label>
+                                    <label for="name" class="form-label">Nama</label>
                                     <input type="text" class="form-control @error('name') is-invalid @enderror"
                                         id="name" name="name" value="{{ old('name', $user->name) }}"
                                         placeholder="Enter name" required>
@@ -56,7 +56,8 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="password" class="form-label">Password (leave blank to keep current)</label>
+                                    <label for="password" class="form-label">Password <small>(Kosongkan jika tidak ingin
+                                            mengubah)</small></label>
                                     <input type="password" class="form-control @error('password') is-invalid @enderror"
                                         id="password" name="password" placeholder="Enter new password">
                                     @error('password')
@@ -66,7 +67,7 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="password_confirmation" class="form-label">Confirm Password</label>
+                                    <label for="password_confirmation" class="form-label">Konfirmasi Password</label>
                                     <input type="password" class="form-control" id="password_confirmation"
                                         name="password_confirmation" placeholder="Confirm new password">
                                 </div>
@@ -89,7 +90,7 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="nim" class="form-label">Student ID (NIM)</label>
+                                            <label for="nim" class="form-label">Mahasiswa ID (NIM)</label>
                                             <input type="text" class="form-control @error('nim') is-invalid @enderror"
                                                 id="nim" name="nim"
                                                 value="{{ old('nim', $user->student->nim ?? '') }}" placeholder="Enter NIM"
@@ -101,7 +102,7 @@
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="study_program_id" class="form-label">Study Program</label>
+                                            <label for="study_program_id" class="form-label">Program Studi</label>
                                             <select class="form-select @error('study_program_id') is-invalid @enderror"
                                                 id="study_program_id" name="study_program_id" required>
                                                 <option value="">Select Study Program</option>
@@ -122,7 +123,7 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="classroom_id" class="form-label">Classroom</label>
+                                            <label for="classroom_id" class="form-label">>Kelas</label>
                                             <select class="form-select @error('classroom_id') is-invalid @enderror"
                                                 id="classroom_id" name="classroom_id" required>
                                                 <option value="">Loading classrooms...</option>
@@ -142,7 +143,7 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="nip" class="form-label">Lecturer ID (NIP)</label>
+                                            <label for="nip" class="form-label">Dosen ID (NIP)</label>
                                             <input type="text" class="form-control @error('nip') is-invalid @enderror"
                                                 id="nip" name="nip"
                                                 value="{{ old('nip', $user->lecturer->nip ?? '') }}"
@@ -157,8 +158,8 @@
                         @endif
 
                         <div class="mt-4">
-                            <button type="submit" class="btn btn-sm btn-primary me-2">Update</button>
-                            <a href="{{ route('admin.users.index') }}" class="btn btn-sm btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-sm btn-primary me-2">Simpan</button>
+                            <a href="{{ route('admin.users.index') }}" class="btn btn-sm btn-secondary">Batal</a>
                         </div>
                     </form>
                 </div>

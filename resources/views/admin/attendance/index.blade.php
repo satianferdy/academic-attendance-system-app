@@ -125,7 +125,7 @@
                                                                 @endif
                                                             </td>
                                                             <td>
-                                                                <a href="{{ route('lecturer.attendance-data.edit-session', ['session' => $session->id]) }}"
+                                                                <a href="{{ route('admin.attendance.edit-session', ['session' => $session->id]) }}"
                                                                     class="btn btn-icon btn-sm btn-primary"
                                                                     data-bs-toggle="tooltip" title="Edit">
                                                                     <i data-feather="edit" class="btn-icon-prepend"></i>

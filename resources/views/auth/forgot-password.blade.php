@@ -1,6 +1,6 @@
 @extends('layouts.auth')
 
-@section('title', 'Forgot Password')
+@section('title', 'Lupa Kata Sandi')
 
 @push('styles')
     <style>
@@ -122,9 +122,9 @@
             <img src="{{ asset('assets/images/logo.png') }}" alt="Logo">
         </div>
 
-        <h2>Forgot Password</h2>
+        <h2>Lupa Kata Sandi</h2>
         <p class="subtitle">
-            Enter your email address and we'll send you a password reset link.
+            Masukkan alamat email Anda dan kami akan mengirimkan tautan untuk mengatur ulang kata sandi.
         </p>
 
         @if (session('status'))
@@ -151,14 +151,14 @@
             </div>
 
             <div class="d-grid gap-2">
-                <button type="submit" class="btn btn-primary">Send Reset Link</button>
+                <button type="submit" class="btn btn-primary">Kirim Tautan Reset</button>
             </div>
         </form>
 
         <div class="back-to-login">
             <p>
                 <a href="{{ route('login') }}">
-                    <span>Back to Login</span>
+                    <span>Kembali ke Halaman Login</span>
                 </a>
             </p>
         </div>

@@ -5,6 +5,7 @@
 namespace App\Repositories\Interfaces;
 
 use App\Models\Attendance;
+use Illuminate\Support\Collection;
 
 interface AttendanceRepositoryInterface
 {
@@ -18,4 +19,5 @@ interface AttendanceRepositoryInterface
     public function getStudentAttendances(int $studentId);
     public function getFilteredAttendances($courseId = null, $date = null, $studentId = null, $status = null);
     public function getAttendancesByClassAndStudent(int $classId, ?int $studentId = null);
+    public function getCumulativeAttendanceData(int $classScheduleId): Collection;
 }

@@ -46,6 +46,11 @@ class Student extends Model
         return $this->hasOne(FaceData::class, 'student_id');
     }
 
+    public function faceUpdateRequests()
+    {
+        return $this->hasMany(FaceUpdateRequest::class);
+    }
+
     /**
      * Check if student is enrolled in a class schedule
      *

@@ -13,14 +13,14 @@
         <div class="col-md-12 grid-margin stretch-card">
             <div class="card">
                 <div class="card-body">
-                    <h6 class="card-title">User Management</h6>
+                    <h6 class="card-title">Kelola Users</h6>
 
                     <div class="d-flex justify-content-end mb-3">
                         <div>
                             <a href="{{ route('admin.users.create') }}"
                                 class="btn btn-primary btn-sm btn-icon-text mb-2 mb-md-0">
                                 <i class="btn-icon-prepend" data-feather="plus-square"></i>
-                                Add User
+                                Tambah User
                             </a>
                         </div>
                     </div>
@@ -28,7 +28,7 @@
                     <ul class="nav nav-tabs" id="userTabs" role="tablist">
                         <li class="nav-item">
                             <a class="nav-link active" id="all-tab" data-bs-toggle="tab" href="#all" role="tab"
-                                aria-controls="all" aria-selected="true">All Users</a>
+                                aria-controls="all" aria-selected="true">Semua</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" id="admin-tab" data-bs-toggle="tab" href="#admin" role="tab"
@@ -36,11 +36,11 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" id="lecturer-tab" data-bs-toggle="tab" href="#lecturer" role="tab"
-                                aria-controls="lecturer" aria-selected="false">Lecturer</a>
+                                aria-controls="lecturer" aria-selected="false">Dosen</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" id="student-tab" data-bs-toggle="tab" href="#student" role="tab"
-                                aria-controls="student" aria-selected="false">Student</a>
+                                aria-controls="student" aria-selected="false">Mahasiswa</a>
                         </li>
                     </ul>
                     <div class="tab-content border border-top-0 p-3" id="userTabContent">
@@ -52,7 +52,7 @@
                                         <tr>
                                             <th>No</th>
                                             <th>NIM/NIP</th>
-                                            <th>Name</th>
+                                            <th>Nama</th>
                                             <th>Email</th>
                                             <th>Role</th>
                                             <th>Actions</th>

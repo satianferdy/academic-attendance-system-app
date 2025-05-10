@@ -225,8 +225,14 @@ class AttendanceServiceTest extends TestCase
         $classId = 1;
         $date = '2023-07-01';
 
-        // Mock session
+        // Create a fixed current time for testing
+        $now = Carbon::parse('2023-07-01 12:00:00')->setTimezone(config('app.timezone'));
+        Carbon::setTestNow($now);
+
+        // Mock session with proper end_time
         $session = Mockery::mock(SessionAttendance::class);
+        $endTime = Carbon::parse('2023-07-01 14:00:00')->setTimezone(config('app.timezone'));
+        $session->shouldReceive('getAttribute')->with('end_time')->andReturn($endTime);
 
         // Setup repository expectations
         $this->sessionRepository->shouldReceive('findActiveByClassAndDate')
@@ -239,6 +245,90 @@ class AttendanceServiceTest extends TestCase
 
         // Assert the result
         $this->assertTrue($result);
+
+        // Clean up test time
+        Carbon::setTestNow(null);
+    }
+
+    public function test_it_returns_false_when_no_session_found()
+    {
+        // Test data
+        $classId = 1;
+        $date = '2023-07-01';
+
+        // Setup repository expectations - no session found
+        $this->sessionRepository->shouldReceive('findActiveByClassAndDate')
+            ->once()
+            ->with($classId, $date)
+            ->andReturn(null);
+
+        // Call the method
+        $result = $this->attendanceService->isSessionActive($classId, $date);
+
+        // Assert the result
+        $this->assertFalse($result);
+    }
+
+    public function test_it_returns_false_when_session_is_past()
+    {
+        // Test data
+        $classId = 1;
+        $date = '2023-06-30'; // Past date
+
+        // Set current time to one day after session date
+        $now = Carbon::parse('2023-07-01 12:00:00')->setTimezone(config('app.timezone'));
+        Carbon::setTestNow($now);
+
+        // Mock session
+        $session = Mockery::mock(SessionAttendance::class);
+        $endTime = Carbon::parse('2023-06-30 14:00:00')->setTimezone(config('app.timezone'));
+        $session->shouldReceive('getAttribute')->with('end_time')->andReturn($endTime);
+
+        // Setup repository expectations
+        $this->sessionRepository->shouldReceive('findActiveByClassAndDate')
+            ->once()
+            ->with($classId, $date)
+            ->andReturn($session);
+
+        // Call the method
+        $result = $this->attendanceService->isSessionActive($classId, $date);
+
+        // Assert the result
+        $this->assertFalse($result);
+
+        // Clean up test time
+        Carbon::setTestNow(null);
+    }
+
+    public function test_it_returns_false_when_current_time_is_after_session_end_time()
+    {
+        // Test data
+        $classId = 1;
+        $date = '2023-07-01';
+
+        // Set current time to after session end time
+        $now = Carbon::parse('2023-07-01 15:00:00')->setTimezone(config('app.timezone'));
+        Carbon::setTestNow($now);
+
+        // Mock session with end_time in the past
+        $session = Mockery::mock(SessionAttendance::class);
+        $endTime = Carbon::parse('2023-07-01 14:00:00')->setTimezone(config('app.timezone'));
+        $session->shouldReceive('getAttribute')->with('end_time')->andReturn($endTime);
+
+        // Setup repository expectations
+        $this->sessionRepository->shouldReceive('findActiveByClassAndDate')
+            ->once()
+            ->with($classId, $date)
+            ->andReturn($session);
+
+        // Call the method
+        $result = $this->attendanceService->isSessionActive($classId, $date);
+
+        // Assert the result
+        $this->assertFalse($result);
+
+        // Clean up test time
+        Carbon::setTestNow(null);
     }
 
     public function test_it_updates_attendance_status()
