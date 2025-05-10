@@ -67,7 +67,8 @@
             <div class="card">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h6 class="card-title">QR Code - {{ $classSchedule->course->code }}</h6>
+                        <h6 class="card-title">QR Code - {{ $classSchedule->studyProgram->name }} -
+                            {{ $classSchedule->course->code }}</h6>
                         <div>
                             <a href="{{ route('lecturer.attendance.show', ['classSchedule' => $classSchedule->id, 'date' => $date]) }}"
                                 class="btn btn-secondary btn-sm btn-icon-text" type="button">

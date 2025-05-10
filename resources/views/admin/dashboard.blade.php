@@ -2,7 +2,7 @@
 
 @section('title', 'Admin Dashboard')
 
-@section('page-title', 'Admin Dashboard - Face Recognition Attendance System')
+@section('page-title', 'Admin Dashboard - Sistem Presensi Pengenalan Wajah')
 
 @push('styles')
     <style>
@@ -72,11 +72,11 @@
                 <div class="card">
                     <div class="card-body d-flex align-items-center">
                         <div>
-                            <h5 class="fw-semibold mb-1">Welcome, Admin!</h5>
-                            <p class="text-muted mb-0">Here's what's happening with your attendance system today.</p>
+                            <h5 class="fw-semibold mb-1">Selamat Datang, Admin!</h5>
+                            <p class="text-muted mb-0">Inilah yang terjadi dengan sistem presensi Anda hari ini.</p>
                         </div>
                         <div class="ms-auto">
-                            <button class="btn btn-sm btn-outline-primary">Generate Report</button>
+                            <button class="btn btn-sm btn-outline-primary">Buat Laporan</button>
                         </div>
                     </div>
                 </div>
@@ -93,10 +93,10 @@
                             <div class="stat-icon bg-primary-subtle me-2">
                                 <i data-feather="users" class="text-primary"></i>
                             </div>
-                            <h6 class="card-subtitle text-muted mb-0">Students</h6>
+                            <h6 class="card-subtitle text-muted mb-0">Mahasiswa</h6>
                         </div>
                         <h3 class="fw-semibold mb-0">{{ $statistics['totalStudents'] }}</h3>
-                        <small class="text-muted">Total registered</small>
+                        <small class="text-muted">Total registrasi</small>
                     </div>
                 </div>
             </div>
@@ -107,10 +107,10 @@
                             <div class="stat-icon bg-info-subtle me-2">
                                 <i data-feather="user-check" class="text-info"></i>
                             </div>
-                            <h6 class="card-subtitle text-muted mb-0">Lecturers</h6>
+                            <h6 class="card-subtitle text-muted mb-0">Dosen</h6>
                         </div>
                         <h3 class="fw-semibold mb-0">{{ $statistics['totalLecturers'] }}</h3>
-                        <small class="text-muted">Total registered</small>
+                        <small class="text-muted">Total registrasi</small>
                     </div>
                 </div>
             </div>
@@ -121,10 +121,10 @@
                             <div class="stat-icon bg-success-subtle me-2">
                                 <i data-feather="book" class="text-success"></i>
                             </div>
-                            <h6 class="card-subtitle text-muted mb-0">Courses</h6>
+                            <h6 class="card-subtitle text-muted mb-0">Mata Kuliah</h6>
                         </div>
                         <h3 class="fw-semibold mb-0">{{ $statistics['totalCourses'] }}</h3>
-                        <small class="text-muted">Total available</small>
+                        <small class="text-muted">Total tersedia</small>
                     </div>
                 </div>
             </div>
@@ -135,10 +135,10 @@
                             <div class="stat-icon bg-warning-subtle me-2">
                                 <i data-feather="home" class="text-warning"></i>
                             </div>
-                            <h6 class="card-subtitle text-muted mb-0">Classes</h6>
+                            <h6 class="card-subtitle text-muted mb-0">Kelas</h6>
                         </div>
                         <h3 class="fw-semibold mb-0">{{ $statistics['totalClassrooms'] }}</h3>
-                        <small class="text-muted">Total available</small>
+                        <small class="text-muted">Total tersedia</small>
                     </div>
                 </div>
             </div>
@@ -149,10 +149,10 @@
                             <div class="stat-icon bg-danger-subtle me-2">
                                 <i data-feather="calendar" class="text-danger"></i>
                             </div>
-                            <h6 class="card-subtitle text-muted mb-0">Schedules</h6>
+                            <h6 class="card-subtitle text-muted mb-0">Jadwal</h6>
                         </div>
                         <h3 class="fw-semibold mb-0">{{ $statistics['totalSchedules'] }}</h3>
-                        <small class="text-muted">Total scheduled</small>
+                        <small class="text-muted">Total jadwal</small>
                     </div>
                 </div>
             </div>
@@ -163,10 +163,10 @@
                             <div class="stat-icon bg-secondary-subtle me-2">
                                 <i data-feather="check-circle" class="text-secondary"></i>
                             </div>
-                            <h6 class="card-subtitle text-muted mb-0">Today</h6>
+                            <h6 class="card-subtitle text-muted mb-0">Hari ini</h6>
                         </div>
                         <h3 class="fw-semibold mb-0">{{ $statistics['todayAttendanceCount'] }}</h3>
-                        <small class="text-muted">Attendances recorded</small>
+                        <small class="text-muted">Presensi tercatat</small>
                     </div>
                 </div>
             </div>
@@ -177,12 +177,12 @@
             <div class="col-md-5">
                 <div class="card h-100">
                     <div class="card-header">
-                        <h6 class="card-title fw-semibold mb-0">Face Recognition Status</h6>
+                        <h6 class="card-title fw-semibold mb-0">Status Pengenalan Wajah</h6>
                     </div>
                     <div class="card-body">
                         <div class="mb-4">
                             <div class="progress-label">
-                                <span class="text-muted">Face Registration Progress</span>
+                                <span class="text-muted">Kemajuan Registrasi Wajah</span>
                                 <span class="fw-medium">{{ $faceRegistration['faceRegistrationPercentage'] }}%</span>
                             </div>
                             <div class="progress" style="height: 8px;">
@@ -190,17 +190,17 @@
                                     style="width: {{ $faceRegistration['faceRegistrationPercentage'] }}%; background-color: #6571ff;">
                                 </div>
                             </div>
-                            <small class="text-muted mt-2 d-block">{{ $faceRegistration['studentsWithFace'] }} out of
-                                {{ $faceRegistration['totalStudents'] }} students have
-                                registered their face</small>
+                            <small class="text-muted mt-2 d-block">{{ $faceRegistration['studentsWithFace'] }} dari
+                                {{ $faceRegistration['totalStudents'] }} mahasiswa telah
+                                mendaftarkan wajah mereka</small>
                         </div>
 
                         <div class="d-flex gap-2 mt-4">
-                            <a href="" class="btn btn-sm btn-outline-primary">
-                                <i data-feather="user-x" class="me-1"></i> Unregistered Students
+                            <a href="" class="btn btn-sm btn-icon-text btn-outline-primary">
+                                <i data-feather="user-x" class="btn-icon-prepend"></i> Mahasiswa Belum Terdaftar
                             </a>
-                            <a href="" class="btn btn-sm btn-outline-secondary">
-                                <i data-feather="database" class="me-1"></i> Manage Face Data
+                            <a href="" class="btn btn-sm btn-icon-text btn-outline-secondary">
+                                <i data-feather="database" class="btn-icon-prepend"></i> Kelola Data Wajah
                             </a>
                         </div>
                     </div>
@@ -211,7 +211,7 @@
             <div class="col-md-7">
                 <div class="card h-100">
                     <div class="card-header">
-                        <h6 class="card-title fw-semibold mb-0">Weekly Attendance Overview</h6>
+                        <h6 class="card-title fw-semibold mb-0">Ringkasan Kehadiran Mingguan</h6>
                     </div>
                     <div class="card-body">
                         <div class="attendance-chart-container">
@@ -227,9 +227,9 @@
             <div class="col-md-6">
                 <div class="card h-100">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <h6 class="card-title fw-semibold mb-0">Recent Activities</h6>
-                        <a href="{{ route('admin.attendance.index') }}" class="btn btn-sm btn-outline-primary">View
-                            All</a>
+                        <h6 class="card-title fw-semibold mb-0">Aktivitas Terbaru</h6>
+                        <a href="{{ route('admin.attendance.index') }}" class="btn btn-sm btn-outline-primary">Lihat
+                            Semua</a>
                     </div>
                     <div class="card-body p-0">
                         <div class="list-group list-group-flush">
@@ -264,7 +264,7 @@
                                 </div>
                             @empty
                                 <div class="list-group-item px-3 py-2 text-center text-muted">
-                                    <i data-feather="calendar-x" class="me-1"></i> No recent records
+                                    <i data-feather="calendar-x" class="me-1"></i> Tidak ada aktivitas terbaru
                                 </div>
                             @endforelse
                         </div>
@@ -288,8 +288,10 @@
                                             <i data-feather="user-plus" class="text-primary"></i>
                                         </div>
                                         <div>
-                                            <h6 class="mb-0 fw-medium">Add New Student</h6>
-                                            <small class="text-muted">Register student</small>
+                                            <h6 class="mb-0 fw-medium">Tambah Mahasiswa Baru</h6>
+                                            <small class="text-muted">
+                                                Registrasi mahasiswa baru
+                                            </small>
                                         </div>
                                     </div>
                                 </a>
@@ -302,8 +304,12 @@
                                             <i data-feather="user-check" class="text-info"></i>
                                         </div>
                                         <div>
-                                            <h6 class="mb-0 fw-medium">Add New Lecturer</h6>
-                                            <small class="text-muted">Register lecturer</small>
+                                            <h6 class="mb-0 fw-medium">
+                                                Tambah Dosen Baru
+                                            </h6>
+                                            <small class="text-muted">
+                                                Registrasi dosen baru
+                                            </small>
                                         </div>
                                     </div>
                                 </a>
@@ -316,8 +322,10 @@
                                             <i data-feather="book" class="text-success"></i>
                                         </div>
                                         <div>
-                                            <h6 class="mb-0 fw-medium">Add New Course</h6>
-                                            <small class="text-muted">Create course</small>
+                                            <h6 class="mb-0 fw-medium">Buat Mata Kuliah Baru</h6>
+                                            <small class="text-muted">
+                                                Tambah mata kuliah baru
+                                            </small>
                                         </div>
                                     </div>
                                 </a>
@@ -330,8 +338,12 @@
                                             <i data-feather="calendar" class="text-warning"></i>
                                         </div>
                                         <div>
-                                            <h6 class="mb-0 fw-medium">Create Schedule</h6>
-                                            <small class="text-muted">Plan classes</small>
+                                            <h6 class="mb-0 fw-medium">
+                                                Buat Jadwal Baru
+                                            </h6>
+                                            <small class="text-muted">
+                                                Tambah jadwal baru
+                                            </small>
                                         </div>
                                     </div>
                                 </a>
@@ -343,8 +355,12 @@
                                             <i data-feather="file-text" class="text-danger"></i>
                                         </div>
                                         <div>
-                                            <h6 class="mb-0 fw-medium">Generate Reports</h6>
-                                            <small class="text-muted">Export data</small>
+                                            <h6 class="mb-0 fw-medium">
+                                                Ekspor Data Kehadiran
+                                            </h6>
+                                            <small class="text-muted">
+                                                Unduh laporan kehadiran
+                                            </small>
                                         </div>
                                     </div>
                                 </a>
@@ -356,8 +372,12 @@
                                             <i data-feather="settings" class="text-secondary"></i>
                                         </div>
                                         <div>
-                                            <h6 class="mb-0 fw-medium">System Settings</h6>
-                                            <small class="text-muted">Configure system</small>
+                                            <h6 class="mb-0 fw-medium">
+                                                Pengaturan Sistem
+                                            </h6>
+                                            <small class="text-muted">
+                                                Sesuaikan pengaturan sistem
+                                            </small>
                                         </div>
                                     </div>
                                 </a>
@@ -392,28 +412,28 @@
             const chartData = {
                 labels: @json($attendanceData['weekDays']),
                 datasets: [{
-                        label: 'Present',
+                        label: 'Hadir',
                         data: @json($attendanceData['series'][0]['data']),
                         backgroundColor: chartColors.present,
                         borderColor: chartColors.present,
                         borderWidth: 0
                     },
                     {
-                        label: 'Absent',
+                        label: 'Tidak Hadir',
                         data: @json($attendanceData['series'][1]['data']),
                         backgroundColor: chartColors.absent,
                         borderColor: chartColors.absent,
                         borderWidth: 0
                     },
                     {
-                        label: 'Late',
+                        label: 'Terlambat',
                         data: @json($attendanceData['series'][2]['data']),
                         backgroundColor: chartColors.late,
                         borderColor: chartColors.late,
                         borderWidth: 0
                     },
                     {
-                        label: 'Excused',
+                        label: 'Izin',
                         data: @json($attendanceData['series'][3]['data']),
                         backgroundColor: chartColors.excused,
                         borderColor: chartColors.excused,

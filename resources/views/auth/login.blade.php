@@ -122,9 +122,9 @@
             <img src="{{ asset('assets/images/logo.png') }}" alt="Logo">
         </div>
 
-        <h2>Welcome Back</h2>
+        <h2>Selamat Datang Kembali</h2>
         <p class="subtitle">
-            Enter your credentials to access your account.
+            Masukkan kredensial Anda untuk mengakses akun.
         </p>
 
         @if ($errors->any())
@@ -141,10 +141,10 @@
             @csrf
             <div class="input-group">
                 <input type="text" class="form-control" id="username" name="username"
-                    placeholder="Enter your NIM/NIP/Email" value="{{ old('username') }}" required>
+                    placeholder="Masukkan NIM/NIP/Email Anda" value="{{ old('username') }}" required>
             </div>
             <div class="login-info">
-                <small>* Students use NIM, Lecturers use NIP, Admins use Email</small>
+                <small>* Mahasiswa gunakan NIM, Dosen gunakan NIP, Admin gunakan Email</small>
             </div>
 
             <div class="input-group">
@@ -156,14 +156,14 @@
             </div>
 
             <div class="d-grid gap-2">
-                <button type="submit" class="btn btn-primary">Sign In</button>
+                <button type="submit" class="btn btn-primary">Masuk</button>
             </div>
         </form>
 
         <div class="forgot-password">
             <p>
                 <a href="{{ route('password.request') }}">
-                    <span>Forgot Password?</span>
+                    <span>Lupa Kata Sandi?</span>
                 </a>
             </p>
         </div>
