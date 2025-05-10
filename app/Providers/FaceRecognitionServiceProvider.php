@@ -21,6 +21,10 @@ use App\Repositories\Implementations\StudentRepository;
 use App\Repositories\Implementations\FaceDataRepository;
 use App\Repositories\Interfaces\StudentRepositoryInterface;
 use App\Repositories\Interfaces\FaceDataRepositoryInterface;
+use App\Repositories\Implementations\UserRepository;
+use App\Repositories\Interfaces\UserRepositoryInterface;
+use App\Services\Implementations\UserService;
+use App\Services\Interfaces\UserServiceInterface;
 use Illuminate\Support\ServiceProvider;
 
 
@@ -37,12 +41,14 @@ class FaceRecognitionServiceProvider extends ServiceProvider
         $this->app->bind(ClassScheduleRepositoryInterface::class, ClassScheduleRepository::class);
         $this->app->bind(StudentRepositoryInterface::class, StudentRepository::class);
         $this->app->bind(FaceDataRepositoryInterface::class, FaceDataRepository::class);
+        $this->app->bind(UserRepositoryInterface::class, UserRepository::class);
 
         // Bind services
         $this->app->bind(FaceRecognitionServiceInterface::class, FaceRecognitionService::class);
         $this->app->bind(QRCodeServiceInterface::class, QRCodeService::class);
         $this->app->bind(AttendanceServiceInterface::class, AttendanceService::class);
         $this->app->bind(ScheduleServiceInterface::class, ScheduleService::class);
+        $this->app->bind(UserServiceInterface::class, UserService::class);
     }
 
     /**

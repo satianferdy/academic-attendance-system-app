@@ -11,9 +11,18 @@ use App\Models\ClassRoom;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use App\Models\StudyProgram;
+use App\Services\Interfaces\UserServiceInterface;
 
 class UserManagementController extends Controller
 {
+    protected $userService;
+
+    public function __construct(
+        UserServiceInterface $userService
+    )
+    {
+        $this->userService = $userService;
+    }
     /**
      * Display a listing of the resource.
      */
@@ -21,15 +30,9 @@ class UserManagementController extends Controller
     {
         $this->authorize('viewAny', User::class);
 
-        // Get all users with their relationships
-        $users = User::with(['student', 'lecturer'])->get();
+        $userData = $this->userService->getAllUsersByRole();
 
-        // Filter users by role
-        $admins = $users->where('role', 'admin');
-        $lecturers = $users->where('role', 'lecturer');
-        $students = $users->where('role', 'student');
-
-        return view('admin.user.index', compact('users', 'admins', 'lecturers', 'students'));
+        return view('admin.user.index', $userData);
     }
 
     /**
@@ -76,33 +79,15 @@ class UserManagementController extends Controller
                 ->withInput();
         }
 
-        // Proses pembuatan user
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role' => $request->role,
-        ]);
-
-        $user->assignRole($request->role);
-
-        // Proses data sesuai role
-        if ($request->role === 'student') {
-            Student::create([
-                'user_id' => $user->id,
-                'nim' => $request->student_nim,
-                'study_program_id' => $request->study_program_id,
-                'classroom_id' => $request->classroom_id,
-            ]);
-        } elseif ($request->role === 'lecturer') {
-            Lecturer::create([
-                'user_id' => $user->id,
-                'nip' => $request->lecturer_nip,
-            ]);
+        try {
+            $this->userService->createUser($request->all());
+            return redirect()->route('admin.users.index')
+                ->with('success', 'User berhasil dibuat');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Error creating user: ' . $e->getMessage())
+                ->withInput();
         }
-
-        return redirect()->route('admin.users.index')
-            ->with('success', 'User berhasil dibuat');
     }
 
     /**
@@ -124,10 +109,26 @@ class UserManagementController extends Controller
     {
         $this->authorize('update', $user);
 
-        $validator = Validator::make($request->all(), [
+        $validationRules = [
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
-        ]);
+        ];
+
+        // Add password validation if provided
+        if ($request->filled('password')) {
+            $validationRules['password'] = 'required|string|min:8|confirmed';
+        }
+
+        // Add role-specific validation
+        if ($user->role === 'student') {
+            $validationRules['nim'] = 'required|string|max:20|unique:students,nim,' . $user->student->id;
+            $validationRules['study_program_id'] = 'required|exists:study_programs,id';
+            $validationRules['classroom_id'] = 'required|exists:classrooms,id';
+        } elseif ($user->role === 'lecturer') {
+            $validationRules['nip'] = 'required|string|max:20|unique:lecturers,nip,' . $user->lecturer->id;
+        }
+
+        $validator = Validator::make($request->all(), $validationRules);
 
         if ($validator->fails()) {
             return redirect()->back()
@@ -135,68 +136,15 @@ class UserManagementController extends Controller
                 ->withInput();
         }
 
-        $user->update([
-            'name' => $request->name,
-            'email' => $request->email,
-        ]);
-
-        // Update password if provided
-        if ($request->filled('password')) {
-            $validator = Validator::make($request->all(), [
-                'password' => 'required|string|min:8|confirmed',
-            ]);
-
-            if ($validator->fails()) {
-                return redirect()->back()
-                    ->withErrors($validator)
-                    ->withInput();
-            }
-
-            $user->update([
-                'password' => Hash::make($request->password),
-            ]);
+        try {
+            $this->userService->updateUser($user, $request->all());
+            return redirect()->route('admin.users.index')
+                ->with('success', 'User updated successfully.');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Error updating user: ' . $e->getMessage())
+                ->withInput();
         }
-
-        // Update student-specific fields if user is a student
-        if ($user->role === 'student' && $user->student) {
-            $validator = Validator::make($request->all(), [
-                'nim' => 'required|string|max:20|unique:students,nim,' . $user->student->id,
-                'study_program_id' => 'required|exists:study_programs,id',
-                'classroom_id' => 'required|exists:classrooms,id',
-            ]);
-
-            if ($validator->fails()) {
-                return redirect()->back()
-                    ->withErrors($validator)
-                    ->withInput();
-            }
-
-            $user->student->update([
-                'nim' => $request->nim,
-                'study_program_id' => $request->study_program_id,
-                'classroom_id' => $request->classroom_id,
-            ]);
-        }
-
-        // Update lecturer-specific fields if user is a lecturer
-        if ($user->role === 'lecturer' && $user->lecturer) {
-            $validator = Validator::make($request->all(), [
-                'nip' => 'required|string|max:20|unique:lecturers,nip,' . $user->lecturer->id,
-            ]);
-
-            if ($validator->fails()) {
-                return redirect()->back()
-                    ->withErrors($validator)
-                    ->withInput();
-            }
-
-            $user->lecturer->update([
-                'nip' => $request->nip,
-            ]);
-        }
-
-        return redirect()->route('admin.users.index')
-            ->with('success', 'User updated successfully.');
     }
 
     /**
@@ -206,9 +154,13 @@ class UserManagementController extends Controller
     {
         $this->authorize('delete', $user);
 
-        $user->delete();
-
-        return redirect()->route('admin.users.index')
-            ->with('success', 'User deleted successfully.');
+        try {
+            $this->userService->deleteUser($user);
+            return redirect()->route('admin.users.index')
+                ->with('success', 'User deleted successfully.');
+        } catch (\Exception $e) {
+            return redirect()->route('admin.users.index')
+                ->with('error', 'Error deleting user: ' . $e->getMessage());
+        }
     }
 }
