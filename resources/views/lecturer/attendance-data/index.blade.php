@@ -3,6 +3,7 @@
 @section('title', 'Attendance Management')
 
 @push('styles')
+    <link rel="stylesheet" href="{{ asset('assets/vendors/datatables.net-bs5/dataTables.bootstrap5.css') }}">
     <style>
         .filter-form .form-select {
             min-width: 200px;
@@ -231,6 +232,9 @@
 @endsection
 
 @push('scripts')
+    <script src="{{ asset('assets/vendors/datatables.net/jquery.dataTables.js') }}"></script>
+    <script src="{{ asset('assets/vendors/datatables.net-bs5/dataTables.bootstrap5.js') }}"></script>
+    <script src="{{ asset('assets/js/data-table.js') }}"></script>
     <script>
         $(function() {
             // Initialize feather icons

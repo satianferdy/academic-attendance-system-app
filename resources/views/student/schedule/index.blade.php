@@ -2,6 +2,10 @@
 
 @section('title', 'Class Schedule Management')
 
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('assets/vendors/datatables.net-bs5/dataTables.bootstrap5.css') }}">
+@endpush
+
 @section('content')
     <nav class="page-breadcrumb">
         <ol class="breadcrumb">
@@ -67,3 +71,9 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+    <script src="{{ asset('assets/vendors/datatables.net/jquery.dataTables.js') }}"></script>
+    <script src="{{ asset('assets/vendors/datatables.net-bs5/dataTables.bootstrap5.js') }}"></script>
+    <script src="{{ asset('assets/js/data-table.js') }}"></script>
+@endpush
