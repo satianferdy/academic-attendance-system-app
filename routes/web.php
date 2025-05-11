@@ -100,9 +100,9 @@ Route::group(['middleware' => ['auth', 'role:lecturer'], 'prefix' => 'lecturer',
     Route::get('/attendance/{classSchedule}/edit', [LecturerAttendanceController::class, 'edit'])->name('attendance.edit');
     Route::put('/attendance/update/{attendance}', [LecturerAttendanceController::class, 'update'])->name('attendance.update');
 
-    Route::get('data', [LecturerAttendanceDataController::class, 'index'])->name('attendance-data.index');
-    Route::get('data/session/{session}', [LecturerAttendanceDataController::class, 'editSession'])->name('attendance-data.edit-session');
-    Route::post('data/update-status', [LecturerAttendanceDataController::class, 'updateStatus'])->name('attendance-data.update-status');
+    Route::get('attendance-data', [LecturerAttendanceDataController::class, 'index'])->name('attendance-data.index');
+    Route::get('attendance-data/session/{session}', [LecturerAttendanceDataController::class, 'editSession'])->name('attendance-data.edit-session');
+    Route::post('attendance-data/update-status', [LecturerAttendanceDataController::class, 'updateStatus'])->name('attendance-data.update-status');
 });
 
 // Student routes
