@@ -1,8 +1,9 @@
 @extends('layouts.app')
 
-@section('title', 'Attendance Management')
+@section('title', 'Daftar Presensi')
 
 @push('styles')
+    <link rel="stylesheet" href="{{ asset('assets/vendors/datatables.net-bs5/dataTables.bootstrap5.css') }}">
     <style>
         .filter-form .form-select {
             min-width: 200px;
@@ -25,8 +26,8 @@
 @section('content')
     <nav class="page-breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="#">Lecturer</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Attendance Management</li>
+            <li class="breadcrumb-item"><a href="#">General</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Daftar Presensi</li>
         </ol>
     </nav>
 
@@ -34,7 +35,7 @@
         <div class="col-md-12 grid-margin stretch-card">
             <div class="card">
                 <div class="card-body">
-                    <h6 class="card-title">Attendance Management</h6>
+                    <h6 class="card-title">Daftar Presensi</h6>
 
                     @if (session('success'))
                         <div class="alert alert-success">{{ session('success') }}</div>
@@ -51,12 +52,12 @@
                             <form action="{{ route('lecturer.attendance-data.index') }}" method="GET" class="filter-form">
                                 <div class="row g-3 align-items-center">
                                     <div class="col-auto">
-                                        <label for="study_program_id" class="col-form-label">Study Program</label>
+                                        <label for="study_program_id" class="col-form-label">Program Studi</label>
                                     </div>
                                     <div class="col-md-3">
                                         <select class="form-select" id="study_program_id" name="study_program_id"
                                             onchange="this.form.submit()">
-                                            <option value="">Select Study Program</option>
+                                            <option value="">Select Program Studi</option>
                                             @foreach ($studyPrograms as $program)
                                                 <option value="{{ $program->id }}"
                                                     {{ $selectedProgramId == $program->id ? 'selected' : '' }}>
@@ -66,12 +67,12 @@
                                         </select>
                                     </div>
                                     <div class="col-auto">
-                                        <label for="class_schedule_id" class="col-form-label">Class</label>
+                                        <label for="class_schedule_id" class="col-form-label">Kelas</label>
                                     </div>
                                     <div class="col-md-3">
                                         <select class="form-select" id="class_schedule_id" name="class_schedule_id"
                                             {{ count($classSchedules) ? '' : 'disabled' }} onchange="this.form.submit()">
-                                            <option value="">Select Class</option>
+                                            <option value="">Select Kelas</option>
                                             @foreach ($classSchedules as $schedule)
                                                 <option value="{{ $schedule->id }}"
                                                     {{ $selectedScheduleId == $schedule->id ? 'selected' : '' }}>
@@ -91,16 +92,16 @@
                             <div class="col-md-4">
                                 <div class="card">
                                     <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                                        <h6 class="card-title mb-0">Attendance Sessions</h6>
+                                        <h6 class="card-title mb-0">Sesi Presensi</h6>
                                     </div>
                                     <div class="card-body p-0">
                                         <div class="table-responsive">
                                             <table class="table table-hover table-bordered mb-0 table-sessions">
                                                 <thead>
                                                     <tr>
-                                                        <th>Week To</th>
-                                                        <th>Meet To</th>
-                                                        <th>Date</th>
+                                                        <th>Minggu ke-</th>
+                                                        <th>Pertemuan ke-</th>
+                                                        <th>Tanggal</th>
                                                         <th>Action</th>
                                                     </tr>
                                                 </thead>
@@ -134,8 +135,8 @@
                                                         </tr>
                                                     @empty
                                                         <tr>
-                                                            <td colspan="3" class="text-center py-3">No attendance
-                                                                sessions found</td>
+                                                            <td colspan="3" class="text-center py-3">Tidak ada sesi
+                                                                presensi untuk kelas ini</td>
                                                         </tr>
                                                     @endforelse
                                                 </tbody>
@@ -148,7 +149,7 @@
                             <div class="col-md-8">
                                 <div class="card">
                                     <div class="card-header bg-white">
-                                        <h6 class="card-title mb-0">Cumulative Attendance</h6>
+                                        <h6 class="card-title mb-0">Presensi Komulatif</h6>
                                     </div>
                                     <div class="card-body p-0">
                                         <div class="table-responsive">
@@ -156,12 +157,12 @@
                                                 <thead>
                                                     <tr>
                                                         <th>#</th>
-                                                        <th>Student ID</th>
-                                                        <th>Student Name</th>
-                                                        <th class="text-center bg-success-subtle">Present</th>
+                                                        <th>NIM</th>
+                                                        <th>Nama</th>
+                                                        <th class="text-center bg-success-subtle">Hadir</th>
                                                         <th class="text-center bg-danger-subtle">Absent</th>
-                                                        <th class="text-center bg-warning-subtle">Permit</th>
-                                                        <th class="text-center bg-info-subtle">Sick</th>
+                                                        <th class="text-center bg-warning-subtle">Izin</th>
+                                                        <th class="text-center bg-info-subtle">Sakit</th>
                                                         <th class="text-center">Total (%)</th>
                                                     </tr>
                                                 </thead>
@@ -205,8 +206,8 @@
                                                         </tr>
                                                     @empty
                                                         <tr>
-                                                            <td colspan="8" class="text-center py-3">No students found
-                                                                for this class</td>
+                                                            <td colspan="8" class="text-center py-3">Tidak ada mahasiswa
+                                                                terdaftar di kelas ini</td>
                                                         </tr>
                                                     @endforelse
                                                 </tbody>
@@ -221,7 +222,7 @@
                     @else
                         <div class="alert alert-info">
                             <i data-feather="info" class="icon-md me-2"></i>
-                            Please select a Study Program and Class to view attendance data.
+                            Silakan pilih program studi dan kelas untuk melihat data presensi.
                         </div>
                     @endif
                 </div>
@@ -231,6 +232,9 @@
 @endsection
 
 @push('scripts')
+    <script src="{{ asset('assets/vendors/datatables.net/jquery.dataTables.js') }}"></script>
+    <script src="{{ asset('assets/vendors/datatables.net-bs5/dataTables.bootstrap5.js') }}"></script>
+    <script src="{{ asset('assets/js/data-table.js') }}"></script>
     <script>
         $(function() {
             // Initialize feather icons

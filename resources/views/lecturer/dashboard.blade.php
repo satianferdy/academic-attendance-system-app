@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
-@section('title', 'Lecturer Dashboard')
+@section('title', 'Dashboard')
 
-@section('page-title', 'Lecturer Dashboard')
+@section('page-title', 'Dashboard')
 
 @push('styles')
     <style>
@@ -72,14 +72,15 @@
                 <div class="card">
                     <div class="card-body d-flex align-items-center">
                         <div>
-                            <h5 class="fw-semibold mb-1">Welcome, {{ Auth::user()->name }}!</h5>
-                            <p class="text-muted mb-0">Here's your facial recognition attendance system overview for today.
+                            <h5 class="fw-semibold mb-1">Selamat Datang, {{ Auth::user()->name }}!</h5>
+                            <p class="text-muted mb-0">Berikut adalah data dan informasi terkini mengenai
+                                perkuliahan Anda.</p>
                             </p>
                         </div>
                         <div class="ms-auto">
                             <a href="{{ route('lecturer.attendance.index') }}" class="btn btn-icon-text btn-sm btn-primary">
                                 <i class="btn-icon-prepend" data-feather="camera" class="me-1"></i>
-                                Start Attendance Session
+                                Mulai Presensi
                             </a>
                         </div>
                     </div>
@@ -96,7 +97,7 @@
                             <div class="stat-icon bg-primary-subtle me-2">
                                 <i data-feather="users" class="text-primary"></i>
                             </div>
-                            <h6 class="card-subtitle text-muted mb-0">Total Students</h6>
+                            <h6 class="card-subtitle text-muted mb-0">Total Mahasiswa</h6>
                         </div>
                         <h3 class="fw-semibold mb-0">{{ $totalStudents }}</h3>
                         <div class="d-flex align-items-center mt-2">
@@ -104,7 +105,7 @@
                                 <div class="progress-bar bg-primary" role="progressbar"
                                     style="width: {{ $faceRegistrationPercentage }}%"></div>
                             </div>
-                            <span class="text-muted small">{{ $studentsWithFace }} registered faces</span>
+                            <span class="text-muted small">{{ $studentsWithFace }} registered wajah</span>
                         </div>
                     </div>
                 </div>
@@ -116,7 +117,7 @@
                             <div class="stat-icon bg-success-subtle me-2">
                                 <i data-feather="book" class="text-success"></i>
                             </div>
-                            <h6 class="card-subtitle text-muted mb-0">Today's Classes</h6>
+                            <h6 class="card-subtitle text-muted mb-0">Kelas Hari Ini</h6>
                         </div>
                         <h3 class="fw-semibold mb-0">{{ $todaySchedules->count() }}</h3>
                         <small class="text-muted">{{ Carbon\Carbon::now()->format('l, d M Y') }}</small>
@@ -130,10 +131,10 @@
                             <div class="stat-icon bg-info-subtle me-2">
                                 <i data-feather="check-circle" class="text-info"></i>
                             </div>
-                            <h6 class="card-subtitle text-muted mb-0">Attendance Rate</h6>
+                            <h6 class="card-subtitle text-muted mb-0">Presensi Rate</h6>
                         </div>
                         <h3 class="fw-semibold mb-0">{{ $avgAttendanceRate }}%</h3>
-                        <small class="text-muted">Average from recent sessions</small>
+                        <small class="text-muted">Rata-rata presensi mahasiswa</small>
                     </div>
                 </div>
             </div>
@@ -144,9 +145,9 @@
             <div class="col-md-5">
                 <div class="card h-100">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <h6 class="card-title fw-semibold mb-0">Today's Schedule</h6>
-                        <a href="{{ route('lecturer.schedule.index') }}" class="btn btn-sm btn-outline-primary">Full
-                            Schedule</a>
+                        <h6 class="card-title fw-semibold mb-0">Jadwal Hari Ini</h6>
+                        <a href="{{ route('lecturer.schedule.index') }}" class="btn btn-sm btn-outline-primary">Semua
+                            Jadwal</a>
                     </div>
                     <div class="card-body p-0">
                         <div class="list-group list-group-flush">
@@ -177,7 +178,7 @@
                             @empty
                                 <div class="list-group-item p-3 text-center text-muted">
                                     <i data-feather="calendar-x" class="mb-2"></i>
-                                    <p class="mb-0">No classes scheduled for today</p>
+                                    <p class="mb-0">Tidak ada kelas hari ini</p>
                                 </div>
                             @endforelse
                         </div>
@@ -189,7 +190,7 @@
             <div class="col-md-7">
                 <div class="card h-100">
                     <div class="card-header">
-                        <h6 class="card-title fw-semibold mb-0">Weekly Attendance Overview</h6>
+                        <h6 class="card-title fw-semibold mb-0">Ringkasan Presensi Mingguan</h6>
                     </div>
                     <div class="card-body">
                         <div class="attendance-chart-container">
@@ -205,19 +206,20 @@
             <div class="col-md-7">
                 <div class="card h-100">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <h6 class="card-title fw-semibold mb-0">Recent Attendance Sessions</h6>
-                        <a href="{{ route('lecturer.attendance-data.index') }}" class="btn btn-sm btn-outline-primary">View
-                            All</a>
+                        <h6 class="card-title fw-semibold mb-0">Sesi Presensi Terbaru</h6>
+                        <a href="{{ route('lecturer.attendance-data.index') }}"
+                            class="btn btn-sm btn-outline-primary">Lihat
+                            Semua</a>
                     </div>
                     <div class="card-body p-0">
                         <div class="table-responsive">
                             <table class="table table-hover mb-0">
                                 <thead class="table-light">
                                     <tr>
-                                        <th>Course</th>
-                                        <th>Date</th>
-                                        <th>Present</th>
-                                        <th>Absent</th>
+                                        <th>Matkul</th>
+                                        <th>Tanggal</th>
+                                        <th>Hadir</th>
+                                        <th>Absen</th>
                                         <th>Rate</th>
                                     </tr>
                                 </thead>
@@ -243,7 +245,7 @@
                                         <tr>
                                             <td colspan="6" class="text-center text-muted py-4">
                                                 <i data-feather="database" class="mb-2"></i>
-                                                <p class="mb-0">No attendance records found</p>
+                                                <p class="mb-0">Tidak ada data presensi terbaru</p>
                                             </td>
                                         </tr>
                                     @endforelse
@@ -258,12 +260,12 @@
             <div class="col-md-5">
                 <div class="card h-100">
                     <div class="card-header">
-                        <h6 class="card-title fw-semibold mb-0">Face Recognition Status</h6>
+                        <h6 class="card-title fw-semibold mb-0">Status Registrasi Wajah</h6>
                     </div>
                     <div class="card-body">
                         <div class="mb-4">
                             <div class="progress-label">
-                                <span class="text-muted">Student Face Registration</span>
+                                <span class="text-muted">Registrasi Wajah Mahasiswa</span>
                                 <span class="fw-medium">{{ $faceRegistrationPercentage }}%</span>
                             </div>
                             <div class="progress" style="height: 8px;">
@@ -271,11 +273,11 @@
                                     style="width: {{ $faceRegistrationPercentage }}%; background-color: #6571ff;">
                                 </div>
                             </div>
-                            <small class="text-muted mt-2 d-block">{{ $studentsWithFace }} out of
-                                {{ $totalStudents }} students have registered their face</small>
+                            <small class="text-muted mt-2 d-block">{{ $studentsWithFace }} dari
+                                {{ $totalStudents }} mahasiswa telah melakukan registrasi wajah</small>
                         </div>
                         <div class="mt-3">
-                            <h6 class="fw-medium mb-3">Upcoming Classes</h6>
+                            <h6 class="fw-medium mb-3">Kelas Mendatang</h6>
                             <div class="list-group list-group-flush">
                                 @php $hasUpcoming = false; @endphp
 
@@ -325,7 +327,7 @@
                                 @if (!$hasUpcoming)
                                     <div class="text-center text-muted py-3">
                                         <i data-feather="calendar" class="mb-2"></i>
-                                        <p class="mb-0">No upcoming classes in the next week</p>
+                                        <p class="mb-0">Tidak ada kelas mendatang</p>
                                     </div>
                                 @endif
                             </div>
@@ -355,28 +357,28 @@
             const chartData = {
                 labels: @json($weekDays),
                 datasets: [{
-                        label: 'Present',
+                        label: 'Hadir',
                         data: @json($weeklyAttendanceData['present']),
                         backgroundColor: chartColors.present,
                         borderColor: chartColors.present,
                         borderWidth: 0
                     },
                     {
-                        label: 'Absent',
+                        label: 'Absen',
                         data: @json($weeklyAttendanceData['absent']),
                         backgroundColor: chartColors.absent,
                         borderColor: chartColors.absent,
                         borderWidth: 0
                     },
                     {
-                        label: 'Late',
+                        label: 'Terlambat',
                         data: @json($weeklyAttendanceData['late']),
                         backgroundColor: chartColors.late,
                         borderColor: chartColors.late,
                         borderWidth: 0
                     },
                     {
-                        label: 'Excused',
+                        label: 'Izin',
                         data: @json($weeklyAttendanceData['excused']),
                         backgroundColor: chartColors.excused,
                         borderColor: chartColors.excused,

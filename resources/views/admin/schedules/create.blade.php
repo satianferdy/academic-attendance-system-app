@@ -1,12 +1,71 @@
 @extends('layouts.app')
 
-@section('title', 'Create Class Schedule')
+@section('title', 'Jadwal Perkuliahan')
+
+@push('styles')
+    <style>
+        /* Styles remain the same */
+        .day-btn {
+            min-width: 100px;
+        }
+
+        .time-slot-btn {
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .time-slot-btn.booked {
+            background-color: #ffebee;
+            /* Light red background */
+            color: #d32f2f;
+            /* Dark red text */
+            border-color: #ffcdd2;
+            /* Red border */
+            cursor: not-allowed;
+            font-size: 0.8rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .time-slot-btn.booked::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: repeating-linear-gradient(-45deg,
+                    transparent,
+                    transparent 5px,
+                    rgba(255, 0, 0, 0.1) 5px,
+                    rgba(255, 0, 0, 0.1) 10px);
+            pointer-events: none;
+        }
+
+        .time-slot-btn small {
+            font-size: 0.7rem;
+        }
+
+        .selected-slots-list .badge {
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+
+        .btn-close {
+            font-size: 0.6rem;
+            padding: 2px;
+        }
+    </style>
+@endpush
 
 @section('content')
     <nav class="page-breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="#">Data</a></li>
-            <li class="breadcrumb-item"><a href="{{ route('admin.schedules.index') }}">Class Schedule</a></li>
+            <li class="breadcrumb-item"><a href="#">General</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('admin.schedules.index') }}">Jadwal Perkuliahan</a></li>
             <li class="breadcrumb-item active" aria-current="page">Create</li>
         </ol>
     </nav>
@@ -14,7 +73,7 @@
         <div class="col-md-12 grid-margin stretch-card">
             <div class="card">
                 <div class="card-body">
-                    <h6 class="card-title">Create Class Schedule</h6>
+                    <h6 class="card-title">Create Jadwal Perkuliahan</h6>
 
                     @if ($errors->any())
                         <div class="alert alert-danger" role="alert">
@@ -31,9 +90,9 @@
 
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label for="course_id" class="form-label">Course</label>
+                                <label for="course_id" class="form-label">Mata Kuliah</label>
                                 <select class="form-select" id="course_id" name="course_id" required>
-                                    <option value="">Select Course</option>
+                                    <option value="">Select mata kuliah</option>
                                     @foreach ($courses as $course)
                                         <option value="{{ $course->id }}"
                                             {{ old('course_id') == $course->id ? 'selected' : '' }}>
@@ -43,9 +102,9 @@
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <label for="classroom_id" class="form-label">Classroom</label>
+                                <label for="classroom_id" class="form-label">Kelas</label>
                                 <select class="form-select" id="classroom_id" name="classroom_id" required>
-                                    <option value="">Select Classroom</option>
+                                    <option value="">Select kelas</option>
                                     @foreach ($classrooms as $classroom)
                                         <option value="{{ $classroom->id }}"
                                             data-study-program-id="{{ $classroom->study_program_id }}"
@@ -61,9 +120,9 @@
 
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label for="lecturer_id" class="form-label">Lecturer</label>
+                                <label for="lecturer_id" class="form-label">Dosen</label>
                                 <select class="form-select" id="lecturer_id" name="lecturer_id" required>
-                                    <option value="">Select Lecturer</option>
+                                    <option value="">Select dosen</option>
                                     @foreach ($lecturers as $lecturer)
                                         <option value="{{ $lecturer->id }}"
                                             {{ old('lecturer_id') == $lecturer->id ? 'selected' : '' }}>
@@ -73,9 +132,9 @@
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <label for="room" class="form-label">Room</label>
+                                <label for="room" class="form-label">Ruang</label>
                                 <select class="form-select" id="room" name="room" required>
-                                    <option value="">Select Room</option>
+                                    <option value="">Select Ruang</option>
                                     <option value="RT01" {{ old('room') == 'RT01' ? 'selected' : '' }}>RT01</option>
                                     <option value="RT02" {{ old('room') == 'RT02' ? 'selected' : '' }}>RT02</option>
                                     <option value="RT03" {{ old('room') == 'RT03' ? 'selected' : '' }}>RT03</option>
@@ -104,37 +163,37 @@
                             </div>
 
                             <div class="col-md-6">
-                                <label for="semester" class="form-label">Academic Term</label>
+                                <label for="semester" class="form-label">Academik Term</label>
                                 <select class="form-select" id="semester" name="semester" required>
-                                    <option value="">Select Academic Term</option>
+                                    <option value="">Select Academik Term</option>
                                     @for ($i = 1; $i <= 8; $i++)
                                         <option value="{{ $i }}" {{ old('semester') == $i ? 'selected' : '' }}>
                                             {{ $i }}
                                         </option>
                                     @endfor
                                 </select>
-                                <small class="text-muted">Term number (1-8 for 4-year program)</small>
+                                <small class="text-muted">Semester ke- (1-8 untuk program 4 tahun)</small>
                             </div>
                         </div>
 
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label for="total_weeks" class="form-label">Total Weeks</label>
+                                <label for="total_weeks" class="form-label">Total Minggu</label>
                                 <input type="number" class="form-control" id="total_weeks" name="total_weeks"
                                     value="{{ old('total_weeks', 16) }}" min="1" max="52" required>
-                                <small class="text-muted">Number of weeks for this schedule (e.g., 16 weeks in a
+                                <small class="text-muted">Jumlah minggu untuk jadwal ini (contoh: 16 minggu dalam satu
                                     semester)</small>
                             </div>
                             <div class="col-md-6">
-                                <label for="meetings_per_week" class="form-label">Meetings Per Week</label>
+                                <label for="meetings_per_week" class="form-label">Jumlah Pertemuan</label>
                                 <input type="number" class="form-control" id="meetings_per_week" name="meetings_per_week"
                                     value="{{ old('meetings_per_week', 1) }}" min="1" max="7" required>
-                                <small class="text-muted">Number of class meetings per week</small>
+                                <small class="text-muted">Jumlah pertemuan kelas per minggu</small>
                             </div>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Select Day</label>
+                            <label class="form-label">Select Hari</label>
                             <div class="card">
                                 <div class="card-body p-3">
                                     <div class="d-flex flex-wrap gap-2">
@@ -152,27 +211,28 @@
                         </div>
 
                         <div class="mb-3 time-slots-container" style="display: none;">
-                            <label class="form-label">Select Time Slots (Multiple Allowed)</label>
+                            <label class="form-label">Select Slot Waktu (Multiple Slot)</label>
                             <div class="mb-2">
                                 <div class="alert alert-info">
-                                    <i class="icon-info-circle"></i> You can select multiple time slots for this class.
-                                    Click on each slot you want to select.
+                                    <i class="icon-info-circle"></i> Kamu bisa memilih lebih dari satu slot waktu untuk
+                                    pertemuan yang sama. Misalnya, jika kamu ingin mengadakan kuliah dari jam 08:00 - 10:00
+                                    dan juga dari jam 10:00 - 12:00, kamu bisa memilih kedua slot tersebut.
                                 </div>
                                 <div class="d-flex gap-3 mb-2">
                                     <div class="d-flex align-items-center">
                                         <div class="btn btn-outline-secondary me-2" style="width: 40px; height: 20px;">
                                         </div>
-                                        <small>Available</small>
+                                        <small>Tersedia</small>
                                     </div>
                                     <div class="d-flex align-items-center">
                                         <div class="btn btn-secondary me-2" style="width: 40px; height: 20px;"></div>
-                                        <small>Selected</small>
+                                        <small>Dipilih</small>
                                     </div>
                                     <div class="d-flex align-items-center">
                                         <div class="btn booked me-2"
                                             style="width: 40px; height: 20px; background-color: #ffebee; border-color: #ffcdd2;">
                                         </div>
-                                        <small>Unavailable</small>
+                                        <small>Tidak Tersedia</small>
                                     </div>
                                 </div>
                             </div>
@@ -190,7 +250,7 @@
                                         @endforeach
                                     </div>
                                     <div class="selected-slots-container mt-3" style="display: none;">
-                                        <p class="fw-bold mb-2">Selected Time Slots:</p>
+                                        <p class="fw-bold mb-2">Waktu yang dipilih:</p>
                                         <div class="selected-slots-list d-flex flex-wrap gap-2"></div>
                                     </div>
                                     <div id="time_slots_error" class="text-danger mt-2" style="display: none;"></div>
@@ -203,8 +263,8 @@
 
                         <div class="d-flex justify-content-end">
                             <a href="{{ route('admin.schedules.index') }}"
-                                class="btn btn-sm btn-secondary me-2">Cancel</a>
-                            <button type="submit" class="btn btn-sm btn-primary">Create Schedule</button>
+                                class="btn btn-sm btn-secondary me-2">Batal</a>
+                            <button type="submit" class="btn btn-sm btn-primary">Simpan</button>
                         </div>
                     </form>
                 </div>
@@ -461,61 +521,4 @@
             }
         });
     </script>
-
-    <style>
-        /* Styles remain the same */
-        .day-btn {
-            min-width: 100px;
-        }
-
-        .time-slot-btn {
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s;
-        }
-
-        .time-slot-btn.booked {
-            background-color: #ffebee;
-            /* Light red background */
-            color: #d32f2f;
-            /* Dark red text */
-            border-color: #ffcdd2;
-            /* Red border */
-            cursor: not-allowed;
-            font-size: 0.8rem;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .time-slot-btn.booked::after {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-image: repeating-linear-gradient(-45deg,
-                    transparent,
-                    transparent 5px,
-                    rgba(255, 0, 0, 0.1) 5px,
-                    rgba(255, 0, 0, 0.1) 10px);
-            pointer-events: none;
-        }
-
-        .time-slot-btn small {
-            font-size: 0.7rem;
-        }
-
-        .selected-slots-list .badge {
-            margin-right: 8px;
-            margin-bottom: 8px;
-        }
-
-        .btn-close {
-            font-size: 0.6rem;
-            padding: 2px;
-        }
-    </style>
 @endpush

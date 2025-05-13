@@ -1,8 +1,9 @@
 @extends('layouts.app')
 
-@section('title', 'Face Update Requests')
+@section('title', 'Request Update Wajah')
 
 @push('styles')
+    <link rel="stylesheet" href="{{ asset('assets/vendors/datatables.net-bs5/dataTables.bootstrap5.css') }}">
     <style>
         .badge-counter {
             position: relative;
@@ -53,8 +54,8 @@
 @section('content')
     <nav class="page-breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Admin</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Face Update Requests</li>
+            <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">General</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Rquest Update Wajah</li>
         </ol>
     </nav>
 
@@ -63,7 +64,7 @@
             <div class="card">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h6 class="card-title">Face Update Requests</h6>
+                        <h6 class="card-title">Request Update Wajah</h6>
 
                         <div class="d-flex gap-2">
                             <button type="button"
@@ -77,17 +78,17 @@
                             <button type="button"
                                 onclick="window.location.href='{{ route('admin.face-requests.index', ['status' => 'approved']) }}'"
                                 class="btn btn-icon-text btn-xs {{ $status === 'approved' ? 'btn-success' : 'btn-outline-success' }} me-1">
-                                <i data-feather="check-circle" class="icon-xs"></i> Approved
+                                <i data-feather="check-circle" class="icon-xs"></i> Disetujui
                             </button>
                             <button type="button"
                                 onclick="window.location.href='{{ route('admin.face-requests.index', ['status' => 'rejected']) }}'"
                                 class="btn btn-icon-text btn-xs {{ $status === 'rejected' ? 'btn-danger' : 'btn-outline-danger' }} me-1">
-                                <i data-feather="x-circle" class="icon-xs"></i> Rejected
+                                <i data-feather="x-circle" class="icon-xs"></i> Ditolak
                             </button>
                             <button type="button"
                                 onclick="window.location.href='{{ route('admin.face-requests.index', ['status' => 'all']) }}'"
                                 class="btn btn-icon-text btn-xs {{ $status === 'all' ? 'btn-secondary' : 'btn-outline-secondary' }} me-1">
-                                <i data-feather="list" class="icon-xs"></i> All
+                                <i data-feather="list" class="icon-xs"></i> Semua
                             </button>
                         </div>
                     </div>
@@ -103,9 +104,9 @@
                         <table id="dataTableExample" class="table">
                             <thead>
                                 <tr>
-                                    <th>ID</th>
-                                    <th>Student</th>
-                                    <th>Submitted</th>
+                                    <th>NIM</th>
+                                    <th>Nama</th>
+                                    <th>Tanggal</th>
                                     <th>Status</th>
                                     <th>Action</th>
                                 </tr>
@@ -162,7 +163,7 @@
                                 @empty
                                     <tr>
                                         <td colspan="5" class="text-center py-4">
-                                            <p class="text-muted mb-0">No face update requests found.</p>
+                                            <p class="text-muted mb-0">Tidak ada permintaan pembaruan wajah.</p>
                                         </td>
                                     </tr>
                                 @endforelse
@@ -183,7 +184,7 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="viewFaceModalLabel">Current Face Image</h5>
+                    <h5 class="modal-title" id="viewFaceModalLabel">File Wajah Terbaru</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -194,11 +195,11 @@
                     </div>
 
                     <div class="mb-3">
-                        <h6 class="mb-2">Reason for Update:</h6>
+                        <h6 class="mb-2">Alasan Permintaan:</h6>
                         <p class="reason-text mb-0"></p>
                     </div>
 
-                    <h6 class="mb-3">Current Face Image:</h6>
+                    <h6 class="mb-3">Gambar Wajah:</h6>
                     <div class="image-container">
                         <img src="" alt="Face Image" class="face-image mb-3" id="faceImage">
                     </div>
@@ -211,8 +212,8 @@
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
 
                     <div id="pendingActions" style="display: none;">
-                        <button type="button" class="btn btn-success btn-approve">Approve</button>
-                        <button type="button" class="btn btn-danger btn-reject">Reject</button>
+                        <button type="button" class="btn btn-success btn-approve">Diterima</button>
+                        <button type="button" class="btn btn-danger btn-reject">Ditolak</button>
                     </div>
                 </div>
             </div>
@@ -224,25 +225,25 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="approveModalLabel">Approve Face Update Request</h5>
+                    <h5 class="modal-title" id="approveModalLabel">Terima Permintaan Pembaruan Wajah</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form id="approveForm" action="" method="POST">
                     @csrf
                     <div class="modal-body">
-                        <p>Are you sure you want to approve the face update request for <strong
+                        <p>Apakah Anda yakin ingin menyetujui permintaan pembaruan wajah untuk <strong
                                 id="approveStudentName"></strong>?</p>
-                        <p>The student will be able to update their face data after approval.</p>
+                        <p>Mahasiswa akan dapat memperbarui data wajah mereka setelah persetujuan ini.</p>
 
                         <div class="mb-3">
-                            <label for="approveNotes" class="form-label">Admin Notes (Optional):</label>
+                            <label for="approveNotes" class="form-label">Admin Notes (Opsional):</label>
                             <textarea class="form-control" id="approveNotes" name="admin_notes" rows="3"
                                 placeholder="Add any notes or special instructions..."></textarea>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-success">Approve</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-success">Simpan</button>
                     </div>
                 </form>
             </div>
@@ -254,25 +255,25 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="rejectModalLabel">Reject Face Update Request</h5>
+                    <h5 class="modal-title" id="rejectModalLabel">Tolak Permintaan Pembaruan Wajah</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form id="rejectForm" action="" method="POST">
                     @csrf
                     <div class="modal-body">
-                        <p>Are you sure you want to reject the face update request for <strong
+                        <p>Apakah Anda yakin ingin menolak permintaan pembaruan wajah untuk <strong
                                 id="rejectStudentName"></strong>?</p>
 
                         <div class="mb-3">
-                            <label for="rejectReason" class="form-label">Reason for Rejection <span
+                            <label for="rejectReason" class="form-label">Alasan Penolakan <span
                                     class="text-danger">*</span>:</label>
                             <textarea class="form-control" id="rejectReason" name="admin_notes" rows="3"
                                 placeholder="Explain why the request is being rejected..." required></textarea>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-danger">Reject</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-danger">Simpan</button>
                     </div>
                 </form>
             </div>
@@ -281,6 +282,9 @@
 @endsection
 
 @push('scripts')
+    <script src="{{ asset('assets/vendors/datatables.net/jquery.dataTables.js') }}"></script>
+    <script src="{{ asset('assets/vendors/datatables.net-bs5/dataTables.bootstrap5.js') }}"></script>
+    <script src="{{ asset('assets/js/data-table.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Setup view face modal

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Attendance List')
+@section('title', 'Data Sesi Kelas')
 
 @push('styles')
     <style>
@@ -51,9 +51,9 @@
 @section('content')
     <nav class="page-breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ route('lecturer.dashboard') }}">Lecturer</a></li>
-            <li class="breadcrumb-item"><a href="{{ route('lecturer.attendance.index') }}">Attendance</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Attendance List</li>
+            <li class="breadcrumb-item"><a href="{{ route('lecturer.dashboard') }}">General</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('lecturer.attendance.index') }}">Sesi Kelas</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Data</li>
         </ol>
     </nav>
     <div class="row">
@@ -61,15 +61,15 @@
             <div class="card">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h6 class="card-title">Attendance List - {{ $classSchedule->course->code }}</h6>
+                        <h6 class="card-title">Data Presensi - {{ $classSchedule->course->code }}</h6>
                         <div>
                             <button onclick="window.history.back()" class="btn btn-secondary btn-sm btn-icon-text me-2">
-                                <i class="btn-icon-prepend" data-feather="arrow-left"></i>Back
+                                <i class="btn-icon-prepend" data-feather="arrow-left"></i>Kembali
                             </button>
                             <a href="{{ route('lecturer.attendance.view_qr', ['classSchedule' => $classSchedule->id, 'date' => $date]) }}"
                                 class="btn btn-primary btn-sm btn-icon-text {{ $sessionExists ? '' : 'disabled' }}"
                                 type="button" {{ !$sessionExists ? 'onclick="return false;"' : '' }}>
-                                <i class="btn-icon-prepend" data-feather="info"></i>View QR
+                                <i class="btn-icon-prepend" data-feather="info"></i>Lihat QR Code
                             </a>
                         </div>
                     </div>
@@ -79,10 +79,10 @@
                             <div class="d-flex align-items-center">
                                 <i data-feather="info" class="me-2"></i>
                                 <div>
-                                    <strong>Session Details:</strong> Week {{ $session->week ?? '-' }}, Meeting
+                                    <strong>Detail Sesi:</strong> Minggu {{ $session->week ?? '-' }}, Pertemuan
                                     {{ $session->meetings ?? '-' }} |
-                                    Total Hours: {{ $totalHours ?? 4 }} |
-                                    Tolerance: {{ $toleranceMinutes ?? 15 }} minutes
+                                    Total Jam: {{ $totalHours ?? 4 }} |
+                                    Toleransi: {{ $toleranceMinutes ?? 15 }} menit
                                 </div>
                             </div>
                         </div>
@@ -100,7 +100,7 @@
                         <form id="dateFilterForm" method="GET"
                             action="{{ route('lecturer.attendance.show', ['classSchedule' => $classSchedule->id]) }}">
                             <div class="d-flex align-items-center">
-                                <label for="date" class="me-2">Session Date:</label>
+                                <label for="date" class="me-2">Tanggal Sesi:</label>
                                 <input type="date" class="form-control form-control-sm" id="date" name="date"
                                     value="{{ $date }}" style="width: 200px;">
                                 <button type="submit" class="btn btn-sm btn-outline-primary ms-2">Filter</button>
@@ -113,15 +113,15 @@
                             <thead>
                                 <tr>
                                     <th colspan="5"></th>
-                                    <th colspan="4" class="text-center">Cumulative Hours</th>
-                                    <th colspan="4" class="text-center">Current Session Hours</th>
+                                    <th colspan="4" class="text-center">Presensi Komilatif</th>
+                                    <th colspan="4" class="text-center">Presensi Sekarang</th>
                                     {{-- <th>Remarks</th> --}}
                                     <th colspan="2"></th>
                                 </tr>
                                 <tr>
                                     <th>No</th>
-                                    <th>Student NIM</th>
-                                    <th>Name</th>
+                                    <th>NIM</th>
+                                    <th>Nama</th>
                                     <th>Status</th>
                                     <th>Check-in</th>
                                     <th class="text-center bg-success-subtle">H</th>
@@ -129,7 +129,7 @@
                                     <th class="text-center bg-warning-subtle">I</th>
                                     <th class="text-center bg-info-subtle">S</th>
                                     <th class="text-center bg-success-subtle">Hadir</th>
-                                    <th class="text-center bg-danger-subtle">Alpha</th>
+                                    <th class="text-center bg-danger-subtle">Absent</th>
                                     <th class="text-center bg-warning-subtle">Izin</th>
                                     <th class="text-center bg-info-subtle">Sakit</th>
                                     <th>Actions</th>
@@ -230,8 +230,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="15" class="text-center">No attendance records found for this date
-                                        </td>
+                                        <td colspan="15" class="text-center">Tidak ada data presensi untuk sesi ini</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -243,42 +242,42 @@
                             <div class="col-md-6">
                                 <div class="card mb-3">
                                     <div class="card-body">
-                                        <h6 class="card-title">Attendance Summary</h6>
+                                        <h6 class="card-title">Ringkasan Presensi</h6>
                                         <div class="row mt-3">
                                             <div class="col-md-6">
-                                                <h6 class="fw-bold mb-3">Current Session</h6>
+                                                <h6 class="fw-bold mb-3">Sesi Sekarang</h6>
                                                 <table class="table">
                                                     <tr>
-                                                        <th>Total Students</th>
+                                                        <th>Total Mahasiswa</th>
                                                         <td>{{ $attendances->count() }}</td>
                                                     </tr>
                                                     <tr class="table-success">
-                                                        <th>Present Hours</th>
+                                                        <th>Hadir(Jam)</th>
                                                         <td>{{ $attendances->sum('hours_present') }}</td>
                                                     </tr>
                                                     <tr class="table-danger">
-                                                        <th>Absent Hours</th>
+                                                        <th>Absent(Jam)</th>
                                                         <td>{{ $attendances->sum('hours_absent') }}</td>
                                                     </tr>
                                                     <tr class="table-warning">
-                                                        <th>Permitted Hours</th>
+                                                        <th>Izin(Jam)</th>
                                                         <td>{{ $attendances->sum('hours_permitted') }}</td>
                                                     </tr>
                                                     <tr class="table-info">
-                                                        <th>Sick Hours</th>
+                                                        <th>Sakit(Jam)</th>
                                                         <td>{{ $attendances->sum('hours_sick') }}</td>
                                                     </tr>
                                                 </table>
                                             </div>
                                             <div class="col-md-6">
-                                                <h6 class="fw-bold mb-3">Cumulative</h6>
+                                                <h6 class="fw-bold mb-3">Komulatif</h6>
                                                 <table class="table">
                                                     <tr>
-                                                        <th>Total Students</th>
+                                                        <th>Total Mahasiswa</th>
                                                         <td>{{ $attendances->count() }}</td>
                                                     </tr>
                                                     <tr class="table-success">
-                                                        <th>Present Hours</th>
+                                                        <th>Hadir(Jam)</th>
                                                         <td>
                                                             @php
                                                                 $totalCumulativePresent = 0;
@@ -291,7 +290,7 @@
                                                         </td>
                                                     </tr>
                                                     <tr class="table-danger">
-                                                        <th>Absent Hours</th>
+                                                        <th>Absent(Jam)</th>
                                                         <td>
                                                             @php
                                                                 $totalCumulativeAbsent = 0;
@@ -304,7 +303,7 @@
                                                         </td>
                                                     </tr>
                                                     <tr class="table-warning">
-                                                        <th>Permitted Hours</th>
+                                                        <th>Izin(Jam)</th>
                                                         <td>
                                                             @php
                                                                 $totalCumulativePermitted = 0;
@@ -317,7 +316,7 @@
                                                         </td>
                                                     </tr>
                                                     <tr class="table-info">
-                                                        <th>Sick Hours</th>
+                                                        <th>Sakit(Jam)</th>
                                                         <td>
                                                             @php
                                                                 $totalCumulativeSick = 0;
@@ -347,7 +346,7 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="editAttendanceModalLabel">Edit Student Attendance</h5>
+                    <h5 class="modal-title" id="editAttendanceModalLabel">Edit Presensi</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -358,45 +357,45 @@
                         <div class="mb-3">
                             <div class="row mb-2">
                                 <div class="col-md-6">
-                                    <p class="mb-1"><strong>Course:</strong></p>
+                                    <p class="mb-1"><strong>Matkul:</strong></p>
                                     <p id="modal-course"></p>
                                 </div>
                                 <div class="col-md-6">
-                                    <p class="mb-1"><strong>Date:</strong></p>
+                                    <p class="mb-1"><strong>Tanggal:</strong></p>
                                     <p id="modal-date"></p>
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col-md-6">
-                                    <p class="mb-1"><strong>Student ID:</strong></p>
+                                    <p class="mb-1"><strong>NIM:</strong></p>
                                     <p id="modal-student-id"></p>
                                 </div>
                                 <div class="col-md-6">
-                                    <p class="mb-1"><strong>Student Name:</strong></p>
+                                    <p class="mb-1"><strong>Nama:</strong></p>
                                     <p id="modal-student-name"></p>
                                 </div>
                             </div>
                         </div>
 
                         <div class="mb-3">
-                            <label for="modal-status" class="form-label">Attendance Status</label>
+                            <label for="modal-status" class="form-label">Status</label>
                             <select class="form-select" id="modal-status" name="status" required>
-                                <option value="present">Present</option>
-                                <option value="late">Late</option>
+                                <option value="present">Hadir</option>
+                                <option value="late">Terlambat</option>
                                 <option value="absent">Absent</option>
-                                <option value="excused">Excused</option>
+                                <option value="excused">Izin</option>
                             </select>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Hourly Attendance Breakdown</label>
-                            <p class="text-muted small">Total hours must equal {{ $totalHours ?? 4 }}</p>
+                            <label class="form-label">Pembagian Jam Presensi</label>
+                            <p class="text-muted small">Total jam harus sama dengan {{ $totalHours ?? 4 }}</p>
 
                             <input type="hidden" name="total_hours" id="total-hours" value="{{ $totalHours ?? 4 }}">
 
                             <div class="row">
                                 <div class="col-md-3">
-                                    <label class="form-label small text-success">Present</label>
+                                    <label class="form-label small text-success">Hadir</label>
                                     <input type="number" class="form-control hours-input" id="modal-hours-present"
                                         name="hours_present" min="0" max="{{ $totalHours ?? 4 }}" required>
                                 </div>
@@ -406,12 +405,12 @@
                                         name="hours_absent" min="0" max="{{ $totalHours ?? 4 }}" required>
                                 </div>
                                 <div class="col-md-3">
-                                    <label class="form-label small text-warning">Permit</label>
+                                    <label class="form-label small text-warning">Izin</label>
                                     <input type="number" class="form-control hours-input" id="modal-hours-permitted"
                                         name="hours_permitted" min="0" max="{{ $totalHours ?? 4 }}" required>
                                 </div>
                                 <div class="col-md-3">
-                                    <label class="form-label small text-info">Sick</label>
+                                    <label class="form-label small text-info">Sakit</label>
                                     <input type="number" class="form-control hours-input" id="modal-hours-sick"
                                         name="hours_sick" min="0" max="{{ $totalHours ?? 4 }}" required>
                                 </div>
@@ -430,23 +429,23 @@
                                 </div>
                                 <div class="d-flex justify-content-between mt-1">
                                     <span class="text-muted small" id="hours-total">Total: 0 / {{ $totalHours ?? 4 }}
-                                        hours</span>
-                                    <span class="text-danger small d-none" id="hours-error">Total hours must equal
-                                        {{ $totalHours ?? 4 }}</span>
+                                        jam</span>
+                                    <span class="text-danger small d-none" id="hours-error">Total harus sama dengan
+                                        {{ $totalHours ?? 4 }} jam</span>
                                 </div>
                             </div>
                         </div>
 
                         <div class="mb-3">
-                            <label for="modal-remarks" class="form-label">Remarks</label>
-                            <textarea class="form-control" id="modal-remarks" name="remarks" rows="2"></textarea>
-                            <div class="form-text">Optional notes about the student's attendance</div>
+                            <label for="modal-remarks" class="form-label">Catatan</label>
+                            <textarea class="form-control" id="modal-remarks" name="remarks" rows="1"></textarea>
+                            <div class="form-text">Opsional, catatan untuk presensi ini</div>
                         </div>
 
                         <div class="mb-3">
                             <label for="modal-edit-notes" class="form-label">Edit Notes</label>
-                            <textarea class="form-control" id="modal-edit-notes" name="edit_notes" rows="2"></textarea>
-                            <div class="form-text">Reason for editing attendance data</div>
+                            <textarea class="form-control" id="modal-edit-notes" name="edit_notes" rows="1"></textarea>
+                            <div class="form-text">Opsional, Alasan mengapa presensi ini diedit</div>
                         </div>
 
                         @if (isset($attendance) && $attendance->edit_notes)
@@ -455,7 +454,7 @@
                                 <div class="edit-notes p-2 bg-light rounded">
                                     <small>{{ $attendance->edit_notes }}</small>
                                     <div class="text-muted mt-1 small">
-                                        Last edited:
+                                        Terakhir diedit oleh
                                         {{ $attendance->last_edited_at ? Carbon\Carbon::parse($attendance->last_edited_at)->format('d M Y H:i') : 'N/A' }}
                                     </div>
                                 </div>
@@ -464,9 +463,8 @@
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-sm btn-primary" id="updateAttendanceBtn">Update
-                        Attendance</button>
+                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-sm btn-primary" id="updateAttendanceBtn">Simpan</button>
                 </div>
             </div>
         </div>
@@ -498,7 +496,7 @@
                 const sum = present + absent + permitted + sick;
 
                 // Update total display
-                $('#hours-total').text(`Total: ${sum} / ${totalHours} hours`);
+                $('#hours-total').text(`Total: ${sum} / ${totalHours} jam`);
 
                 // Show error if total doesn't match
                 if (sum !== totalHours) {

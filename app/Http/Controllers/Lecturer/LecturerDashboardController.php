@@ -60,9 +60,21 @@ class LecturerDashboardController extends Controller
         $today = Carbon::now();
         $dayName = strtolower($today->format('l'));
 
+        $dayMapping = [
+            'monday' => 'senin',
+            'tuesday' => 'selasa',
+            'wednesday' => 'rabu',
+            'thursday' => 'kamis',
+            'friday' => 'jumat',
+            'saturday' => 'sabtu',
+            'sunday' => 'minggu',
+        ];
+
+        $indonesianDay = $dayMapping[$dayName] ?? $dayName;
+
         return ClassSchedule::with(['course', 'classroom', 'timeSlots'])
             ->where('lecturer_id', $lecturerId)
-            ->where('day', $dayName)
+            ->where('day', $indonesianDay)
             ->take(3)
             ->get();
     }
@@ -79,18 +91,41 @@ class LecturerDashboardController extends Controller
         $upcomingSchedules = [];
         $schedulesFound = 0;
 
+        // Pemetaan hari Inggris ke Indonesia (digunakan jika data di database menggunakan bahasa Indonesia)
+        $dayMapping = [
+            'monday' => 'senin',
+            'tuesday' => 'selasa',
+            'wednesday' => 'rabu',
+            'thursday' => 'kamis',
+            'friday' => 'jumat',
+            'saturday' => 'sabtu',
+            'sunday' => 'minggu',
+        ];
+
         for ($i = 1; $schedulesFound < 3 && $i <= 7; $i++) {
             $date = Carbon::now()->addDays($i);
-            $day = strtolower($date->format('l'));
+
+            // Format hari dalam bahasa Inggris untuk query database
+            $englishDay = strtolower($date->format('l'));
+
+            // Gunakan hari dalam bahasa Indonesia jika database menyimpan dalam bahasa Indonesia
+            // Jika tidak, gunakan englishDay langsung
+            $dayForQuery = $dayMapping[$englishDay] ?? $englishDay;
 
             $schedules = ClassSchedule::with(['course', 'classroom', 'timeSlots'])
                 ->where('lecturer_id', $lecturerId)
-                ->where('day', $day)
+                ->where('day', $dayForQuery) // Sesuaikan dengan format yang disimpan di database
                 ->get();
 
             if ($schedules->count() > 0) {
-                $upcomingDays[$day] = $date->format('M d');
-                $upcomingSchedules[$day] = $schedules;
+                // Format tanggal dalam bahasa Indonesia untuk tampilan
+                // Menggunakan locale('id') dan isoFormat untuk lokalisasi yang tepat
+                $indonesianDate = $date->locale('id')->isoFormat('MMM D');
+
+                // Untuk key array, kita bisa tetap gunakan format bahasa Inggris
+                // agar tidak ada perubahan pada logika yang memanggil array ini
+                $upcomingDays[$englishDay] = $indonesianDate;
+                $upcomingSchedules[$englishDay] = $schedules;
                 $schedulesFound += $schedules->count();
             }
         }
@@ -221,7 +256,10 @@ class LecturerDashboardController extends Controller
 
         for ($i = 6; $i >= 0; $i--) {
             $date = $weekEnd->copy()->subDays($i);
-            $weekDays[] = $date->format('D, d M'); // Changed format to show day, date and month
+
+            // Menggunakan locale('id') dan isoFormat untuk menampilkan tanggal dalam bahasa Indonesia
+            // Format: Sen, 13 Mei (hari singkat, tanggal, bulan singkat)
+            $weekDays[] = $date->locale('id')->isoFormat('ddd, D MMM');
 
             $dayAttendances = Attendance::whereHas('classSchedule', function($query) use ($lecturerId) {
                 $query->where('lecturer_id', $lecturerId);

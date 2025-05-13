@@ -1,19 +1,23 @@
 @extends('layouts.app')
 
-@section('title', 'Class Schedule Management')
+@section('title', 'Jadwal Perkuliahan')
+
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('assets/vendors/datatables.net-bs5/dataTables.bootstrap5.css') }}">
+@endpush
 
 @section('content')
     <nav class="page-breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="#">Admin</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Class Schedule</li>
+            <li class="breadcrumb-item"><a href="#">General</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Jadwal Perkuliahan</li>
         </ol>
     </nav>
     <div class="row">
         <div class="col-md-12 grid-margin stretch-card">
             <div class="card">
                 <div class="card-body">
-                    <h6 class="card-title">Class Schedule Management</h6>
+                    <h6 class="card-title">Jadwal Perkuliahan</h6>
                     <div class="table-responsive">
                         {{-- classroom name --}}
                         <h6 class="mb-3">Kelas: {{ $classroom->name }}</h6>
@@ -21,13 +25,13 @@
                             <thead>
                                 <tr>
                                     <th>No</th>
-                                    <th>Course</th>
-                                    <th>Lecturer</th>
-                                    <th>Class</th>
-                                    <th>Room</th>
-                                    <th>Day</th>
-                                    <th>Date</th>
-                                    <th>Semester/Year</th>
+                                    <th>Mata Kuliah</th>
+                                    <th>Dosen</th>
+                                    <th>Kelas</th>
+                                    <th>Ruang</th>
+                                    <th>Hari</th>
+                                    <th>Tanggal</th>
+                                    <th>Semester</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -49,14 +53,14 @@
                                                         {{ $timeSlot->end_time->format('H:i') }}</div>
                                                 @endforeach
                                             @else
-                                                <span class="text-muted">No time slots</span>
+                                                <span class="text-muted">Tidak ada jam perkuliahan</span>
                                             @endif
                                         </td>
                                         <td>{{ $schedule->semester }} | {{ $schedule->semesters->name }}</td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="8" class="text-center">No schedules found</td>
+                                        <td colspan="8" class="text-center">Tidak ada jadwal perkuliahan</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -67,3 +71,9 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+    <script src="{{ asset('assets/vendors/datatables.net/jquery.dataTables.js') }}"></script>
+    <script src="{{ asset('assets/vendors/datatables.net-bs5/dataTables.bootstrap5.js') }}"></script>
+    <script src="{{ asset('assets/js/data-table.js') }}"></script>
+@endpush

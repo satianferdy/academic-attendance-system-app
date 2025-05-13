@@ -14,9 +14,8 @@
             @auth
                 {{-- Common Dashboard for all users --}}
                 <li class="nav-item nav-category">Main</li>
-                <li class="nav-item">
-                    <a href="{{ route(auth()->user()->role . '.dashboard') }}"
-                        class="nav-link {{ request()->routeIs(auth()->user()->role . '.dashboard') ? 'active' : '' }}">
+                <li class="nav-item {{ Request::is(auth()->user()->role . '/dashboard') ? 'active' : '' }}">
+                    <a href="{{ route(auth()->user()->role . '.dashboard') }}" class="nav-link">
                         <i class="link-icon" data-feather="box"></i>
                         <span class="link-title">Dashboard</span>
                     </a>
@@ -25,80 +24,54 @@
                 {{-- Admin Only Menus --}}
                 @if (auth()->user()->role === 'admin')
                     <li class="nav-item nav-category">General</li>
-                    <li class="nav-item">
-                        <a href="{{ route('admin.users.index') }}"
-                            class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
+                    <li class="nav-item {{ Request::is('admin/users*') ? 'active' : '' }}">
+                        <a href="{{ route('admin.users.index') }}" class="nav-link">
                             <i class="link-icon" data-feather="users"></i>
-                            <span class="link-title">User Management</span>
+                            <span class="link-title">Data Users</span>
                         </a>
                     </li>
 
-                    <li class="nav-item">
-                        <a href="{{ route('admin.schedules.index') }}"
-                            class="nav-link {{ request()->routeIs('admin.schedules.*') ? 'active' : '' }}">
+                    <li class="nav-item {{ Request::is('admin/schedules*') ? 'active' : '' }}">
+                        <a href="{{ route('admin.schedules.index') }}" class="nav-link">
                             <i class="link-icon" data-feather="calendar"></i>
-                            <span class="link-title">Schedule Management</span>
+                            <span class="link-title">Pengaturan Jadwal</span>
                         </a>
                     </li>
 
-                    <li class="nav-item">
-                        <a href="{{ route('admin.attendance.index') }}"
-                            class="nav-link {{ request()->routeIs('admin.attendance.*') ? 'active' : '' }}">
+                    <li class="nav-item {{ Request::is('admin/attendance*') ? 'active' : '' }}">
+                        <a href="{{ route('admin.attendance.index') }}" class="nav-link">
                             <i class="link-icon" data-feather="calendar"></i>
-                            <span
-                                class="link-title
-                                {{ request()->routeIs('admin.attendance.*') ? 'active' : '' }}">Attendance
-                                Management</span>
+                            <span class="link-title">Data Presensi</span>
                         </a>
                     </li>
 
-                    {{-- face-rquests --}}
-                    <li class="nav-item">
-                        <a href="{{ route('admin.face-requests.index') }}"
-                            class="nav-link {{ request()->routeIs('admin.face-requests.*') ? 'active' : '' }}">
+                    <li class="nav-item {{ Request::is('admin/face-requests*') ? 'active' : '' }}">
+                        <a href="{{ route('admin.face-requests.index') }}" class="nav-link">
                             <i class="link-icon" data-feather="camera"></i>
-                            <span
-                                class="link-title
-                                {{ request()->routeIs('admin.face-requests.*') ? 'active' : '' }}">Face
-                                Update Requests</span>
+                            <span class="link-title">Permintaan Update Wajah</span>
                         </a>
                     </li>
                 @endif
 
-
                 {{-- Student Only Menus --}}
                 @if (auth()->user()->role === 'student')
                     <li class="nav-item nav-category">General</li>
-                    {{-- schedule --}}
-                    <li class="nav-item">
-                        <a href="{{ route('student.schedule.index') }}"
-                            class="nav-link {{ request()->routeIs('student.schedule.*') ? 'active' : '' }}">
+                    <li class="nav-item {{ Request::is('student/schedule*') ? 'active' : '' }}">
+                        <a href="{{ route('student.schedule.index') }}" class="nav-link">
                             <i class="link-icon" data-feather="calendar"></i>
-                            <span
-                                class="link-title
-                                {{ request()->routeIs('student.schedule.*') ? 'active' : '' }}">Schedule</span>
+                            <span class="link-title">Jadwal Perkuliahan</span>
                         </a>
                     </li>
-                    {{-- attendance --}}
-                    <li class="nav-item">
-                        <a href="{{ route('student.attendance.index') }}"
-                            class="nav-link {{ request()->routeIs('student.attendance.*') ? 'active' : '' }}">
+                    <li class="nav-item {{ Request::is('student/attendance*') ? 'active' : '' }}">
+                        <a href="{{ route('student.attendance.index') }}" class="nav-link">
                             <i class="link-icon" data-feather="calendar"></i>
-                            <span
-                                class="link-title
-                                {{ request()->routeIs('student.attendance.*') ? 'active' : '' }}">Attendance
-                                Records</span>
+                            <span class="link-title">Data Presensi</span>
                         </a>
                     </li>
-                    {{-- face --}}
-                    <li class="nav-item">
-                        <a href="{{ route('student.face.index') }}"
-                            class="nav-link {{ request()->routeIs('student.face.*') ? 'active' : '' }}">
+                    <li class="nav-item {{ Request::is('student/face*') ? 'active' : '' }}">
+                        <a href="{{ route('student.face.index') }}" class="nav-link">
                             <i class="link-icon" data-feather="camera"></i>
-                            <span
-                                class="link-title
-                                {{ request()->routeIs('student.face.*') ? 'active' : '' }}">Face
-                                Registration</span>
+                            <span class="link-title">Register Wajah</span>
                         </a>
                     </li>
                 @endif
@@ -106,31 +79,23 @@
                 {{-- Lecturer Only Menus --}}
                 @if (auth()->user()->role === 'lecturer')
                     <li class="nav-item nav-category">General</li>
-                    <li class="nav-item">
-                        <a href="{{ route('lecturer.attendance.index') }}"
-                            class="nav-link {{ request()->routeIs('lecturer.attendance.*') ? 'active' : '' }}">
+                    <li
+                        class="nav-item {{ Request::is('lecturer/attendance*') && !Request::is('lecturer/attendance-data*') ? 'active' : '' }}">
+                        <a href="{{ route('lecturer.attendance.index') }}" class="nav-link">
                             <i class="link-icon" data-feather="calendar"></i>
-                            <span class="link-title">Session</span>
+                            <span class="link-title">Sesi Kelas</span>
                         </a>
                     </li>
-                    {{-- schedule --}}
-                    <li class="nav-item">
-                        <a href="{{ route('lecturer.schedule.index') }}"
-                            class="nav-link {{ request()->routeIs('lecturer.schedule.*') ? 'active' : '' }}">
+                    <li class="nav-item {{ Request::is('lecturer/schedule*') ? 'active' : '' }}">
+                        <a href="{{ route('lecturer.schedule.index') }}" class="nav-link">
                             <i class="link-icon" data-feather="calendar"></i>
-                            <span
-                                class="link-title
-                                {{ request()->routeIs('lecturer.schedule.*') ? 'active' : '' }}">Schedule</span>
+                            <span class="link-title">Jadwal Perkuliahan</span>
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a href="{{ route('lecturer.attendance-data.index') }}"
-                            class="nav-link {{ request()->routeIs('lecturer.attendance-data.*') ? 'active' : '' }}">
+                    <li class="nav-item {{ Request::is('lecturer/attendance-data*') ? 'active' : '' }}">
+                        <a href="{{ route('lecturer.attendance-data.index') }}" class="nav-link">
                             <i class="link-icon" data-feather="calendar"></i>
-                            <span
-                                class="link-title
-                                {{ request()->routeIs('lecturer.attendance-data.*') ? 'active' : '' }}">Attendance
-                                Management</span>
+                            <span class="link-title">Data Presensi</span>
                         </a>
                     </li>
                 @endif

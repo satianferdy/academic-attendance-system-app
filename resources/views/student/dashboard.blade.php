@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Student Dashboard')
+@section('title', 'Dashboard')
 
 @push('styles')
     <style>
@@ -86,18 +86,18 @@
                 <div class="card">
                     <div class="card-body d-md-flex align-items-center">
                         <div>
-                            <h5 class="fw-semibold mb-1">Welcome, {{ Auth::user()->name }}!</h5>
+                            <h5 class="fw-semibold mb-1">Selamat, {{ Auth::user()->name }}!</h5>
                             <p class="text-muted mb-0">
-                                Student ID: {{ Auth::user()->student->nim }} |
-                                Class: {{ Auth::user()->student->classroom->name }} |
-                                Department: {{ Auth::user()->student->studyProgram->name }}
+                                NIM: {{ Auth::user()->student->nim }} |
+                                Kelas: {{ Auth::user()->student->classroom->name }} |
+                                Program Studi: {{ Auth::user()->student->studyProgram->name }}
                             </p>
                         </div>
 
                         <div class="ms-auto mt-3 mt-md-0">
                             @if (!Auth::user()->student->face_registered)
                                 <a href="{{ route('student.face.register') }}" class="btn btn-primary">
-                                    <i data-feather="camera" class="icon-sm me-1"></i> Register Face
+                                    <i data-feather="camera" class="icon-sm me-1"></i> Register Wajah
                                 </a>
                             @else
                                 <div class="d-flex align-items-center">
@@ -120,10 +120,10 @@
                             <div class="stat-icon bg-primary-subtle me-2">
                                 <i data-feather="check-circle" class="text-primary"></i>
                             </div>
-                            <h6 class="card-subtitle text-muted mb-0">Attendance Rate</h6>
+                            <h6 class="card-subtitle text-muted mb-0">Presensi Rate</h6>
                         </div>
                         <h3 class="fw-semibold mb-0">{{ $attendanceStats['attendanceRate'] }}%</h3>
-                        <small class="text-muted">Overall attendance</small>
+                        <small class="text-muted">Overall Presensi</small>
                     </div>
                 </div>
             </div>
@@ -134,11 +134,11 @@
                             <div class="stat-icon bg-success-subtle me-2">
                                 <i data-feather="book-open" class="text-success"></i>
                             </div>
-                            <h6 class="card-subtitle text-muted mb-0">Classes Attended</h6>
+                            <h6 class="card-subtitle text-muted mb-0">Kelas Attended</h6>
                         </div>
                         <h3 class="fw-semibold mb-0">{{ $attendanceStats['presentCount'] + $attendanceStats['lateCount'] }}
                         </h3>
-                        <small class="text-muted">Out of {{ $attendanceStats['totalClasses'] }} sessions</small>
+                        <small class="text-muted">Dari {{ $attendanceStats['totalClasses'] }} sesi</small>
                     </div>
                 </div>
             </div>
@@ -149,10 +149,11 @@
                             <div class="stat-icon bg-warning-subtle me-2">
                                 <i data-feather="clock" class="text-warning"></i>
                             </div>
-                            <h6 class="card-subtitle text-muted mb-0">Today's Classes</h6>
+                            <h6 class="card-subtitle text-muted mb-0">Kelas Hari Ini</h6>
                         </div>
                         <h3 class="fw-semibold mb-0">{{ $todayClasses->count() }}</h3>
-                        <small class="text-muted">{{ Carbon\Carbon::now()->format('l, d M Y') }}</small>
+                        <small
+                            class="text-muted">{{ Carbon\Carbon::now()->locale('id')->isoFormat('dddd, D MMM YYYY') }}</small>
                     </div>
                 </div>
             </div>
@@ -163,11 +164,11 @@
                             <div class="stat-icon bg-danger-subtle me-2">
                                 <i data-feather="alert-circle" class="text-danger"></i>
                             </div>
-                            <h6 class="card-subtitle text-muted mb-0">Absences</h6>
+                            <h6 class="card-subtitle text-muted mb-0">Total Absent</h6>
                         </div>
                         <h3 class="fw-semibold mb-0">{{ $attendanceStats['absentCount'] }}</h3>
                         <small
-                            class="text-muted">{{ $attendanceStats['absentCount'] > 0 ? 'Requires attention' : 'Good job!' }}</small>
+                            class="text-muted">{{ $attendanceStats['absentCount'] > 0 ? 'Butuh Perhatian' : 'Kerja Bagus!' }}</small>
                     </div>
                 </div>
             </div>
@@ -178,16 +179,19 @@
             <div class="col-md-6 col-lg-5">
                 <div class="card h-100">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <h6 class="card-title fw-semibold mb-0">Today's Schedule</h6>
-                        <span class="text-muted">{{ Carbon\Carbon::now()->format('l') }}</span>
+                        <h6 class="card-title fw-semibold mb-0">Jadwal Hari Ini</h6>
+                        <span class="text-muted">{{ Carbon\Carbon::now()->locale('id')->isoFormat('dddd') }}</span>
                     </div>
                     <div class="card-body p-0">
                         <div class="list-group list-group-flush">
                             @forelse($todayClasses as $class)
                                 @php
                                     $now = Carbon\Carbon::now();
-                                    $currentTimeSlot = null;
                                     $isActive = false;
+
+                                    // Find earliest start time and latest end time
+                                    $earliestStart = null;
+                                    $latestEnd = null;
 
                                     foreach ($class->timeSlots as $timeSlot) {
                                         $startTime = Carbon\Carbon::createFromFormat(
@@ -199,10 +203,16 @@
                                             $timeSlot->end_time->format('H:i'),
                                         );
 
+                                        if ($earliestStart === null || $startTime->lt($earliestStart)) {
+                                            $earliestStart = $startTime;
+                                        }
+
+                                        if ($latestEnd === null || $endTime->gt($latestEnd)) {
+                                            $latestEnd = $endTime;
+                                        }
+
                                         if ($now->between($startTime, $endTime)) {
                                             $isActive = true;
-                                            $currentTimeSlot = $timeSlot;
-                                            break;
                                         }
                                     }
                                 @endphp
@@ -210,27 +220,27 @@
                                 <div class="list-group-item px-3 py-3">
                                     <div class="d-flex">
                                         <div class="schedule-time">
-                                            @foreach ($class->timeSlots as $timeSlot)
-                                                <div class="mb-1">
-                                                    <span class="fw-medium">
-                                                        {{ $timeSlot->start_time->format('H:i') }} -
-                                                        {{ $timeSlot->end_time->format('H:i') }}
-                                                    </span>
-                                                    @if ($isActive && $currentTimeSlot->id == $timeSlot->id)
-                                                        <span class="text-muted ms-1">(Now)</span>
-                                                    @endif
-                                                </div>
-                                            @endforeach
+                                            <div class="mb-1">
+                                                <span class="fw-medium">
+                                                    {{ $earliestStart->format('H:i') }} -
+                                                    {{ $latestEnd->format('H:i') }}
+                                                </span>
+                                                @if ($isActive)
+                                                    <span class="text-muted ms-1">(Now)</span>
+                                                @endif
+                                            </div>
                                         </div>
                                         <div class="ms-3">
                                             <h6 class="mb-1 fw-medium">{{ $class->course->name }}</h6>
                                             <p class="mb-0 small text-muted">
-                                                <i data-feather="map-pin" class="icon-xs me-1"></i> {{ $class->room }}
-                                                <span class="ms-2">
-                                                    <i data-feather="user" class="icon-xs me-1"></i>
-                                                    {{ $class->lecturer->user->name }}
-                                                </span>
+                                                <i data-feather="user" class="icon-xs me-1"></i>
+                                                {{ $class->lecturer->user->name }}
                                             </p>
+                                        </div>
+                                        <div class="ms-auto">
+                                            <span class="badge bg-light text-dark">
+                                                <i data-feather="map-pin" class="icon-xs me-1"></i> {{ $class->room }}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
@@ -248,7 +258,7 @@
             <div class="col-md-6 col-lg-7">
                 <div class="card h-100">
                     <div class="card-header">
-                        <h6 class="card-title fw-semibold mb-0">Attendance History</h6>
+                        <h6 class="card-title fw-semibold mb-0">Riwayat Presensi</h6>
                     </div>
                     <div class="card-body">
                         <div class="attendance-chart-container">
@@ -278,8 +288,8 @@
                                     <i data-feather="camera-off" style="width: 48px; height: 48px;" class="text-muted"></i>
                                 </div>
                                 <h6>Face Not Registered</h6>
-                                <p class="text-muted mb-4">You need to register your face to use the automated attendance
-                                    system</p>
+                                <p class="text-muted mb-4">Anda belum melakukan pendaftaran wajah untuk presensi otomatis.
+                                    Silakan lakukan pendaftaran wajah untuk memulai.</p>
                                 <a href="{{ route('student.face.register') }}" class="btn btn-primary">
                                     <i data-feather="camera" class="icon-sm me-1"></i> Register Now
                                 </a>
@@ -291,7 +301,8 @@
                                         class="text-success"></i>
                                 </div>
                                 <h6>Face Recognition Active</h6>
-                                <p class="text-muted mb-2">Your face data is registered and ready for automated attendance
+                                <p class="text-muted mb-2">data wajah Anda telah terdaftar dan siap digunakan untuk
+                                    presensi otomatis.</p>
                                 </p>
                                 <p class="small text-muted mb-4">Last updated:
                                     {{ $faceRecognitionStatus['lastUpdate']->format('d M Y, H:i') }}</p>
@@ -314,18 +325,18 @@
             <div class="col-md-6 col-lg-7 order-1 order-md-2">
                 <div class="card h-100">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <h6 class="card-title fw-semibold mb-0">Recent Attendance</h6>
-                        <a href="{{ route('student.attendance.index') }}" class="btn btn-sm btn-outline-primary">View
-                            All</a>
+                        <h6 class="card-title fw-semibold mb-0">Presensi Terakhir</h6>
+                        <a href="{{ route('student.attendance.index') }}" class="btn btn-sm btn-outline-primary">Lihat
+                            Semua</a>
                     </div>
                     <div class="card-body p-0">
                         <div class="table-responsive">
                             <table class="table table-hover">
                                 <thead>
                                     <tr>
-                                        <th>Date</th>
-                                        <th>Course</th>
-                                        <th>Time</th>
+                                        <th>Tanggal</th>
+                                        <th>Mata Kuliah</th>
+                                        <th>Jam</th>
                                         <th>Status</th>
                                     </tr>
                                 </thead>
@@ -349,7 +360,7 @@
                                     @empty
                                         <tr>
                                             <td colspan="4" class="text-center py-4 text-muted">
-                                                No attendance records found
+                                                Tidak ada data presensi
                                             </td>
                                         </tr>
                                     @endforelse
@@ -384,14 +395,14 @@
             const chartData = {
                 labels: @json($attendanceStats['monthlyData']['months']),
                 datasets: [{
-                        label: 'Present',
+                        label: 'Hadir',
                         data: @json($attendanceStats['monthlyData']['series'][0]['data']),
                         backgroundColor: chartColors.present,
                         borderColor: chartColors.present,
                         borderWidth: 0
                     },
                     {
-                        label: 'Late',
+                        label: 'Terlambat',
                         data: @json($attendanceStats['monthlyData']['series'][1]['data']),
                         backgroundColor: chartColors.late,
                         borderColor: chartColors.late,
@@ -405,7 +416,7 @@
                         borderWidth: 0
                     },
                     {
-                        label: 'Excused',
+                        label: 'Izin',
                         data: @json($attendanceStats['monthlyData']['series'][3]['data']),
                         backgroundColor: chartColors.excused,
                         borderColor: chartColors.excused,

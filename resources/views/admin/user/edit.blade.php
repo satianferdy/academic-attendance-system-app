@@ -3,6 +3,13 @@
 @section('title', 'Edit User')
 
 @section('content')
+    <nav class="page-breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="#">General</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('admin.users.index') }}">User</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Edit</li>
+        </ol>
+    </nav>
     <div class="row">
         <div class="col-md-12 grid-margin stretch-card">
             <div class="card">

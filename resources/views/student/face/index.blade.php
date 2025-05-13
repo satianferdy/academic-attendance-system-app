@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Face Recognition')
+@section('title', 'Pendaftaran Wajah')
 
 @push('styles')
     <style>
@@ -174,6 +174,12 @@
 @endpush
 
 @section('content')
+    <nav class="page-breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="#">General</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Pendaftaran Wajah</li>
+        </ol>
+    </nav>
     <div class="dashboard-container">
         <!-- Alerts -->
         @if (session('success'))
@@ -197,12 +203,12 @@
         @endif
 
         <!-- Header Banner -->
-        <div class="dashboard-header bg-primary mb-4">
-            <h4 class="text-white mb-0">Face Recognition Dashboard</h4>
-        </div>
+        {{-- <div class="dashboard-header bg-primary mb-4">
+            <h4 class="text-white mb-0">Pendaftaran Wajah</h4>
+        </div> --}}
 
         <!-- Content Area -->
-        <div class="dashboard-content px-3 pb-4">
+        <div class="dashboard-content">
             <div class="row g-4">
                 <!-- Registration Status Card -->
                 <div class="col-md-6">
@@ -211,23 +217,23 @@
                             <div class="custom-icon user-icon me-2">
                                 <i data-feather="user" class="icon-inner"></i>
                             </div>
-                            <h5 class="mb-0">FACE REGISTRATION STATUS</h5>
+                            <h5 class="mb-0">STATUS PENDAFTARAN WAJAH</h5>
                         </div>
                         <div class="card-body">
                             @if (!$student->face_registered)
                                 <!-- Not Registered State -->
                                 <div class="status-box p-4 rounded-3 mb-4 bg-warning-subtle">
                                     <div class="d-flex align-items-center mb-3">
-                                        <span class="badge bg-warning me-2">Not Registered</span>
-                                        <span class="text-warning fw-bold">Action Required</span>
+                                        <span class="badge bg-warning me-2">Tidak Terdaftar</span>
+                                        <span class="text-warning fw-bold">Silakan Daftar Wajah Anda</span>
                                     </div>
-                                    <p class="mb-3">You need to register your face to use the facial recognition
-                                        attendance system.</p>
+                                    <p class="mb-3">Anda belum mendaftar wajah untuk kehadiran. Silakan klik tombol di
+                                        bawah untuk mendaftar.</p>
 
                                     <div class="text-center">
                                         <a href="{{ route('student.face.register') }}"
                                             class="btn btn-sm btn-icon-text btn-primary" type="button">
-                                            <i class="btn-icon-prepend" data-feather="user-plus"></i> Register Now
+                                            <i class="btn-icon-prepend" data-feather="user-plus"></i> Daftar Sekarang
                                         </a>
                                     </div>
                                 </div>
@@ -235,11 +241,10 @@
                                 <!-- Face Registered State -->
                                 <div class="status-box p-4 rounded-3 mb-4 bg-success-subtle">
                                     <div class="d-flex align-items-center mb-2">
-                                        <span class="badge bg-success me-2">Registered</span>
-                                        <span class="text-success fw-bold">Ready for Verification</span>
+                                        <span class="badge bg-success me-2">Terdaftar</span>
+                                        <span class="text-success fw-bold">Ready untuk Presensi</span>
                                     </div>
-                                    <p class="mb-3">Your face is registered in our system and ready for attendance
-                                        verification.</p>
+                                    <p class="mb-3">Wajah Anda telah terdaftar untuk kehadiran</p>
                                 </div>
 
                                 <!-- Check for Update Request Status -->
@@ -248,9 +253,10 @@
                                     <div class="update-status pending">
                                         <div class="d-flex align-items-center mb-3">
                                             <i data-feather="clock" class="me-2 text-warning"></i>
-                                            <h6 class="mb-0 text-warning">Update Request Pending</h6>
+                                            <h6 class="mb-0 text-warning">Request Pending!</h6>
                                         </div>
-                                        <p class="mb-2">Your face update request is currently under review.</p>
+                                        <p class="mb-2">Request Anda untuk memperbarui data wajah sedang
+                                            diproses.</p>
                                         <p class="mb-2"><strong>Submitted:</strong>
                                             {{ $pendingRequest->created_at->format('M d, Y') }}</p>
                                         <p class="mb-0"><strong>Reason:</strong> {{ $pendingRequest->reason }}</p>
@@ -260,10 +266,10 @@
                                     <div class="update-status approved">
                                         <div class="d-flex align-items-center mb-3">
                                             <i data-feather="check-circle" class="me-2 text-success"></i>
-                                            <h6 class="mb-0 text-success">Update Request Approved!</h6>
+                                            <h6 class="mb-0 text-success">Request Disetujui!</h6>
                                         </div>
-                                        <p class="mb-3">Your request to update your face data has been approved by an
-                                            administrator.</p>
+                                        <p class="mb-3">Request Anda untuk memperbarui data wajah telah
+                                            disetujui.</p>
                                         @if ($approvedRequest->admin_notes)
                                             <p class="mb-3"><strong>Admin Notes:</strong>
                                                 {{ $approvedRequest->admin_notes }}</p>
@@ -271,7 +277,7 @@
                                         <div class="text-center">
                                             <a href="{{ route('student.face.update', $approvedRequest->id) }}"
                                                 class="btn btn-sm btn-icon-text btn-success" type="button">
-                                                <i class="btn-icon-prepend" data-feather="camera"></i> Update Your Face
+                                                <i class="btn-icon-prepend" data-feather="camera"></i> Perbarui Sekarang
                                             </a>
                                         </div>
                                     </div>
@@ -280,27 +286,27 @@
                                     <div class="update-status rejected">
                                         <div class="d-flex align-items-center mb-3">
                                             <i data-feather="x-circle" class="me-2 text-danger"></i>
-                                            <h6 class="mb-0 text-danger">Update Request Rejected</h6>
+                                            <h6 class="mb-0 text-danger">Request Ditolak!</h6>
                                         </div>
-                                        <p class="mb-2">Your request to update your face data was rejected.</p>
+                                        <p class="mb-2">Request Anda untuk memperbarui data wajah telah
+                                            ditolak.</p>
                                         <p class="mb-3"><strong>Reason:</strong> {{ $rejectedRequest->admin_notes }}</p>
 
                                         <!-- Allow requesting again after rejection -->
                                         <div id="request-update-section">
                                             <button type="button" class="btn btn-sm btn-icon-text btn-outline-primary"
                                                 id="show-request-form">
-                                                <i class="btn-icon-prepend" data-feather="refresh-cw"></i> Request Update
-                                                Again
+                                                <i class="btn-icon-prepend" data-feather="refresh-cw"></i> Request Now
                                             </button>
                                         </div>
 
                                         <!-- Hidden request form (will be shown on button click) -->
                                         <div class="request-form mt-3" id="update-request-form" style="display: none;">
-                                            <h6 class="mb-3">Request Face Update</h6>
+                                            <h6 class="mb-3">Request Pembaruan Wajah</h6>
                                             <form action="{{ route('student.face.store-request') }}" method="POST">
                                                 @csrf
                                                 <div class="mb-3">
-                                                    <label for="reason" class="form-label">Reason for Update <span
+                                                    <label for="reason" class="form-label">Alasan Pembaruan <span
                                                             class="text-danger">*</span></label>
                                                     <textarea class="form-control @error('reason') is-invalid @enderror" id="reason" name="reason" rows="3"
                                                         required></textarea>
@@ -311,10 +317,10 @@
                                                 <div class="d-flex justify-content-end">
                                                     <button type="button" class="btn btn-outline-secondary btn-sm me-2"
                                                         id="cancel-request">
-                                                        Cancel
+                                                        Batal
                                                     </button>
                                                     <button type="submit" class="btn btn-primary btn-sm">
-                                                        Submit Request
+                                                        Kirim
                                                     </button>
                                                 </div>
                                             </form>
@@ -325,9 +331,9 @@
                                     <div class="update-status approved">
                                         <div class="d-flex align-items-center mb-3">
                                             <i data-feather="check-circle" class="me-2 text-success"></i>
-                                            <h6 class="mb-0 text-success">Face Update Completed!</h6>
+                                            <h6 class="mb-0 text-success">Pembaruan Wajah Selesai!</h6>
                                         </div>
-                                        <p class="mb-2">Your face data was successfully updated on
+                                        <p class="mb-2">Data wajah Anda telah diperbarui.
                                             {{ $completedRequest->updated_at->format('M d, Y') }}.</p>
                                         @if ($completedRequest->admin_notes)
                                             <p class="mb-3"><strong>Admin Notes:</strong>
@@ -336,20 +342,19 @@
 
                                         <!-- Allow requesting again -->
                                         <div id="request-update-section" class="text-center mt-4">
-                                            <p class="mb-3">Need to update your face data again?</p>
+                                            <p class="mb-3">Butuh pembaruan wajah lagi?</p>
                                             <button type="button" class="btn btn-sm btn-icon-text btn-outline-primary"
                                                 id="show-request-form">
-                                                <i data-feather="refresh-cw" class="btn-icon-prepend"></i> Request Face
-                                                Update
+                                                <i data-feather="refresh-cw" class="btn-icon-prepend"></i> Request Now
                                             </button>
                                         </div>
 
                                         <div class="request-form mt-3" id="update-request-form" style="display: none;">
-                                            <h6 class="mb-3">Request Face Update</h6>
+                                            <h6 class="mb-3">Request Pembaruan Wajah</h6>
                                             <form action="{{ route('student.face.store-request') }}" method="POST">
                                                 @csrf
                                                 <div class="mb-3">
-                                                    <label for="reason" class="form-label">Reason for Update <span
+                                                    <label for="reason" class="form-label">Alasan Pembaruan <span
                                                             class="text-danger">*</span></label>
                                                     <textarea class="form-control @error('reason') is-invalid @enderror" id="reason" name="reason" rows="3"
                                                         placeholder="Please explain why you need to update your face data" required></textarea>
@@ -357,17 +362,17 @@
                                                         <div class="invalid-feedback">{{ $message }}</div>
                                                     @enderror
                                                     <div class="form-text">
-                                                        Provide a clear reason why you need to update your face data. This
-                                                        will be reviewed by administrators.
+                                                        Sertakan alasan yang jelas mengapa Anda perlu memperbarui data wajah
+                                                        Anda. Ini akan ditinjau oleh administrator.
                                                     </div>
                                                 </div>
                                                 <div class="d-flex justify-content-end">
                                                     <button type="button" class="btn btn-outline-secondary btn-sm me-2"
                                                         id="cancel-request">
-                                                        Cancel
+                                                        Batal
                                                     </button>
                                                     <button type="submit" class="btn btn-primary btn-sm">
-                                                        Submit Request
+                                                        Kirim
                                                     </button>
                                                 </div>
                                             </form>
@@ -376,20 +381,20 @@
                                 @else
                                     <!-- No Update Request Yet -->
                                     <div id="request-update-section" class="text-center mt-4">
-                                        <p class="mb-3">Need to update your face data?</p>
+                                        <p class="mb-3">Butuh pembaruan wajah?</p>
                                         <button type="button" class="btn btn-icon-text btn-sm btn-outline-primary"
                                             id="show-request-form">
-                                            <i data-feather="refresh-cw" class="btn-icon-prepend"></i> Request Face Update
+                                            <i data-feather="refresh-cw" class="btn-icon-prepend"></i> Request Now
                                         </button>
                                     </div>
 
                                     <!-- Hidden request form (will be shown on button click) -->
                                     <div class="request-form mt-3" id="update-request-form" style="display: none;">
-                                        <h6 class="mb-3">Request Face Update</h6>
+                                        <h6 class="mb-3">Request Pembaruan Wajah</h6>
                                         <form action="{{ route('student.face.store-request') }}" method="POST">
                                             @csrf
                                             <div class="mb-3">
-                                                <label for="reason" class="form-label">Reason for Update <span
+                                                <label for="reason" class="form-label">Alasan Pembaruan <span
                                                         class="text-danger">*</span></label>
                                                 <textarea class="form-control @error('reason') is-invalid @enderror" id="reason" name="reason" rows="3"
                                                     placeholder="Please explain why you need to update your face data" required></textarea>
@@ -397,17 +402,17 @@
                                                     <div class="invalid-feedback">{{ $message }}</div>
                                                 @enderror
                                                 <div class="form-text">
-                                                    Provide a clear reason why you need to update your face data. This will
-                                                    be reviewed by administrators.
+                                                    Sertakan alasan yang jelas mengapa Anda perlu memperbarui data wajah
+                                                    Anda. Ini akan ditinjau oleh administrator.
                                                 </div>
                                             </div>
                                             <div class="d-flex justify-content-end">
                                                 <button type="button" class="btn btn-outline-secondary btn-sm me-2"
                                                     id="cancel-request">
-                                                    Cancel
+                                                    Batal
                                                 </button>
                                                 <button type="submit" class="btn btn-primary btn-sm">
-                                                    Submit Request
+                                                    Kirim
                                                 </button>
                                             </div>
                                         </form>
@@ -425,39 +430,40 @@
                             <div class="custom-icon info-icon me-2">
                                 <i data-feather="info" class="icon-inner"></i>
                             </div>
-                            <h5 class="mb-0">HOW IT WORKS</h5>
+                            <h5 class="mb-0">CARA KERJA</h5>
                         </div>
                         <div class="card-body">
                             <div class="steps-container">
                                 <div class="step d-flex mb-2">
                                     <div class="step-number">1</div>
                                     <div class="step-content">
-                                        <p class="mb-0"><strong>Register Your Face</strong><br>Use a clear
-                                            front-facing photo in good lighting</p>
+                                        <p class="mb-0"><strong>Daftarkan Wajah Anda</strong><br>Gunakan foto
+                                            depan yang jelas dengan pencahayaan yang baik</p>
                                     </div>
                                 </div>
 
                                 <div class="step d-flex mb-2">
                                     <div class="step-number">2</div>
                                     <div class="step-content">
-                                        <p class="mb-0"><strong>Scan QR Code</strong><br>Scan the QR code provided by
-                                            your lecturer</p>
+                                        <p class="mb-0"><strong>Pindai Kode QR</strong><br>Pindai kode QR yang
+                                            disediakan oleh dosen Anda</p>
                                     </div>
                                 </div>
 
                                 <div class="step d-flex mb-2">
                                     <div class="step-number">3</div>
                                     <div class="step-content">
-                                        <p class="mb-0"><strong>Verify Identity</strong><br>Take a clear selfie for
-                                            identity verification</p>
+                                        <p class="mb-0"><strong>Verifikasi Identitas</strong><br>Ambil selfie yang jelas
+                                            untuk
+                                            verifikasi identitas</p>
                                     </div>
                                 </div>
 
                                 <div class="step d-flex">
                                     <div class="step-number">4</div>
                                     <div class="step-content">
-                                        <p class="mb-0"><strong>Attendance Recorded</strong><br>Your attendance is
-                                            automatically recorded on success</p>
+                                        <p class="mb-0"><strong>Kehadiran Tercatat</strong><br>Kehadiran Anda
+                                            secara otomatis tercatat saat berhasil</p>
                                     </div>
                                 </div>
                             </div>
@@ -465,8 +471,9 @@
                             <div class="bg-light p-3 rounded-3 mt-3">
                                 <div class="d-flex align-items-start">
                                     <i data-feather="zap" class="text-warning me-2 mt-2"></i>
-                                    <p class="mb-0"><strong>Tip:</strong> Ensure good lighting and a clear view of
-                                        your face when registering or verifying to improve recognition accuracy.</p>
+                                    <p class="mb-0"><strong>Tip:</strong> Pastikan pencahayaan yang baik dan tampilan
+                                        wajah yang jelas saat melakukan registrasi atau verifikasi untuk meningkatkan
+                                        akurasi pengenalan.</p>
                                 </div>
                             </div>
 
@@ -475,11 +482,11 @@
                                     <div class="d-flex align-items-start">
                                         <i data-feather="info" class="text-info me-2 mt-1"></i>
                                         <div>
-                                            <h6 class="mb-1">About Face Update Requests</h6>
-                                            <p class="mb-0">If you need to update your face data (e.g., appearance
-                                                change,
-                                                glasses, new hairstyle), you can request an update. Admin approval is
-                                                required for face updates to ensure system security.</p>
+                                            <h6 class="mb-1">Tentang Permintaan Pembaruan Wajah</h6>
+                                            <p class="mb-0">Jika Anda perlu memperbarui data wajah (misalnya, perubahan
+                                                penampilan, kacamata, gaya rambut baru), Anda dapat mengajukan permintaan
+                                                pembaruan. Persetujuan admin diperlukan untuk pembaruan wajah guna
+                                                memastikan keamanan sistem.</p>
                                         </div>
                                     </div>
                                 </div>
@@ -495,7 +502,7 @@
                             <div class="custom-icon camera-icon me-2">
                                 <i data-feather="camera" class="icon-inner"></i>
                             </div>
-                            <h5 class="mb-0">FACE REGISTRATION TIPS</h5>
+                            <h5 class="mb-0">TIPS REGISTRASI WAJAH</h5>
                         </div>
                         <div class="card-body">
                             <div class="row">
@@ -507,9 +514,10 @@
                                     <div class="tips-item">
                                         <i data-feather="sun" class="tips-icon text-warning"></i>
                                         <div>
-                                            <h6>Good Lighting</h6>
-                                            <p>Ensure your face is well-lit from the front. Avoid harsh shadows,
-                                                backlighting, or uneven lighting. Natural light is best whenever possible.
+                                            <h6>Pencahayaan yang Baik</h6>
+                                            <p>Pastikan wajah Anda terkena cahaya yang baik dari depan. Hindari bayangan
+                                                yang keras, pencahayaan dari belakang, atau cahaya yang tidak merata.
+                                                Cahaya alami adalah yang terbaik bila memungkinkan.
                                             </p>
                                         </div>
                                     </div>
@@ -517,27 +525,29 @@
                                     <div class="tips-item">
                                         <i data-feather="align-center" class="tips-icon text-primary"></i>
                                         <div>
-                                            <h6>Proper Positioning</h6>
-                                            <p>Position your face in the center of the frame. Keep your head straight and
-                                                look directly at the camera. Your entire face should be visible.</p>
+                                            <h6>Posisi yang Tepat</h6>
+                                            <p>Posisikan wajah Anda di tengah frame. Jaga kepala tetap lurus dan
+                                                lihat langsung ke kamera. Seluruh wajah Anda harus terlihat jelas.</p>
                                         </div>
                                     </div>
 
                                     <div class="tips-item">
                                         <i data-feather="eye" class="tips-icon text-info"></i>
                                         <div>
-                                            <h6>Clear View</h6>
-                                            <p>Remove glasses, masks, or any accessories that cover parts of your face.
-                                                Ensure your face is not obscured by hair, shadows, or objects.</p>
+                                            <h6>Tampilan Jelas</h6>
+                                            <p>Lepaskan kacamata, masker, atau aksesori yang menutupi bagian wajah Anda.
+                                                Pastikan wajah Anda tidak terhalang oleh rambut, bayangan, atau benda
+                                                lainnya.</p>
                                         </div>
                                     </div>
 
                                     <div class="tips-item">
                                         <i data-feather="target" class="tips-icon text-success"></i>
                                         <div>
-                                            <h6>Appropriate Distance</h6>
-                                            <p>Keep a comfortable distance from the camera. Not too close (which can distort
-                                                features) and not too far (which reduces detail).</p>
+                                            <h6>Jarak yang Tepat</h6>
+                                            <p>Jaga jarak yang nyaman dari kamera. Tidak terlalu dekat (yang dapat
+                                                mendistorsi
+                                                fitur wajah) dan tidak terlalu jauh (yang mengurangi detail).</p>
                                         </div>
                                     </div>
                                 </div>
@@ -547,15 +557,15 @@
                                 <div class="tip-card">
                                     <div class="tip-header do-header d-flex align-items-center">
                                         <i data-feather="check" class="me-2"></i>
-                                        <span>DO</span>
+                                        <span>LAKUKAN</span>
                                     </div>
                                     <div class="tip-body">
                                         <ul class="mb-0 ps-3">
-                                            <li>Face the camera directly</li>
-                                            <li>Maintain a neutral expression</li>
-                                            <li>Ensure even lighting on your face</li>
-                                            <li>Position at eye level with camera</li>
-                                            <li>Use a plain background</li>
+                                            <li>Hadap kamera secara langsung</li>
+                                            <li>Pertahankan ekspresi wajah netral</li>
+                                            <li>Pastikan pencahayaan merata pada wajah</li>
+                                            <li>Posisikan setinggi mata dengan kamera</li>
+                                            <li>Gunakan latar belakang polos</li>
                                         </ul>
                                     </div>
                                 </div>
@@ -563,15 +573,15 @@
                                 <div class="tip-card">
                                     <div class="tip-header dont-header d-flex align-items-center">
                                         <i data-feather="x" class="me-2"></i>
-                                        <span>DON'T</span>
+                                        <span>JANGAN</span>
                                     </div>
                                     <div class="tip-body">
                                         <ul class="mb-0 ps-3">
-                                            <li>Tilt your head at extreme angles</li>
-                                            <li>Wear sunglasses or heavy makeup</li>
-                                            <li>Register in poor lighting conditions</li>
-                                            <li>Use excessive filters or edits</li>
-                                            <li>Have distracting backgrounds</li>
+                                            <li>Miringkan kepala Anda pada sudut ekstrem</li>
+                                            <li>Menggunakan kacamata hitam atau riasan tebal</li>
+                                            <li>Mendaftar dalam kondisi pencahayaan buruk</li>
+                                            <li>Menggunakan filter atau editan berlebihan</li>
+                                            <li>Memiliki latar belakang yang mengganggu</li>
                                         </ul>
                                     </div>
                                 </div>
@@ -580,9 +590,9 @@
                             <div class="bg-light p-3 rounded-3 mt-4">
                                 <div class="d-flex align-items-start">
                                     <i data-feather="alert-triangle" class="text-warning me-2 mt-1"></i>
-                                    <p class="mb-0"><strong>Important Note:</strong> For privacy and security reasons,
-                                        your facial data is encrypted and stored securely. It's only used for attendance
-                                        verification purposes and is not shared with third parties.</p>
+                                    <p class="mb-0"><strong>Catatan Penting:</strong> Untuk alasan privasi dan keamanan,
+                                        data wajah Anda dienkripsi dan disimpan dengan aman. Data ini hanya digunakan untuk
+                                        keperluan verifikasi kehadiran dan tidak dibagikan kepada pihak ketiga.</p>
                                 </div>
                             </div>
                         </div>

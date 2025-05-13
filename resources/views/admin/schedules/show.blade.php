@@ -1,12 +1,12 @@
 @extends('layouts.app')
 
-@section('title', 'Class Schedule Details')
+@section('title', 'Detail Jadwal Perkuliahan')
 
 @section('content')
     <nav class="page-breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="#">Data</a></li>
-            <li class="breadcrumb-item"><a href="{{ route('admin.schedules.index') }}">Class Schedule</a></li>
+            <li class="breadcrumb-item"><a href="#">General</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('admin.schedules.index') }}">Jadwal Perkuliahan</a></li>
             <li class="breadcrumb-item active" aria-current="page">Details</li>
         </ol>
     </nav>
@@ -15,7 +15,7 @@
             <div class="card">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h6 class="card-title mb-0">Class Schedule Details</h6>
+                        <h6 class="card-title mb-0">Detail Jadwal Perkuliahan</h6>
                         <div>
                             <a href="{{ route('admin.schedules.edit', $schedule->id) }}"
                                 class="btn btn-primary btn-sm btn-icon-text">
@@ -29,7 +29,7 @@
                                 <button type="submit" class="btn btn-danger btn-sm btn-icon-text"
                                     onclick="return confirm('Are you sure you want to delete this schedule?')">
                                     <i class="btn-icon-prepend" data-feather="trash-2"></i>
-                                    Delete
+                                    Hapus
                                 </button>
                             </form>
                         </div>
@@ -39,16 +39,16 @@
                         <div class="col-md-6">
                             <div class="card mb-3">
                                 <div class="card-header bg-light">
-                                    <h6 class="mb-0">Course Information</h6>
+                                    <h6 class="mb-0">Informasi Mata Kuliah</h6>
                                 </div>
                                 <div class="card-body">
                                     <table class="table table-borderless">
                                         <tr>
-                                            <th width="30%">Course Code</th>
+                                            <th width="30%">Kode Mata Kuliah</th>
                                             <td>{{ $schedule->course->code }}</td>
                                         </tr>
                                         <tr>
-                                            <th>Course Name</th>
+                                            <th>Nama Mata Kuliah</th>
                                             <td>{{ $schedule->course->name }}</td>
                                         </tr>
                                         <tr>
@@ -56,12 +56,12 @@
                                             <td>{{ $schedule->semester }}</td>
                                         </tr>
                                         <tr>
-                                            <th>Academic Year</th>
+                                            <th>Tahun Ajaran</th>
                                             <td>{{ $schedule->semesters->name }}</td>
                                         </tr>
                                         {{-- classroom --}}
                                         <tr>
-                                            <th>Classroom</th>
+                                            <th>Kelas</th>
                                             <td>{{ $schedule->classroom->name }}</td>
                                         </tr>
                                     </table>
@@ -72,28 +72,28 @@
                         <div class="col-md-6">
                             <div class="card mb-3">
                                 <div class="card-header bg-light">
-                                    <h6 class="mb-0">Schedule Information</h6>
+                                    <h6 class="mb-0">Informasi Jadwal</h6>
                                 </div>
                                 <div class="card-body">
                                     <table class="table table-borderless">
                                         <tr>
-                                            <th width="30%">Lecturer</th>
+                                            <th width="30%">Dosen</th>
                                             <td>{{ $schedule->lecturer->user->name ?? 'Unknown' }}</td>
                                         </tr>
                                         <tr>
-                                            <th>Room</th>
+                                            <th>Ruang</th>
                                             <td>{{ $schedule->room }}</td>
                                         </tr>
                                         <tr>
-                                            <th>Day</th>
+                                            <th>Hari</th>
                                             <td>{{ $schedule->day }}</td>
                                         </tr>
                                         <tr>
-                                            <th>Total Weeks</th>
+                                            <th>Total Minggu</th>
                                             <td>{{ $schedule->total_weeks ?? 16 }}</td>
                                         </tr>
                                         <tr>
-                                            <th>Meetings Per Week</th>
+                                            <th>Pertemuan per Minggu</th>
                                             <td>{{ $schedule->meetings_per_week ?? 1 }}</td>
                                         </tr>
                                         {{-- <tr>
@@ -112,7 +112,7 @@
                         <div class="col-md-12">
                             <div class="card">
                                 <div class="card-header bg-light">
-                                    <h6 class="mb-0">Time Slots ({{ $schedule->timeSlots->count() }})</h6>
+                                    <h6 class="mb-0">Waktu ({{ $schedule->timeSlots->count() }})</h6>
                                 </div>
                                 <div class="card-body">
                                     @if ($schedule->timeSlots->count() > 0)
@@ -133,9 +133,9 @@
                                                             <thead class="table-light">
                                                                 <tr>
                                                                     <th>No</th>
-                                                                    <th>Start Time</th>
-                                                                    <th>End Time</th>
-                                                                    <th>Duration</th>
+                                                                    <th>Waktu Mulai</th>
+                                                                    <th>Waktu Selesai</th>
+                                                                    <th>Durasi</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
@@ -171,7 +171,7 @@
                                         </div>
                                     @else
                                         <div class="alert alert-warning">
-                                            No time slots have been assigned to this schedule.
+                                            Tidak ada waktu yang ditentukan untuk jadwal ini.
                                         </div>
                                     @endif
                                 </div>
@@ -180,7 +180,7 @@
                     </div>
 
                     <div class="d-flex justify-content-end mt-4">
-                        <a href="{{ route('admin.schedules.index') }}" class="btn btn-sm btn-secondary">Back</a>
+                        <a href="{{ route('admin.schedules.index') }}" class="btn btn-sm btn-secondary">Kembali</a>
                     </div>
                 </div>
             </div>

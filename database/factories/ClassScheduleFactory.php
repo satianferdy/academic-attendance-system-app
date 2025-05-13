@@ -26,7 +26,7 @@ class ClassScheduleFactory extends Factory
      */
     public function definition(): array
     {
-        $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        $days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
 
         // For backward compatibility, keep the old semester field
         $semesters = ['1', '2', '3', '4', '5', '6'];
@@ -49,7 +49,7 @@ class ClassScheduleFactory extends Factory
             'classroom_id' => ClassRoom::factory(),
             'semester_id' => $semester->id,
             'study_program_id' => $studyProgram->id,
-            'room' => $this->faker->randomElement(['Room A101', 'Room B202', 'Room C303', 'Lab D404', 'Hall E505']),
+            'room' => $this->faker->randomElement(['RT01', 'RT02', 'RT03', 'RT04', 'LPR01', 'LPR02', 'LT01']),
             'day' => $this->faker->randomElement($days),
             'semester' => $this->faker->randomElement($semesters), // For backward compatibility
             'total_weeks' => $this->faker->numberBetween(12, 16),
