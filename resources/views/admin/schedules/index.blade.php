@@ -9,7 +9,7 @@
 @section('content')
     <nav class="page-breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="#">Data</a></li>
+            <li class="breadcrumb-item"><a href="#">General</a></li>
             <li class="breadcrumb-item active" aria-current="page">Jadwal Perkuliahan</li>
         </ol>
     </nav>

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Edit Attendance Session')
+@section('title', 'Edit Data Presensi')
 
 @push('styles')
     <style>
@@ -23,7 +23,7 @@
         }
 
         .session-info-label {
-            width: 120px;
+            width: 140px;
             font-weight: 500;
             color: #6c757d;
         }
@@ -62,9 +62,9 @@
 @section('content')
     <nav class="page-breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="#">Admin</a></li>
-            <li class="breadcrumb-item"><a href="{{ route('admin.attendance.index') }}">Attendance Management</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Edit Session</li>
+            <li class="breadcrumb-item"><a href="#">General</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('admin.attendance.index') }}">Presensi</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Edit</li>
         </ol>
     </nav>
 
@@ -73,13 +73,13 @@
             <div class="card">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h6 class="card-title">Edit Attendance Session</h6>
+                        <h6 class="card-title">Edit Data Presensi</h6>
                         <a href="{{ route('admin.attendance.index', [
                             'study_program_id' => $session->classSchedule->study_program_id,
                             'class_schedule_id' => $session->class_schedule_id,
                         ]) }}"
                             class="btn btn-sm btn-icon-text btn-outline-secondary">
-                            <i data-feather="arrow-left" class="btn-icon-prepend"></i>Back
+                            <i data-feather="arrow-left" class="btn-icon-prepend"></i>Kembali
                         </a>
                     </div>
 
@@ -88,31 +88,31 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="session-info-item">
-                                    <div class="session-info-label">Course/Class:</div>
+                                    <div class="session-info-label">Mata kuliah/Kelas:</div>
                                     <div>{{ $session->classSchedule->course->name }} |
                                         {{ $session->classSchedule->classroom->name }}
                                     </div>
                                 </div>
                                 <div class="session-info-item">
-                                    <div class="session-info-label">Instructor:</div>
+                                    <div class="session-info-label">Dosen:</div>
                                     <div>{{ $session->classSchedule->lecturer->user->name }}</div>
                                 </div>
                                 <div class="session-info-item">
-                                    <div class="session-info-label">Date:</div>
+                                    <div class="session-info-label">Tanggal:</div>
                                     <div>{{ $session->session_date->format('l, d F Y') }}</div>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="session-info-item">
-                                    <div class="session-info-label">Week/Meeting:</div>
-                                    <div>Week {{ $session->week }}, Meeting {{ $session->meetings }}</div>
+                                    <div class="session-info-label">Minggu/Pertemuan:</div>
+                                    <div>Minggu {{ $session->week }}, Pertemuan {{ $session->meetings }}</div>
                                 </div>
                                 <div class="session-info-item">
-                                    <div class="session-info-label">Total Hours:</div>
+                                    <div class="session-info-label">Total Jam:</div>
                                     <div>{{ $session->total_hours }} Hours</div>
                                 </div>
                                 <div class="session-info-item">
-                                    <div class="session-info-label">Time:</div>
+                                    <div class="session-info-label">Waktu:</div>
                                     <div>{{ $session->start_time->format('H:i') }} -
                                         {{ $session->end_time->format('H:i') }}
                                     </div>
@@ -125,16 +125,17 @@
                         <div class="card-body">
                             <div class="alert alert-info">
                                 <i data-feather="info" class="icon-sm me-2"></i>
-                                <strong>Note:</strong> Total hours for each student must equal {{ $session->total_hours }}.
-                                When
-                                you increase one value, the system will automatically decrease from another value.
+                                <strong>Note:</strong> Total jam untuk setiap mahasiswa harus sama dengan
+                                {{ $session->total_hours }}.
+                                Ketika Anda menambah satu nilai, sistem akan secara otomatis mengurangi dari nilai lainnya.
                             </div>
 
                             <!-- Status Buttons -->
                             <div class="mb-3">
-                                <button id="allPresentBtn" class="btn btn-outline-success btn-sm me-2">All Present</button>
-                                <button id="allAbsentBtn" class="btn btn-outline-danger btn-sm me-2">All Absent</button>
-                                <button id="allLateBtn" class="btn btn-outline-warning btn-sm me-2">All Late (1h
+                                <span class="d-inline-block me-2 text-muted small">Marks All:</span>
+                                <button id="allPresentBtn" class="btn btn-outline-success btn-sm me-2">Hadir</button>
+                                <button id="allAbsentBtn" class="btn btn-outline-danger btn-sm me-2">Absent</button>
+                                <button id="allLateBtn" class="btn btn-outline-warning btn-sm me-2">Terlambat (1h
                                     Absent)</button>
                             </div>
                         </div>
@@ -146,14 +147,14 @@
                             <thead>
                                 <tr>
                                     <th>#</th>
-                                    <th>Student ID</th>
-                                    <th>Student Name</th>
+                                    <th>NIM</th>
+                                    <th>Nama</th>
                                     <th>Status</th>
-                                    <th style="width: 100px">Present (H)</th>
+                                    <th style="width: 100px">hADIR (H)</th>
                                     <th style="width: 100px">Absent (A)</th>
-                                    <th style="width: 100px">Permit (I)</th>
-                                    <th style="width: 100px">Sick (S)</th>
-                                    <th>Remarks</th>
+                                    <th style="width: 100px">Izin (I)</th>
+                                    <th style="width: 100px">Sakit (S)</th>
+                                    <th>Catatan</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -215,7 +216,7 @@
 
                     <div class="mt-3 text-end">
                         <button id="saveAllBtn" class="btn btn-icon-text btn-sm btn-primary">
-                            <i data-feather="save" class="btn-icon-prepend"></i>Save
+                            <i data-feather="save" class="btn-icon-prepend"></i>Simpan
                         </button>
                     </div>
                 </div>
