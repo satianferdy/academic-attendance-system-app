@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'List Sesi Kelas')
+@section('title', 'Daftar Sesi Kelas')
 
 @push('styles')
     <link rel="stylesheet" href="{{ asset('assets/vendors/datatables.net-bs5/dataTables.bootstrap5.css') }}">
@@ -9,7 +9,7 @@
 @section('content')
     <nav class="page-breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ route('lecturer.dashboard') }}">Lecturer</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('lecturer.dashboard') }}">General</a></li>
             <li class="breadcrumb-item active" aria-current="page">Sesi Kelas</li>
         </ol>
     </nav>
@@ -18,15 +18,15 @@
             <div class="card">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h6 class="card-title mb-0">List Sesi Kelas</h6>
+                        <h6 class="card-title mb-0">Daftar Sesi Kelas</h6>
                         <div>
                             <button type="button" class="btn btn-icon-text btn-xs btn-outline-primary me-1"
                                 id="todaySessionBtn">
-                                <i data-feather="calendar" class="icon-xs"></i> Today
+                                <i data-feather="calendar" class="icon-xs"></i> Hari Ini
                             </button>
                             <button type="button" class="btn btn-icon-text btn-xs btn-outline-secondary"
                                 id="allSessionBtn">
-                                <i data-feather="list" class="icon-xs"></i> All
+                                <i data-feather="list" class="icon-xs"></i> Semua
                             </button>
                         </div>
                     </div>
@@ -44,11 +44,11 @@
                             <thead>
                                 <tr>
                                     <th>No</th>
-                                    <th>Course</th>
-                                    <th>Room / Class</th>
-                                    <th>Day</th>
-                                    <th>Time Slots</th>
-                                    <th>Semester/Year</th>
+                                    <th>Mata Kuliah</th>
+                                    <th>Ruang / Kelas</th>
+                                    <th>Hari</th>
+                                    <th>Waktu</th>
+                                    <th>Semester/Tahun</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -69,7 +69,7 @@
                                                         {{ $timeSlot->end_time->format('H:i') }}</div>
                                                 @endforeach
                                             @else
-                                                <span class="text-muted">No time slots</span>
+                                                <span class="text-muted">Tidak ada waktu</span>
                                             @endif
                                         </td>
                                         <td>{{ $schedule->semester }} / {{ $schedule->semesters->name }}</td>
@@ -77,14 +77,14 @@
                                             <button type="button" class="btn btn-sm btn-icon-text btn-primary"
                                                 data-bs-toggle="modal"
                                                 data-bs-target="#createAttendanceModal{{ $schedule->id }}">
-                                                <i data-feather="plus-circle" class="btn-icon-prepend"></i>Create Session
+                                                <i data-feather="plus-circle" class="btn-icon-prepend"></i>Mulai Sesi
                                             </button>
                                             <a href="{{ route('lecturer.attendance.show', [
                                                 'classSchedule' => $schedule->id,
                                                 'date' => now()->format('Y-m-d'),
                                             ]) }}"
                                                 class="btn btn-sm btn-icon-text btn-info">
-                                                <i data-feather="info" class="btn-icon-prepend"></i>View Sessions
+                                                <i data-feather="info" class="btn-icon-prepend"></i>Lihat Sesi
                                             </a>
 
                                             <!-- Inside the create attendance modal -->
@@ -111,7 +111,7 @@
 
                                                                 <div class="mb-3">
                                                                     <label for="date{{ $schedule->id }}"
-                                                                        class="form-label">Session Date</label>
+                                                                        class="form-label">Tanggal</label>
                                                                     <input type="date" class="form-control"
                                                                         id="date{{ $schedule->id }}" name="date"
                                                                         value="{{ date('Y-m-d') }}"
@@ -120,12 +120,12 @@
 
                                                                 <div class="mb-3">
                                                                     <label for="week{{ $schedule->id }}"
-                                                                        class="form-label">Week</label>
+                                                                        class="form-label">Minggu ke-</label>
                                                                     <select class="form-select week-select"
                                                                         id="week{{ $schedule->id }}" name="week"
                                                                         required data-schedule-id="{{ $schedule->id }}">
                                                                         @for ($i = 1; $i <= $schedule->total_weeks; $i++)
-                                                                            <option value="{{ $i }}">Week
+                                                                            <option value="{{ $i }}">Minggu
                                                                                 {{ $i }}</option>
                                                                         @endfor
                                                                     </select>
@@ -133,13 +133,13 @@
 
                                                                 <div class="mb-3">
                                                                     <label for="meetings{{ $schedule->id }}"
-                                                                        class="form-label">Meeting</label>
+                                                                        class="form-label">Pertemuan ke-</label>
                                                                     <select class="form-select meetings-select"
                                                                         id="meetings{{ $schedule->id }}" name="meetings"
                                                                         required data-schedule-id="{{ $schedule->id }}"
                                                                         {{ $schedule->meetings_per_week == 1 ? 'readonly' : '' }}>
                                                                         @for ($i = 1; $i <= $schedule->meetings_per_week; $i++)
-                                                                            <option value="{{ $i }}">Meeting
+                                                                            <option value="{{ $i }}">Pertemuan
                                                                                 {{ $i }}</option>
                                                                         @endfor
                                                                     </select>
@@ -148,30 +148,31 @@
                                                                 <!-- New fields -->
                                                                 <div class="mb-3">
                                                                     <label for="total_hours{{ $schedule->id }}"
-                                                                        class="form-label">Total Teaching Hours</label>
+                                                                        class="form-label">Total Jam</label>
                                                                     <input type="number" class="form-control"
                                                                         id="total_hours{{ $schedule->id }}"
                                                                         name="total_hours"
                                                                         value="{{ $schedule->timeSlots->count() ?: 4 }}"
                                                                         min="1" max="8" required>
-                                                                    <div class="form-text">Number of teaching hours for
-                                                                        attendance tracking</div>
+                                                                    <div class="form-text">Total Jam untuk sesi ini.
+                                                                        Default: {{ $schedule->timeSlots->count() ?: 4 }}
+                                                                        jam</div>
                                                                 </div>
 
                                                                 <div class="mb-3">
                                                                     <label for="tolerance_minutes{{ $schedule->id }}"
-                                                                        class="form-label">Lateness Tolerance
-                                                                        (minutes)
+                                                                        class="form-label">Batas Toleransi Keterlambatan
+                                                                        (menit)
                                                                     </label>
                                                                     <select class="form-select"
                                                                         id="tolerance_minutes{{ $schedule->id }}"
                                                                         name="tolerance_minutes" required>
-                                                                        <option value="15" selected>15 minutes</option>
-                                                                        <option value="20">20 minutes</option>
-                                                                        <option value="30">30 minutes</option>
+                                                                        <option value="15" selected>15 menit</option>
+                                                                        <option value="20">20 menit</option>
+                                                                        <option value="30">30 menit</option>
                                                                     </select>
-                                                                    <div class="form-text">Maximum allowed lateness before
-                                                                        being marked absent for an hour</div>
+                                                                    <div class="form-text">Maksimal keterlambatan
+                                                                        sebelum dianggap tidak hadir.</div>
                                                                 </div>
                                                             </div>
                                                             <div class="modal-footer">
@@ -181,7 +182,7 @@
                                                                     class="btn btn-sm btn-primary session-submit"
                                                                     id="submit-btn-{{ $schedule->id }}"
                                                                     data-schedule-id="{{ $schedule->id }}">
-                                                                    Create Session
+                                                                    Buat Sesi
                                                                 </button>
                                                             </div>
                                                         </form>
@@ -193,7 +194,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="7" class="text-center">No class schedules found</td>
+                                        <td colspan="7" class="text-center">Tidak ada sesi kelas yang tersedia</td>
                                     </tr>
                                 @endforelse
                             </tbody>

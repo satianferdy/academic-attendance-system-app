@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Class Schedule Management')
+@section('title', 'Jadwal Perkuliahan')
 
 @push('styles')
     <link rel="stylesheet" href="{{ asset('assets/vendors/datatables.net-bs5/dataTables.bootstrap5.css') }}">
@@ -9,8 +9,8 @@
 @section('content')
     <nav class="page-breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="#">Dosen</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Class Schedule</li>
+            <li class="breadcrumb-item"><a href="#">General</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Jadwal Perkuliahan</li>
         </ol>
     </nav>
     <div class="row">
@@ -18,15 +18,15 @@
             <div class="card">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h6 class="card-title mb-0">Class Schedule Management</h6>
+                        <h6 class="card-title mb-0">Jadwal Perkuliahan</h6>
                         <div>
                             <button type="button" class="btn btn-icon-text btn-xs btn-outline-primary me-1"
                                 id="todayScheduleBtn">
-                                <i data-feather="calendar" class="icon-xs"></i> Today
+                                <i data-feather="calendar" class="icon-xs"></i> Hari Ini
                             </button>
                             <button type="button" class="btn btn-icon-text btn-xs btn-outline-secondary"
                                 id="allScheduleBtn">
-                                <i data-feather="list" class="icon-xs"></i> All
+                                <i data-feather="list" class="icon-xs"></i> Semua
                             </button>
                         </div>
                     </div>
@@ -36,12 +36,12 @@
                             <thead>
                                 <tr>
                                     <th>No</th>
-                                    <th>Course</th>
-                                    <th>Class</th>
-                                    <th>Room</th>
-                                    <th>Day</th>
-                                    <th>Time</th>
-                                    <th>Semester/Year</th>
+                                    <th>Matkul</th>
+                                    <th>Kelas</th>
+                                    <th>Ruang</th>
+                                    <th>Hari</th>
+                                    <th>Waktu</th>
+                                    <th>Semester/Tahun</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -69,7 +69,7 @@
                                     </tr>
                                 @empty
                                     <tr class="no-data-row">
-                                        <td colspan="7" class="text-center">No schedules found</td>
+                                        <td colspan="7" class="text-center">Tidak ada data jadwal perkuliahan</td>
                                     </tr>
                                 @endforelse
                             </tbody>
