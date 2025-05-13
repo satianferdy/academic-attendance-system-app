@@ -8,9 +8,9 @@
             <div class="col-md-6">
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Change Password</h5>
+                        <h5 class="mb-0">Ganti Password</h5>
                         <a href="{{ route('profile.index') }}" class="btn btn-sm btn-icon-text btn-outline-secondary">
-                            <i data-feather="arrow-left" class="btn-icon-prepend"></i> Back to Profile
+                            <i data-feather="arrow-left" class="btn-icon-prepend"></i> Kembali
                         </a>
                     </div>
                     <div class="card-body">
@@ -50,7 +50,7 @@
                             </div>
 
                             <div class="d-grid gap-2">
-                                <button type="submit" class="btn btn-primary">Update Password</button>
+                                <button type="submit" class="btn btn-primary">Simpan</button>
                             </div>
                         </form>
                     </div>

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Attendance Verification')
+@section('title', 'Verifikasi Presensi')
 
 @push('styles')
     <style>
@@ -213,6 +213,12 @@
 @endpush
 
 @section('content')
+    <nav class="page-breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="#">General</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Verifikasi Presensi</li>
+        </ol>
+    </nav>
     <div class="dashboard-container">
         <!-- Alerts -->
         @if (session('error'))
@@ -225,15 +231,8 @@
             </div>
         @endif
 
-        <!-- Header Banner -->
-        <div class="dashboard-header bg-primary mb-4">
-            <div class="d-flex justify-content-between align-items-center">
-                <h4 class="text-white mb-0">Attendance Verification</h4>
-            </div>
-        </div>
-
         <!-- Content Area -->
-        <div class="dashboard-content px-3">
+        <div class="dashboard-content">
             <div class="row g-4">
                 <!-- Course Information -->
                 <div class="col-md-6">
@@ -242,7 +241,7 @@
                             <div class="custom-icon course-icon me-2">
                                 <i data-feather="book" class="icon-inner"></i>
                             </div>
-                            <h5 class="mb-0">COURSE INFORMATION</h5>
+                            <h5 class="mb-0">Informasi Mata Kuliah</h5>
                         </div>
                         <div class="card-body">
                             <div class="info-box course-info p-3">
@@ -257,15 +256,16 @@
                                     <i data-feather="user" class="text-info me-3"></i>
                                     <div>
                                         <p class="mb-0 font-weight-bold">{{ $classSchedule->lecturer->user->name }}</p>
-                                        <p class="text-sm text-secondary mb-0">Lecturer</p>
+                                        <p class="text-sm text-secondary mb-0">Dosen</p>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-center">
                                     <i data-feather="calendar" class="text-warning me-3"></i>
                                     <div>
                                         <p class="mb-0 font-weight-bold">
-                                            {{ \Carbon\Carbon::parse($date)->format('l, d F Y') }}</p>
-                                        <p class="text-sm text-secondary mb-0">Session Date</p>
+                                            {{ \Carbon\Carbon::parse($date)->locale('id')->isoFormat('dddd, D MMMM YYYY') }}
+                                        </p>
+                                        <p class="text-sm text-secondary mb-0">Tanggal</p>
                                     </div>
                                 </div>
                             </div>
@@ -273,14 +273,15 @@
                             <div class="info-box instruction-box p-3">
                                 <h6 class="mb-3 d-flex align-items-center">
                                     <i data-feather="info" class="text-primary me-2"></i>
-                                    Instructions
+                                    Petunjuk
                                 </h6>
                                 <ol class="ps-3 mb-0">
-                                    <li class="mb-2">Ensure you are in a well-lit area with your face clearly visible</li>
-                                    <li class="mb-2">Position your face within the camera frame</li>
-                                    <li class="mb-2">Click the camera button to take your photo</li>
-                                    <li class="mb-2">Review your photo and submit for verification</li>
-                                    <li>Wait for the system to verify your identity</li>
+                                    <li class="mb-2">Pastikan Anda berada di area dengan pencahayaan yang baik dengan
+                                        wajah terlihat jelas</li>
+                                    <li class="mb-2">Posisikan wajah Anda dalam bingkai kamera</li>
+                                    <li class="mb-2">Klik tombol kamera untuk mengambil foto Anda</li>
+                                    <li class="mb-2">Tinjau foto Anda dan kirim untuk verifikasi</li>
+                                    <li>Tunggu sistem memverifikasi identitas Anda</li>
                                 </ol>
                             </div>
                         </div>
@@ -294,14 +295,14 @@
                             <div class="custom-icon camera-icon me-2">
                                 <i data-feather="camera" class="icon-inner"></i>
                             </div>
-                            <h5 class="mb-0">FACE VERIFICATION</h5>
+                            <h5 class="mb-0">Verifikasi Wajah</h5>
                         </div>
                         <div class="card-body">
                             <div class="alert alert-info mb-3">
                                 <div class="d-flex align-items-start">
                                     <i data-feather="alert-circle" class="me-2 mt-1"></i>
-                                    <span>Your photo will be compared with your registered face to verify your
-                                        attendance</span>
+                                    <span>Foto Anda akan dibandingkan dengan wajah terdaftar untuk memverifikasi kehadiran
+                                        Anda</span>
                                 </div>
                             </div>
 
@@ -332,8 +333,7 @@
                                         <i class="btn-icon-prepend" data-feather="refresh-cw"></i> Retake
                                     </button>
                                     <button id="submit-btn" class="btn btn-success btn-icon-text">
-                                        <i class="btn-icon-prepend" data-feather="check"></i> Verify
-                                        Attendance
+                                        <i class="btn-icon-prepend" data-feather="check"></i> Verifikasi
                                     </button>
                                 </div>
                             </div>
@@ -344,10 +344,10 @@
                                         fill="none" />
                                     <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
                                 </svg>
-                                <h3 class="text-success">Attendance Verified Successfully!</h3>
-                                <p class="mb-4">Your attendance has been recorded for this session.</p>
+                                <h3 class="text-success">Presensi Berhasil Diverifikasi!</h3>
+                                <p class="mb-4">Presensi Anda telah tercatat untuk sesi ini.</p>
                                 <a href="{{ route('student.attendance.index') }}" class="btn btn-primary">
-                                    <i data-feather="list" class="me-1"></i> View My Attendance
+                                    <i data-feather="list" class="me-1"></i> Lihat Presensi Saya
                                 </a>
                             </div>
 
@@ -355,8 +355,8 @@
                                 <div class="tips-item">
                                     <i data-feather="sun" class="tips-icon text-warning"></i>
                                     <div>
-                                        <small class="text-muted">For better results, ensure good lighting and look
-                                            directly at the camera.</small>
+                                        <small class="text-muted">Untuk hasil yang lebih baik, pastikan pencahayaan yang
+                                            baik dan lihat langsung ke arah kamera.</small>
                                     </div>
                                 </div>
                             </div>

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'My Attendance')
+@section('title', 'Presensi')
 
 @push('styles')
     <link rel="stylesheet" href="{{ asset('assets/vendors/datatables.net-bs5/dataTables.bootstrap5.css') }}">
@@ -37,15 +37,15 @@
 @section('content')
     <nav class="page-breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="#">Student</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Attendance</li>
+            <li class="breadcrumb-item"><a href="#">General</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Presensi</li>
         </ol>
     </nav>
     <div class="row">
         <div class="col-12 grid-margin stretch-card">
             <div class="card">
                 <div class="card-body">
-                    <h6 class="card-title">My Attendance Records</h6>
+                    <h6 class="card-title">Data Presensi</h6>
                     <div class="table-responsive">
                         <table id="dataTableExample" class="table table-bordered w-100">
                             <thead>
@@ -55,17 +55,17 @@
                                     <th colspan="1"></th>
                                 </tr>
                                 <tr>
-                                    <th>Date</th>
-                                    <th>Week/Meeting</th>
-                                    <th>Course</th>
-                                    <th>Lecturer</th>
+                                    <th>Tanggal</th>
+                                    <th>Minggu/Pertemuan</th>
+                                    <th>Mata Kuliah</th>
+                                    <th>Dosen</th>
                                     <th>Status</th>
                                     <th>Check In</th>
                                     <th class="text-center bg-success-subtle">H</th>
                                     <th class="text-center bg-danger-subtle">A</th>
                                     <th class="text-center bg-warning-subtle">I</th>
                                     <th class="text-center bg-info-subtle">S</th>
-                                    <th>Remarks</th>
+                                    <th>Catatan</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -118,7 +118,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="8" class="text-center">No attendance records found</td>
+                                        <td colspan="11" class="text-center">No attendance records found</td>
                                     </tr>
                                 @endforelse
                             </tbody>

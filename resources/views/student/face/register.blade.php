@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', isset($isUpdate) ? 'Update Face' : 'Register Face')
+@section('title', isset($isUpdate) ? 'Perbarui Wajah' : 'Daftarkan Wajah')
 
 @push('styles')
     <style>
@@ -259,14 +259,16 @@
 @endpush
 
 @section('content')
-    <div class="dashboard-container">
-        <!-- Header Banner -->
-        <div class="dashboard-header bg-primary mb-4">
-            <h4 class="text-white mb-0">{{ isset($isUpdate) ? 'Update Face Registration' : 'Face Registration' }}</h4>
-        </div>
+    <nav class="page-breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="#">General</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Pendaftaran Wajah</li>
+        </ol>
+    </nav>
 
+    <div class="dashboard-container">
         <!-- Content Area -->
-        <div class="dashboard-content px-3 pb-4">
+        <div class="dashboard-content">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
                     <div class="d-flex align-items-center">
@@ -276,7 +278,7 @@
                         <h5 class="mb-0">{{ isset($isUpdate) ? 'UPDATE YOUR FACE' : 'REGISTER YOUR FACE' }}</h5>
                     </div>
                     <a href="{{ route('student.face.index') }}" class="btn btn-icon-text btn-sm btn-outline-secondary">
-                        <i class="btn-icon-prepend" data-feather="chevron-left"></i>Back
+                        <i class="btn-icon-prepend" data-feather="chevron-left"></i>Kembali
                     </a>
                 </div>
 
@@ -284,19 +286,19 @@
                     <div class="registration-steps mb-4">
                         <div class="step-indicator">
                             <div class="step-number active">1</div>
-                            <div class="step-text active">Position Face</div>
+                            <div class="step-text active">Posisikan Wajah</div>
                         </div>
                         <div class="step-indicator">
                             <div class="step-number">2</div>
-                            <div class="step-text">Capture Photos</div>
+                            <div class="step-text">Ambil Foto</div>
                         </div>
                         <div class="step-indicator">
                             <div class="step-number">3</div>
-                            <div class="step-text">Verify Quality</div>
+                            <div class="step-text">Verifikasi Kualitas</div>
                         </div>
                         <div class="step-indicator">
                             <div class="step-number">4</div>
-                            <div class="step-text">Complete</div>
+                            <div class="step-text">Selesai</div>
                         </div>
                     </div>
 
@@ -304,25 +306,26 @@
                         <div class="update-notification d-flex align-items-center mb-4">
                             <i data-feather="refresh-cw" class="me-3 text-primary"></i>
                             <div>
-                                <h6 class="mb-1">Face Update Mode</h6>
-                                <p class="mb-0">You are updating your face registration based on an approved request. Take
-                                    5 new photos to update your face data.</p>
+                                <h6 class="mb-1">Mode Pembaruan Wajah</h6>
+                                <p class="mb-0">Anda sedang memperbarui pendaftaran wajah berdasarkan permintaan yang
+                                    telah disetujui. Ambil
+                                    5 foto baru untuk memperbarui data wajah Anda.</p>
                             </div>
                         </div>
                     @endif
 
                     <div class="alert alert-info d-flex align-items-center" role="alert">
                         <div>
-                            Please position your face clearly in the camera frame. Ensure good lighting and remove
-                            glasses or face coverings for better accuracy.
+                            Posisikan wajah Anda dengan jelas di dalam bingkai kamera. Pastikan pencahayaan baik dan
+                            lepaskan kacamata atau penutup wajah untuk akurasi yang lebih baik.
                         </div>
                     </div>
 
                     <div class="row">
                         <div class="col-md-12 mx-auto">
                             <div class="info-card mb-3">
-                                <p><strong>Instructions:</strong> Take 5 clear photos of your face from different angles
-                                    for best results. The system will automatically analyze the quality of each image.
+                                <p><strong>Petunjuk:</strong> Ambil 5 foto wajah Anda dengan jelas dari sudut berbeda
+                                    untuk hasil terbaik. Sistem akan secara otomatis menganalisis kualitas setiap gambar.
                                 </p>
                             </div>
 
@@ -347,7 +350,7 @@
                                 <div class="preview-container text-center mt-4" id="preview-container">
                                     <button id="submit-btn" class="btn btn-icon-text btn-sm btn-success" disabled>
                                         <i data-feather="send"
-                                            class="btn-icon-prepend"></i>{{ isset($isUpdate) ? 'Update Face' : 'Register Face' }}
+                                            class="btn-icon-prepend"></i>{{ isset($isUpdate) ? 'Perbarui Wajah' : 'Daftarkan Wajah' }}
                                     </button>
                                 </div>
                             </div>
