@@ -92,7 +92,9 @@
 
             // Get current day name in English (Monday, Tuesday, etc.)
             function getCurrentDayName() {
-                return '{{ now()->format('l') }}'; // Get from server side for accuracy
+                const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+                const today = new Date();
+                return days[today.getDay()];
             }
 
             // Handle Today's Schedule button click

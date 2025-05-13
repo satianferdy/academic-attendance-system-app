@@ -41,7 +41,7 @@ class ClassScheduleSeeder extends Seeder
         }
 
         // Days of the week
-        $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+        $days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
 
         // Define sequential time slots (2-hour blocks)
         $timeSlotBlocks = [
@@ -68,10 +68,8 @@ class ClassScheduleSeeder extends Seeder
 
         // Rooms
         $rooms = [
-            'A101', 'A102', 'A103',
-            'B201', 'B202', 'B203',
-            'C301', 'C302', 'C303',
-            'LAB01', 'LAB02', 'LAB03'
+            'RT01', 'RT02', 'RT03', 'RT04',
+            'LPR01', 'LPR02', 'LT01'
         ];
 
         $schedulesCreated = 0;

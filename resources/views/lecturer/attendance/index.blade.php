@@ -216,7 +216,7 @@
 
             // Get current day name in English (Monday, Tuesday, etc.)
             function getCurrentDayName() {
-                const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
                 const today = new Date();
                 return days[today.getDay()];
             }

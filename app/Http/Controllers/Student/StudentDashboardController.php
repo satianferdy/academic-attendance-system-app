@@ -86,6 +86,22 @@ class StudentDashboardController extends Controller
             ->orderBy('month')
             ->get();
 
+        // Terjemahan nama bulan ke bahasa Indonesia
+        $monthNames = [
+            1 => 'Jan',
+            2 => 'Feb',
+            3 => 'Mar',
+            4 => 'Apr',
+            5 => 'Mei',
+            6 => 'Jun',
+            7 => 'Jul',
+            8 => 'Agt',
+            9 => 'Sep',
+            10 => 'Okt',
+            11 => 'Nov',
+            12 => 'Des',
+        ];
+
         // Menyiapkan array bulan untuk 6 bulan terakhir (oldest to newest)
         $months = [];
         $presentData = [];
@@ -96,7 +112,8 @@ class StudentDashboardController extends Controller
         // Pre-fill arrays with zeros
         for ($i = 5; $i >= 0; $i--) {
             $monthDate = $now->copy()->subMonths($i);
-            $months[] = $monthDate->format('M');
+            $monthNumber = (int)$monthDate->format('n');
+            $months[] = $monthNames[$monthNumber];
 
             $yearMonth = $monthDate->format('Y-m');
             $presentData[$yearMonth] = 0;
@@ -129,10 +146,10 @@ class StudentDashboardController extends Controller
         return [
             'months' => $months,
             'series' => [
-                ['name' => 'Present', 'data' => $presentValues],
-                ['name' => 'Late', 'data' => $lateValues],
-                ['name' => 'Absent', 'data' => $absentValues],
-                ['name' => 'Excused', 'data' => $excusedValues]
+                ['name' => 'Hadir', 'data' => $presentValues],
+                ['name' => 'Terlambat', 'data' => $lateValues],
+                ['name' => 'Tidak Hadir', 'data' => $absentValues],
+                ['name' => 'Izin', 'data' => $excusedValues]
             ]
         ];
     }
@@ -140,11 +157,25 @@ class StudentDashboardController extends Controller
     private function getTodayClasses($student)
     {
         $today = Carbon::now();
-        $dayOfWeek = strtolower($today->format('l'));
+        $englishDay = strtolower($today->format('l'));
+
+        // Pemetaan hari dari Inggris ke Indonesia
+        $dayMapping = [
+            'monday' => 'senin',
+            'tuesday' => 'selasa',
+            'wednesday' => 'rabu',
+            'thursday' => 'kamis',
+            'friday' => 'jumat',
+            'saturday' => 'sabtu',
+            'sunday' => 'minggu',
+        ];
+
+        // Dapatkan nama hari dalam bahasa Indonesia
+        $indonesianDay = $dayMapping[$englishDay] ?? $englishDay;
 
         return ClassSchedule::with(['course', 'timeSlots', 'lecturer.user'])
             ->where('classroom_id', $student->classroom_id)
-            ->where('day', $dayOfWeek)
+            ->where('day', $indonesianDay) // Gunakan hari dalam bahasa Indonesia
             ->get();
     }
 
@@ -152,7 +183,7 @@ class StudentDashboardController extends Controller
     {
         $today = Carbon::now();
         $dayOfWeek = strtolower($today->format('l'));
-        $daysOfWeek = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+        $daysOfWeek = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
 
         // Find the index of today
         $todayIndex = array_search($dayOfWeek, $daysOfWeek);

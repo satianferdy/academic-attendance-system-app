@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('course_id');
             $table->foreignId('lecturer_id')->constrained('lecturers');
             $table->string('room');
-            $table->enum('day', ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']);
+            $table->enum('day', ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu']);
             $table->time('start_time');
             $table->time('end_time');
             $table->string('semester');

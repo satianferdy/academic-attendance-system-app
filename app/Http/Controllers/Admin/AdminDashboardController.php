@@ -92,11 +92,45 @@ class AdminDashboardController extends Controller
         $lateCounts = [];
         $excusedCounts = [];
 
+        // Array terjemahan hari dan bulan ke bahasa Indonesia
+        $dayTranslations = [
+            'Mon' => 'Sen',
+            'Tue' => 'Sel',
+            'Wed' => 'Rab',
+            'Thu' => 'Kam',
+            'Fri' => 'Jum',
+            'Sat' => 'Sab',
+            'Sun' => 'Min',
+        ];
+
+        $monthTranslations = [
+            'Jan' => 'Jan',
+            'Feb' => 'Feb',
+            'Mar' => 'Mar',
+            'Apr' => 'Apr',
+            'May' => 'Mei',
+            'Jun' => 'Jun',
+            'Jul' => 'Jul',
+            'Aug' => 'Agt',
+            'Sep' => 'Sep',
+            'Oct' => 'Okt',
+            'Nov' => 'Nov',
+            'Dec' => 'Des',
+        ];
+
         // Prepare dates for the past 7 days
         for ($i = 0; $i < 7; $i++) {
             $currentDate = $startOfWeek->copy()->addDays($i);
             $formattedDate = $currentDate->format('Y-m-d');
-            $displayDate = $currentDate->format('D (j M)');
+
+            // Format tampilan dengan bahasa Indonesia
+            $dayCode = $currentDate->format('D');
+            $monthCode = $currentDate->format('M');
+
+            $indonesianDay = $dayTranslations[$dayCode] ?? $dayCode;
+            $indonesianMonth = $monthTranslations[$monthCode] ?? $monthCode;
+
+            $displayDate = $indonesianDay . ' (' . $currentDate->format('j') . ' ' . $indonesianMonth . ')';
 
             $weekDays[] = $displayDate;
 
@@ -134,22 +168,22 @@ class AdminDashboardController extends Controller
             'weekDays' => $weekDays,
             'series' => [
                 [
-                    'name' => 'Present',
+                    'name' => 'Hadir', // Diubah dari 'Present'
                     'data' => array_values($presentCounts),
                     'color' => '#4CAF50', // Green
                 ],
                 [
-                    'name' => 'Absent',
+                    'name' => 'Tidak Hadir', // Diubah dari 'Absent'
                     'data' => array_values($absentCounts),
                     'color' => '#F44336', // Red
                 ],
                 [
-                    'name' => 'Late',
+                    'name' => 'Terlambat', // Diubah dari 'Late'
                     'data' => array_values($lateCounts),
                     'color' => '#FFC107', // Amber/Yellow
                 ],
                 [
-                    'name' => 'Excused',
+                    'name' => 'Izin', // Diubah dari 'Excused'
                     'data' => array_values($excusedCounts),
                     'color' => '#2196F3', // Blue
                 ],

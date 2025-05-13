@@ -18,7 +18,7 @@ class ScheduleService implements ScheduleServiceInterface
 
     public function getWeekdays()
     {
-        return ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        return ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
     }
 
     public function generateTimeSlots()

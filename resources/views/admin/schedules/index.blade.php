@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Class Schedule Management')
+@section('title', 'Jadwal Perkuliahan')
 
 @push('styles')
     <link rel="stylesheet" href="{{ asset('assets/vendors/datatables.net-bs5/dataTables.bootstrap5.css') }}">
@@ -9,22 +9,22 @@
 @section('content')
     <nav class="page-breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="#">Admin</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Class Schedule</li>
+            <li class="breadcrumb-item"><a href="#">Data</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Jadwal Perkuliahan</li>
         </ol>
     </nav>
     <div class="row">
         <div class="col-md-12 grid-margin stretch-card">
             <div class="card">
                 <div class="card-body">
-                    <h6 class="card-title">Class Schedule Management</h6>
+                    <h6 class="card-title">Jadwal Perkuliahan</h6>
 
                     <div class="d-flex justify-content-end mb-3">
                         <div>
                             <a href="{{ route('admin.schedules.create') }}"
                                 class="btn btn-primary btn-sm btn-icon-text mb-2 mb-md-0">
                                 <i class="btn-icon-prepend" data-feather="plus-square"></i>
-                                Add Schedule
+                                Add Jadwal
                             </a>
                         </div>
                     </div>
@@ -34,12 +34,12 @@
                             <thead>
                                 <tr>
                                     <th>No</th>
-                                    <th>Course</th>
-                                    <th>Lecturer</th>
-                                    <th>Class/Room</th>
-                                    <th>Day</th>
-                                    <th>Time Slots</th>
-                                    <th>Semester/Year</th>
+                                    <th>Matkul</th>
+                                    <th>Dosen</th>
+                                    <th>Kelas/Ruang</th>
+                                    <th>Hari</th>
+                                    <th>Waktu</th>
+                                    <th>Semester/Tahun</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -92,7 +92,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="8" class="text-center">No schedules found</td>
+                                        <td colspan="8" class="text-center">Data tidak ditemukan</td>
                                     </tr>
                                 @endforelse
                             </tbody>

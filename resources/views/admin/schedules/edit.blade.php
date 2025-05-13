@@ -1,12 +1,12 @@
 @extends('layouts.app')
 
-@section('title', 'Edit Class Schedule')
+@section('title', 'Edit Jadwal Perkuliahan')
 
 @section('content')
     <nav class="page-breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="#">Data</a></li>
-            <li class="breadcrumb-item"><a href="{{ route('admin.schedules.index') }}">Class Schedule</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('admin.schedules.index') }}">Jadwal Perkuliahan</a></li>
             <li class="breadcrumb-item active" aria-current="page">Edit</li>
         </ol>
     </nav>
@@ -14,7 +14,7 @@
         <div class="col-md-12 grid-margin stretch-card">
             <div class="card">
                 <div class="card-body">
-                    <h6 class="card-title">Edit Class Schedule</h6>
+                    <h6 class="card-title">Edit Jadwal Perkuliahan</h6>
 
                     @if ($errors->any())
                         <div class="alert alert-danger" role="alert">
@@ -32,9 +32,9 @@
 
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label for="course_id" class="form-label">Course</label>
+                                <label for="course_id" class="form-label">Mata Kuliah</label>
                                 <select class="form-select" id="course_id" name="course_id" required>
-                                    <option value="">Select Course</option>
+                                    <option value="">Select mata kuliah</option>
                                     @foreach ($courses as $course)
                                         <option value="{{ $course->id }}"
                                             {{ old('course_id', $schedule->course_id) == $course->id ? 'selected' : '' }}>
@@ -45,9 +45,9 @@
                             </div>
                             {{-- classroom --}}
                             <div class="col-md-6">
-                                <label for="classroom_id" class="form-label">Classroom</label>
+                                <label for="classroom_id" class="form-label">Ruang</label>
                                 <select class="form-select" id="classroom_id" name="classroom_id" required>
-                                    <option value="">Select Classroom</option>
+                                    <option value="">Select Ruang</option>
                                     @foreach ($classrooms as $classroom)
                                         <option value="{{ $classroom->id }}"
                                             data-study-program-id="{{ $classroom->study_program_id }}"
@@ -63,9 +63,9 @@
 
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label for="lecturer_id" class="form-label">Lecturer</label>
+                                <label for="lecturer_id" class="form-label">Dosen</label>
                                 <select class="form-select" id="lecturer_id" name="lecturer_id" required>
-                                    <option value="">Select Lecturer</option>
+                                    <option value="">Select Dosen</option>
                                     @foreach ($lecturers as $lecturer)
                                         <option value="{{ $lecturer->id }}"
                                             {{ old('lecturer_id', $schedule->lecturer_id) == $lecturer->id ? 'selected' : '' }}>
@@ -76,9 +76,9 @@
                             </div>
 
                             <div class="col-md-6">
-                                <label for="room" class="form-label">Room</label>
+                                <label for="room" class="form-label">Ruang</label>
                                 <select class="form-select" id="room" name="room" required>
-                                    <option value="">Select Room</option>
+                                    <option value="">Select Ruang</option>
                                     <option value="RT01" {{ old('room', $schedule->room) == 'RT01' ? 'selected' : '' }}>
                                         RT01</option>
                                     <option value="RT02" {{ old('room', $schedule->room) == 'RT02' ? 'selected' : '' }}>
@@ -99,9 +99,9 @@
 
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label for="semester" class="form-label">Semester</label>
+                                <label for="semester" class="form-label">Academik Term</label>
                                 <select class="form-select" id="semester" name="semester" required>
-                                    <option value="">Select Semester</option>
+                                    <option value="">Select Academik Term</option>
                                     @for ($i = 1; $i <= 8; $i++)
                                         <option value="{{ $i }}"
                                             {{ old('semester', $schedule->semester) == $i ? 'selected' : '' }}>
@@ -109,6 +109,7 @@
                                         </option>
                                     @endfor
                                 </select>
+                                <small class="text-muted">Semester ke- (1-8 untuk program 4 tahun)</small>
                             </div>
 
                             <div class="col-md-6">
@@ -129,24 +130,24 @@
 
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label for="total_weeks" class="form-label">Total Weeks</label>
+                                <label for="total_weeks" class="form-label">Total Minggu</label>
                                 <input type="number" class="form-control" id="total_weeks" name="total_weeks"
                                     value="{{ old('total_weeks', $schedule->total_weeks ?? 16) }}" min="1"
                                     max="52" required>
-                                <small class="text-muted">Number of weeks for this schedule (e.g., 16 weeks in a
+                                <small class="text-muted">Jumlah minggu untuk jadwal ini (contoh: 16 minggu dalam satu
                                     semester)</small>
                             </div>
                             <div class="col-md-6">
-                                <label for="meetings_per_week" class="form-label">Meetings Per Week</label>
+                                <label for="meetings_per_week" class="form-label">>Jumlah Pertemuan</label>
                                 <input type="number" class="form-control" id="meetings_per_week" name="meetings_per_week"
                                     value="{{ old('meetings_per_week', $schedule->meetings_per_week ?? 1) }}"
                                     min="1" max="7" required>
-                                <small class="text-muted">Number of class meetings per week</small>
+                                <small class="text-muted">Jumlah pertemuan kelas per minggu</small>
                             </div>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Select Day</label>
+                            <label class="form-label">Select Hari</label>
                             <div class="card">
                                 <div class="card-body p-3">
                                     <div class="d-flex flex-wrap gap-2">
@@ -168,24 +169,25 @@
                             <label class="form-label">Select Time Slots (Multiple Allowed)</label>
                             <div class="mb-2">
                                 <div class="alert alert-info">
-                                    <i class="icon-info-circle"></i> You can select multiple time slots for this class.
-                                    Click on each slot you want to select.
+                                    <i class="icon-info-circle"></i> Kamu bisa memilih lebih dari satu slot waktu untuk
+                                    pertemuan yang sama. Misalnya, jika kamu ingin mengadakan kuliah dari jam 08:00 - 10:00
+                                    dan juga dari jam 10:00 - 12:00, kamu bisa memilih kedua slot tersebut.
                                 </div>
                                 <div class="d-flex gap-3 mb-2">
                                     <div class="d-flex align-items-center">
                                         <div class="btn btn-outline-secondary me-2" style="width: 40px; height: 20px;">
                                         </div>
-                                        <small>Available</small>
+                                        <small>Tersedia</small>
                                     </div>
                                     <div class="d-flex align-items-center">
                                         <div class="btn btn-secondary me-2" style="width: 40px; height: 20px;"></div>
-                                        <small>Selected</small>
+                                        <small>Dipilih</small>
                                     </div>
                                     <div class="d-flex align-items-center">
                                         <div class="btn booked me-2"
                                             style="width: 40px; height: 20px; background-color: #ffebee; border-color: #ffcdd2;">
                                         </div>
-                                        <small>Unavailable</small>
+                                        <small>Tidak Tersedia</small>
                                     </div>
                                 </div>
                             </div>
@@ -203,7 +205,7 @@
                                         @endforeach
                                     </div>
                                     <div class="selected-slots-container mt-3" style="display: none;">
-                                        <p class="fw-bold mb-2">Selected Time Slots:</p>
+                                        <p class="fw-bold mb-2">Selected Slot Waktu:</p>
                                         <div class="selected-slots-list d-flex flex-wrap gap-2"></div>
                                     </div>
                                     <div id="time_slots_error" class="text-danger mt-2" style="display: none;"></div>
@@ -216,8 +218,8 @@
 
                         <div class="d-flex justify-content-end">
                             <a href="{{ route('admin.schedules.index') }}"
-                                class="btn btn-sm btn-secondary me-2">Cancel</a>
-                            <button type="submit" class="btn btn-sm btn-primary">Update Schedule</button>
+                                class="btn btn-sm btn-secondary me-2">Batal</a>
+                            <button type="submit" class="btn btn-sm btn-primary">Simpan</button>
                         </div>
                     </form>
                 </div>

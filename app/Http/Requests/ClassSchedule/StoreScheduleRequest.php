@@ -30,7 +30,7 @@ class StoreScheduleRequest extends FormRequest
             'semester_id' => 'required|exists:semesters,id',
             'study_program_id' => 'required|exists:study_programs,id',
             'room' => 'required|string|max:50',
-            'day' => 'required|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
+            'day' => 'required|in:Senin,Selasa,Rabu,Kamis,Jumat,Sabtu,Minggu',
             'time_slots' => 'required|array|min:1',
             'semester' => 'required|string|max:20',
             'total_weeks' => 'required|integer|min:1|max:52',

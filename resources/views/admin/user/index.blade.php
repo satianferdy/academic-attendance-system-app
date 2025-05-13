@@ -24,7 +24,7 @@
                             <a href="{{ route('admin.users.create') }}"
                                 class="btn btn-primary btn-sm btn-icon-text mb-2 mb-md-0">
                                 <i class="btn-icon-prepend" data-feather="plus-square"></i>
-                                Tambah User
+                                Add User
                             </a>
                         </div>
                     </div>

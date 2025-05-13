@@ -27,28 +27,28 @@
                     <li class="nav-item {{ Request::is('admin/users*') ? 'active' : '' }}">
                         <a href="{{ route('admin.users.index') }}" class="nav-link">
                             <i class="link-icon" data-feather="users"></i>
-                            <span class="link-title">User Management</span>
+                            <span class="link-title">Data Users</span>
                         </a>
                     </li>
 
                     <li class="nav-item {{ Request::is('admin/schedules*') ? 'active' : '' }}">
                         <a href="{{ route('admin.schedules.index') }}" class="nav-link">
                             <i class="link-icon" data-feather="calendar"></i>
-                            <span class="link-title">Schedule Management</span>
+                            <span class="link-title">Pengaturan Jadwal</span>
                         </a>
                     </li>
 
                     <li class="nav-item {{ Request::is('admin/attendance*') ? 'active' : '' }}">
                         <a href="{{ route('admin.attendance.index') }}" class="nav-link">
                             <i class="link-icon" data-feather="calendar"></i>
-                            <span class="link-title">Attendance Management</span>
+                            <span class="link-title">Data Presensi</span>
                         </a>
                     </li>
 
                     <li class="nav-item {{ Request::is('admin/face-requests*') ? 'active' : '' }}">
                         <a href="{{ route('admin.face-requests.index') }}" class="nav-link">
                             <i class="link-icon" data-feather="camera"></i>
-                            <span class="link-title">Face Update Requests</span>
+                            <span class="link-title">Permintaan Update Wajah</span>
                         </a>
                     </li>
                 @endif
@@ -59,19 +59,19 @@
                     <li class="nav-item {{ Request::is('student/schedule*') ? 'active' : '' }}">
                         <a href="{{ route('student.schedule.index') }}" class="nav-link">
                             <i class="link-icon" data-feather="calendar"></i>
-                            <span class="link-title">Schedule</span>
+                            <span class="link-title">Jadwal Perkuliahan</span>
                         </a>
                     </li>
                     <li class="nav-item {{ Request::is('student/attendance*') ? 'active' : '' }}">
                         <a href="{{ route('student.attendance.index') }}" class="nav-link">
                             <i class="link-icon" data-feather="calendar"></i>
-                            <span class="link-title">Attendance Records</span>
+                            <span class="link-title">Data Presensi</span>
                         </a>
                     </li>
                     <li class="nav-item {{ Request::is('student/face*') ? 'active' : '' }}">
                         <a href="{{ route('student.face.index') }}" class="nav-link">
                             <i class="link-icon" data-feather="camera"></i>
-                            <span class="link-title">Face Registration</span>
+                            <span class="link-title">Register Wajah</span>
                         </a>
                     </li>
                 @endif
@@ -83,19 +83,19 @@
                         class="nav-item {{ Request::is('lecturer/attendance*') && !Request::is('lecturer/attendance-data*') ? 'active' : '' }}">
                         <a href="{{ route('lecturer.attendance.index') }}" class="nav-link">
                             <i class="link-icon" data-feather="calendar"></i>
-                            <span class="link-title">Session</span>
+                            <span class="link-title">Sesi Kelas</span>
                         </a>
                     </li>
                     <li class="nav-item {{ Request::is('lecturer/schedule*') ? 'active' : '' }}">
                         <a href="{{ route('lecturer.schedule.index') }}" class="nav-link">
                             <i class="link-icon" data-feather="calendar"></i>
-                            <span class="link-title">Schedule</span>
+                            <span class="link-title">Jadwal Perkuliahan</span>
                         </a>
                     </li>
                     <li class="nav-item {{ Request::is('lecturer/attendance-data*') ? 'active' : '' }}">
                         <a href="{{ route('lecturer.attendance-data.index') }}" class="nav-link">
                             <i class="link-icon" data-feather="calendar"></i>
-                            <span class="link-title">Attendance Management</span>
+                            <span class="link-title">Data Presensi</span>
                         </a>
                     </li>
                 @endif

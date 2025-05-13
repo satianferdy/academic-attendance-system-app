@@ -179,7 +179,7 @@
                 <div class="card h-100">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h6 class="card-title fw-semibold mb-0">Today's Schedule</h6>
-                        <span class="text-muted">{{ Carbon\Carbon::now()->format('l') }}</span>
+                        <span class="text-muted">{{ Carbon\Carbon::now()->locale('id')->isoFormat('dddd') }}</span>
                     </div>
                     <div class="card-body p-0">
                         <div class="list-group list-group-flush">
@@ -384,14 +384,14 @@
             const chartData = {
                 labels: @json($attendanceStats['monthlyData']['months']),
                 datasets: [{
-                        label: 'Present',
+                        label: 'Hadir',
                         data: @json($attendanceStats['monthlyData']['series'][0]['data']),
                         backgroundColor: chartColors.present,
                         borderColor: chartColors.present,
                         borderWidth: 0
                     },
                     {
-                        label: 'Late',
+                        label: 'Terlambat',
                         data: @json($attendanceStats['monthlyData']['series'][1]['data']),
                         backgroundColor: chartColors.late,
                         borderColor: chartColors.late,
@@ -405,7 +405,7 @@
                         borderWidth: 0
                     },
                     {
-                        label: 'Excused',
+                        label: 'Izin',
                         data: @json($attendanceStats['monthlyData']['series'][3]['data']),
                         backgroundColor: chartColors.excused,
                         borderColor: chartColors.excused,

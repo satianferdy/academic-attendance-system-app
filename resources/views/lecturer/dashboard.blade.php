@@ -355,28 +355,28 @@
             const chartData = {
                 labels: @json($weekDays),
                 datasets: [{
-                        label: 'Present',
+                        label: 'Hadir',
                         data: @json($weeklyAttendanceData['present']),
                         backgroundColor: chartColors.present,
                         borderColor: chartColors.present,
                         borderWidth: 0
                     },
                     {
-                        label: 'Absent',
+                        label: 'Absen',
                         data: @json($weeklyAttendanceData['absent']),
                         backgroundColor: chartColors.absent,
                         borderColor: chartColors.absent,
                         borderWidth: 0
                     },
                     {
-                        label: 'Late',
+                        label: 'Terlambat',
                         data: @json($weeklyAttendanceData['late']),
                         backgroundColor: chartColors.late,
                         borderColor: chartColors.late,
                         borderWidth: 0
                     },
                     {
-                        label: 'Excused',
+                        label: 'Izin',
                         data: @json($weeklyAttendanceData['excused']),
                         backgroundColor: chartColors.excused,
                         borderColor: chartColors.excused,
