@@ -82,7 +82,7 @@ class ClassScheduleTest extends FeatureTestCase
             'semester_id' => $this->semester->id,
             'study_program_id' => $this->studyProgram->id,
             'room' => 'A101',
-            'day' => 'Monday',
+            'day' => 'Senin',
             'semester' => 'Ganjil',
             'time_slots' => ['09:00 - 10:00', '10:00 - 11:00'],
             'total_weeks' => 16,
@@ -124,7 +124,7 @@ class ClassScheduleTest extends FeatureTestCase
             'lecturer_id' => $this->lecturer->id,
             'classroom_id' => $this->classroom->id,
             'room' => 'B202',
-            'day' => 'Tuesday',
+            'day' => 'Selasa',
         ]);
 
         // Create time slots for the schedule
@@ -151,7 +151,7 @@ class ClassScheduleTest extends FeatureTestCase
             'lecturer_id' => $this->lecturer->id,
             'classroom_id' => $this->classroom->id,
             'room' => 'B202',
-            'day' => 'Tuesday',
+            'day' => 'Selasa',
         ]);
 
         // Create time slots for the schedule
@@ -168,7 +168,7 @@ class ClassScheduleTest extends FeatureTestCase
             'semester_id' => $this->semester->id,
             'study_program_id' => $this->studyProgram->id,
             'room' => 'C303',
-            'day' => 'Wednesday',
+            'day' => 'Rabu',
             'semester' => 'Genap',
             'time_slots' => ['13:00 - 14:00', '14:00 - 15:00'],
             'total_weeks' => 16,
@@ -187,7 +187,7 @@ class ClassScheduleTest extends FeatureTestCase
         $this->assertDatabaseHas('class_schedules', [
             'id' => $schedule->id,
             'room' => 'C303',
-            'day' => 'Wednesday',
+            'day' => 'Rabu',
         ]);
 
         // Check if time slots were updated
@@ -219,7 +219,7 @@ class ClassScheduleTest extends FeatureTestCase
         // Create a schedule with time slot
         $schedule = ClassSchedule::factory()->create([
             'room' => 'A101',
-            'day' => 'Monday',
+            'day' => 'Senin',
         ]);
 
         $schedule->timeSlots()->create([
@@ -230,7 +230,7 @@ class ClassScheduleTest extends FeatureTestCase
         // Request data
         $requestData = [
             'room' => 'A101',
-            'day' => 'Monday',
+            'day' => 'Senin',
             'lecturer_id' => $this->lecturer->id,
         ];
 
