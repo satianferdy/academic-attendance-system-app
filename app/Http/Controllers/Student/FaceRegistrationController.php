@@ -221,12 +221,6 @@ class FaceRegistrationController extends Controller
             ], 400);
 
         } catch (\Exception $e) {
-            Log::error('Face registration error', [
-                'error' => $e->getMessage(),
-                'student_id' => $student->id,
-                'nim' => $nim
-            ]);
-
             return response()->json([
                 'status' => 'error',
                 'message' => 'An error occurred during registration. Please try again.',
@@ -244,10 +238,6 @@ class FaceRegistrationController extends Controller
 
             return response()->json($result);
         } catch (\Exception $e) {
-            Log::error('Face quality validation error', [
-                'error' => $e->getMessage()
-            ]);
-
             return response()->json([
                 'status' => 'error',
                 'message' => 'Quality check failed: ' . $e->getMessage(),

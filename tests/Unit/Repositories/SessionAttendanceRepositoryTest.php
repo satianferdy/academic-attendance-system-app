@@ -6,6 +6,13 @@ use App\Models\ClassSchedule;
 use App\Models\SessionAttendance;
 use App\Repositories\Interfaces\SessionAttendanceRepositoryInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
+use App\Models\ClassRoom;
+use App\Models\Course;
+use App\Models\Lecturer;
+use App\Models\Semester;
+use App\Models\StudyProgram;
+use App\Repositories\Implementations\SessionAttendanceRepository;
 use Tests\TestCase;
 
 class SessionAttendanceRepositoryTest extends TestCase
@@ -13,12 +20,138 @@ class SessionAttendanceRepositoryTest extends TestCase
     use RefreshDatabase;
 
     protected $repository;
+    protected $lecturer;
+    protected $course;
+    protected $classroom;
+    protected $semester;
+    protected $studyProgram;
+    protected $classSchedule;
+    protected $sessionAttendance;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->repository = app(SessionAttendanceRepositoryInterface::class);
+        // Create repository instance
+        $this->repository = new SessionAttendanceRepository(new SessionAttendance());
+
+        // Create test data
+        $this->lecturer = Lecturer::factory()->create();
+        $this->studyProgram = StudyProgram::factory()->create();
+        $this->course = Course::factory()->create(['study_program_id' => $this->studyProgram->id]);
+        $this->semester = Semester::factory()->create(['is_active' => true]);
+        $this->classroom = ClassRoom::factory()->create([
+            'study_program_id' => $this->studyProgram->id,
+            'semester_id' => $this->semester->id
+        ]);
+
+        // Create a class schedule
+        $this->classSchedule = ClassSchedule::factory()->create([
+            'lecturer_id' => $this->lecturer->id,
+            'course_id' => $this->course->id,
+            'classroom_id' => $this->classroom->id,
+            'study_program_id' => $this->studyProgram->id,
+            'semester_id' => $this->semester->id
+        ]);
+
+        // Create session attendances
+        $this->sessionAttendance = SessionAttendance::factory()->create([
+            'class_schedule_id' => $this->classSchedule->id,
+            'session_date' => Carbon::today(),
+            'week' => 5,
+            'meetings' => 2,
+            'is_active' => true
+        ]);
+    }
+
+    public function test_get_sessions_by_lecturer()
+    {
+        // Test basic functionality (only lecturer ID)
+        $sessions = $this->repository->getSessionsByLecturer($this->lecturer->id);
+        $this->assertCount(1, $sessions);
+        $this->assertEquals($this->sessionAttendance->id, $sessions->first()->id);
+
+        // Create another session with different parameters for testing filters
+        $otherClassSchedule = ClassSchedule::factory()->create([
+            'lecturer_id' => $this->lecturer->id,
+            'course_id' => $this->course->id,
+            'classroom_id' => $this->classroom->id,
+            'study_program_id' => $this->studyProgram->id,
+            'semester_id' => $this->semester->id
+        ]);
+
+        $otherSession = SessionAttendance::factory()->create([
+            'class_schedule_id' => $otherClassSchedule->id,
+            'session_date' => Carbon::tomorrow(),
+            'week' => 6,
+            'meetings' => 1,
+            'is_active' => true
+        ]);
+
+        // Test with date filter
+        $sessionsByDate = $this->repository->getSessionsByLecturer(
+            $this->lecturer->id,
+            null,
+            Carbon::today()->format('Y-m-d')
+        );
+        $this->assertCount(1, $sessionsByDate);
+        $this->assertEquals($this->sessionAttendance->id, $sessionsByDate->first()->id);
+
+        // Test with week filter
+        $sessionsByWeek = $this->repository->getSessionsByLecturer(
+            $this->lecturer->id,
+            null,
+            null,
+            5
+        );
+        $this->assertCount(1, $sessionsByWeek);
+        $this->assertEquals($this->sessionAttendance->id, $sessionsByWeek->first()->id);
+
+        // Test with study program filter
+        $sessionsByProgram = $this->repository->getSessionsByLecturer(
+            $this->lecturer->id,
+            null,
+            null,
+            null,
+            $this->studyProgram->id
+        );
+        $this->assertCount(2, $sessionsByProgram); // Should include both sessions
+
+        // Test with classroom filter
+        $sessionsByClassroom = $this->repository->getSessionsByLecturer(
+            $this->lecturer->id,
+            null,
+            null,
+            null,
+            null,
+            $this->classroom->id
+        );
+        $this->assertCount(2, $sessionsByClassroom); // Should include both sessions
+
+        // Test with semester filter
+        $sessionsBySemester = $this->repository->getSessionsByLecturer(
+            $this->lecturer->id,
+            null,
+            null,
+            null,
+            null,
+            null,
+            $this->semester->id
+        );
+        $this->assertCount(2, $sessionsBySemester); // Should include both sessions
+
+        // Test with multiple filters
+        $sessionsWithMultipleFilters = $this->repository->getSessionsByLecturer(
+            $this->lecturer->id,
+            $this->course->id,
+            null,
+            5,
+            $this->studyProgram->id,
+            null,
+            $this->semester->id
+        );
+        $this->assertCount(1, $sessionsWithMultipleFilters);
+        $this->assertEquals($this->sessionAttendance->id, $sessionsWithMultipleFilters->first()->id);
     }
 
     public function test_find_by_qr_code()
@@ -138,8 +271,8 @@ class SessionAttendanceRepositoryTest extends TestCase
         $this->assertEquals($date, $result->session_date->format('Y-m-d'));
         $this->assertEquals('qrcode123', $result->qr_code);
 
-        // Verify a new record was created
-        $this->assertEquals(1, SessionAttendance::count());
+        // Verify a new record was created in addition to the one from setUp
+        $this->assertEquals(2, SessionAttendance::count());
     }
 
     public function test_create()
