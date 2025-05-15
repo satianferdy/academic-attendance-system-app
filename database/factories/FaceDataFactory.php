@@ -24,9 +24,11 @@ class FaceDataFactory extends Factory
     {
         return [
             'student_id' => Student::factory(),
-            'face_embedding' => array_fill(0, 128, $this->faker->randomFloat(-1, 1)), // Array, not JSON string
-            'image_path' => ['path' => 'faces/' . $this->faker->uuid() . '.jpg'],     // Array structure
-            'is_active' => true,
+            'face_embedding' => json_encode(array_fill(0, 128, 0.1)),
+            'image_path' => json_encode(['path' => 'faces/test.jpg']),    // Array structure
+            'is_active' => 1,
+            'created_at' => now(),
+            'updated_at' => now(),
         ];
     }
 }

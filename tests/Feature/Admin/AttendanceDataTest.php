@@ -127,6 +127,18 @@ class AttendanceDataTest extends FeatureTestCase
         $response->assertViewHas(['session', 'attendances']);
     }
 
+    public function test_admin_cannot_edit_nonexistent_session()
+    {
+        // Act as admin and try to edit a nonexistent session
+        $response = $this->actingAs($this->admin)
+            ->get(route('admin.attendance.edit-session', [
+                'session' => 99999 // Nonexistent session ID
+            ]));
+
+        // Assert the response is a 404 since that's what the application returns
+        $response->assertStatus(404);
+    }
+
     public function test_admin_can_update_attendance_statuses()
     {
         // Prepare update data

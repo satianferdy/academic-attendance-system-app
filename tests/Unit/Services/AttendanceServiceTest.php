@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\DB;
 use Mockery;
 use Tests\TestCase;
 use Illuminate\Support\Facades\Auth;
+use Exception;
 
 class AttendanceServiceTest extends TestCase
 {
@@ -388,6 +389,57 @@ class AttendanceServiceTest extends TestCase
         // Assert the result
         $this->assertEquals('success', $result['status']);
         $this->assertEquals('Attendance status updated successfully', $result['message']);
+    }
+
+    public function test_update_attendance_status_handles_exceptions()
+    {
+        // Mock the attendance repository
+        $attendanceRepository = Mockery::mock(AttendanceRepositoryInterface::class);
+
+        // Mock the exception scenario
+        $attendanceRepository->shouldReceive('update')
+            ->once()
+            ->andThrow(new Exception('Database connection error'));
+
+        // Create service instance with mocked repository
+        $service = $this->createAttendanceServiceWithMockedRepository($attendanceRepository);
+
+        // Create test data
+        $attendance = new Attendance();
+        $attendance->classSchedule = new ClassSchedule();
+
+        // Prepare input data
+        $data = [
+            'status' => 'present',
+            'remarks' => 'Test remarks',
+            'hours_present' => 2,
+            'hours_absent' => 1,
+            'hours_permitted' => 0,
+            'hours_sick' => 0
+        ];
+
+        // Call the method that should now throw an exception
+        $result = $service->updateAttendanceStatus($attendance, $data);
+
+        // Assert that the method returns an error response
+        $this->assertEquals('error', $result['status']);
+        $this->assertEquals('Failed to update attendance status: Database connection error', $result['message']);
+    }
+
+    private function createAttendanceServiceWithMockedRepository($attendanceRepository)
+    {
+        // Create the other required repositories (mocked but not expecting calls)
+        $sessionRepository = Mockery::mock('App\Repositories\Interfaces\SessionAttendanceRepositoryInterface');
+        $classScheduleRepository = Mockery::mock('App\Repositories\Interfaces\ClassScheduleRepositoryInterface');
+        $studentRepository = Mockery::mock('App\Repositories\Interfaces\StudentRepositoryInterface');
+
+        // Return service instance with mocked repositories
+        return new AttendanceService(
+            $attendanceRepository,
+            $sessionRepository,
+            $classScheduleRepository,
+            $studentRepository
+        );
     }
 
     public function test_it_generates_session_attendance_successfully()

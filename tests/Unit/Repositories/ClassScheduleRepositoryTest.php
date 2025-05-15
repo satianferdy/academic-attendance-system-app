@@ -26,8 +26,24 @@ class ClassScheduleRepositoryTest extends TestCase
         $this->repository = new ClassScheduleRepository(new ClassSchedule());
     }
 
-    #[Test]
-    public function it_can_find_a_schedule_by_id()
+    public function test_it_can_get_schedules_by_lecturer()
+    {
+        // Create a lecturer
+        $lecturer = Lecturer::factory()->create();
+
+        // Create schedules for the lecturer
+        $schedules = ClassSchedule::factory()->count(3)->create([
+            'lecturer_id' => $lecturer->id
+        ]);
+
+        // Get schedules by lecturer
+        $lecturerSchedules = $this->repository->getSchedulesByLecturerId($lecturer->id);
+
+        // Assert
+        $this->assertEquals($schedules->count(), $lecturerSchedules->count());
+    }
+
+    public function test_it_can_find_a_schedule_by_id()
     {
         // Create a class schedule
         $schedule = ClassSchedule::factory()->create();
@@ -40,8 +56,8 @@ class ClassScheduleRepositoryTest extends TestCase
         $this->assertEquals($schedule->id, $foundSchedule->id);
     }
 
-    #[Test]
-    public function it_can_get_students_from_a_class_schedule()
+
+    public function test_it_can_get_students_from_a_class_schedule()
     {
         // Create classroom with students
         $classroom = ClassRoom::factory()->create();
@@ -61,8 +77,8 @@ class ClassScheduleRepositoryTest extends TestCase
         $this->assertEquals($students->count(), $classStudents->count());
     }
 
-    #[Test]
-    public function it_can_detect_room_time_conflicts()
+
+    public function test_it_can_detect_room_time_conflicts()
     {
         // Create a schedule with time slot
         $schedule = ClassSchedule::factory()->create([
@@ -90,8 +106,8 @@ class ClassScheduleRepositoryTest extends TestCase
         $this->assertEquals(1, count($conflicts['room']));
     }
 
-    #[Test]
-    public function it_can_detect_lecturer_time_conflicts()
+
+    public function test_it_can_detect_lecturer_time_conflicts()
     {
         // Create a lecturer
         $lecturer = Lecturer::factory()->create();
@@ -124,8 +140,8 @@ class ClassScheduleRepositoryTest extends TestCase
         $this->assertEquals(1, count($conflicts['lecturer']));
     }
 
-    #[Test]
-    public function it_can_check_time_overlap_correctly()
+
+    public function test_it_can_check_time_overlap_correctly()
     {
         // Test cases for time overlap
         $testCases = [
@@ -163,8 +179,8 @@ class ClassScheduleRepositoryTest extends TestCase
         }
     }
 
-    #[Test]
-    public function it_can_get_schedules_by_room_and_day()
+
+    public function test_it_can_get_schedules_by_room_and_day()
     {
         // Create schedules for the same room on different days
         $roomA101 = 'A101';
@@ -189,8 +205,8 @@ class ClassScheduleRepositoryTest extends TestCase
         $this->assertEquals($mondaySchedule->id, $schedules->first()->id);
     }
 
-    #[Test]
-    public function it_can_get_schedules_by_lecturer_and_day()
+
+    public function test_it_can_get_schedules_by_lecturer_and_day()
     {
         // Create a lecturer
         $lecturer = Lecturer::factory()->create();
@@ -214,8 +230,8 @@ class ClassScheduleRepositoryTest extends TestCase
         $this->assertEquals($mondaySchedule->id, $schedules->first()->id);
     }
 
-    #[Test]
-    public function it_can_create_a_new_schedule()
+
+    public function test_it_can_create_a_new_schedule()
     {
         // Create related models
         $course = Course::factory()->create();
@@ -243,8 +259,8 @@ class ClassScheduleRepositoryTest extends TestCase
         $this->assertEquals($scheduleData['semester'], $schedule->semester);
     }
 
-    #[Test]
-    public function it_can_update_a_schedule()
+
+    public function test_it_can_update_a_schedule()
     {
         // Create a schedule
         $schedule = ClassSchedule::factory()->create([
@@ -279,8 +295,8 @@ class ClassScheduleRepositoryTest extends TestCase
         $this->assertEquals($newCourse->id, $updatedSchedule->course_id);
     }
 
-    #[Test]
-    public function it_can_delete_a_schedule()
+
+    public function test_it_can_delete_a_schedule()
     {
         // Create a schedule
         $schedule = ClassSchedule::factory()->create();
@@ -294,8 +310,8 @@ class ClassScheduleRepositoryTest extends TestCase
         $this->assertNull(ClassSchedule::find($scheduleId));
     }
 
-    #[Test]
-    public function it_can_exclude_a_specific_schedule_from_conflict_check()
+
+    public function test_it_can_exclude_a_specific_schedule_from_conflict_check()
     {
         // Create two schedules in the same room on the same day
         $roomA101 = 'A101';
@@ -339,8 +355,8 @@ class ClassScheduleRepositoryTest extends TestCase
         $this->assertEmpty($conflicts['room']);
     }
 
-    #[Test]
-    public function it_can_get_all_schedules()
+
+    public function test_it_can_get_all_schedules()
     {
         // Create several schedules
         $schedules = ClassSchedule::factory()->count(5)->create();

@@ -39,8 +39,8 @@ class ScheduleServiceTest extends TestCase
         $weekdays = $this->scheduleService->getWeekdays();
 
         $this->assertCount(7, $weekdays);
-        $this->assertEquals('Monday', $weekdays[0]);
-        $this->assertEquals('Sunday', $weekdays[6]);
+        $this->assertEquals('Senin', $weekdays[0]);
+        $this->assertEquals('Minggu', $weekdays[6]);
     }
 
     public function test_generates_time_slots()
@@ -66,7 +66,7 @@ class ScheduleServiceTest extends TestCase
     {
         // Test data
         $room = 'A101';
-        $day = 'Monday';
+        $day = 'Senin';
         $timeSlots = ['09:00 - 10:00', '10:00 - 11:00'];
         $lecturerId = 1;
 
@@ -89,7 +89,7 @@ class ScheduleServiceTest extends TestCase
     {
         // Test data
         $room = 'A101';
-        $day = 'Monday';
+        $day = 'Senin';
         $timeSlots = ['09:00 - 10:00'];
         $lecturerId = 1;
 
@@ -123,7 +123,7 @@ class ScheduleServiceTest extends TestCase
     {
         // Test data
         $room = 'A101';
-        $day = 'Monday';
+        $day = 'Senin';
         $timeSlots = ['09:00 - 10:00'];
         $lecturerId = 1;
 

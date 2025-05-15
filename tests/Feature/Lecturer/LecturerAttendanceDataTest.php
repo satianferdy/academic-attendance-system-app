@@ -242,7 +242,12 @@ class LecturerAttendanceDataTest extends FeatureTestCase
         // Create attendance for the other lecturer's class
         $otherAttendance = Attendance::factory()->create([
             'class_schedule_id' => $this->otherClassSchedule->id,
-            'student_id' => $this->student->id
+            'student_id' => $this->student->id,
+            'status' => 'present',
+            'hours_present' => 4,
+            'hours_absent' => 0,
+            'hours_permitted' => 0,
+            'hours_sick' => 0
         ]);
 
         // Prepare update data
