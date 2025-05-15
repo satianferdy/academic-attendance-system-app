@@ -60,6 +60,22 @@ class ClassScheduleTest extends FeatureTestCase
         $response->assertViewHas('schedules');
     }
 
+    // test admin can view schedule detail or function show
+    public function test_admin_can_view_schedule_detail()
+    {
+        // Create a class schedule for testing
+        $schedule = ClassSchedule::factory()->create();
+
+        // Act as admin and access the show page
+        $response = $this->actingAs($this->admin)
+            ->get(route('admin.schedules.show', $schedule));
+
+        // Assert the response
+        $response->assertStatus(200);
+        $response->assertViewIs('admin.schedules.show');
+        $response->assertViewHas('schedule');
+    }
+
     public function test_admin_can_access_create_schedule_form()
     {
         // Act as admin and access the create form
@@ -114,6 +130,45 @@ class ClassScheduleTest extends FeatureTestCase
 
         $this->assertNotNull($schedule);
         $this->assertEquals(2, $schedule->timeSlots()->count());
+    }
+
+    //test_admin_cannot_store_schedule_with_conflict
+    public function test_admin_cannot_create_schedule_with_conflict()
+    {
+        // Create an existing schedule
+        $existingSchedule = ClassSchedule::factory()->create([
+            'room' => 'A101',
+            'day' => 'Senin',
+        ]);
+
+        // Create time slots for the existing schedule
+        $existingSchedule->timeSlots()->create([
+            'start_time' => '09:00',
+            'end_time' => '10:00',
+        ]);
+
+        // Prepare data for a new schedule that conflicts with the existing one
+        $newScheduleData = [
+            'course_id' => $this->course->id,
+            'lecturer_id' => $this->lecturer->id,
+            'classroom_id' => $this->classroom->id,
+            'semester_id' => $this->semester->id,
+            'study_program_id' => $this->studyProgram->id,
+            'room' => 'A101',
+            'day' => 'Senin',
+            'semester' => 'Ganjil',
+            'time_slots' => ['09:00 - 10:00'], // Conflicting time slot
+            'total_weeks' => 16,
+            'meetings_per_week' => 1,
+        ];
+
+        // Act as admin and submit the form
+        $response = $this->actingAs($this->admin)
+            ->post(route('admin.schedules.store'), $newScheduleData);
+
+        // Assert validation fails
+        $response->assertSessionHasErrors(['time_slots']);
+        $response->assertRedirect();
     }
 
     public function test_admin_can_edit_schedule()
@@ -195,6 +250,55 @@ class ClassScheduleTest extends FeatureTestCase
         $this->assertEquals(2, $schedule->timeSlots()->count());
         $this->assertEquals('13:00', $schedule->timeSlots->first()->start_time->format('H:i'));
     }
+
+    // test when update  if (!$availabilityCheck['available'])
+    public function test_admin_cannot_update_schedule_with_conflict()
+    {
+        // Create two schedules
+        $schedule1 = ClassSchedule::factory()->create([
+            'room' => 'A101',
+            'day' => 'Senin',
+        ]);
+
+        $schedule2 = ClassSchedule::factory()->create([
+            'room' => 'A101',
+            'day' => 'Senin',
+        ]);
+
+        // Create time slots for both schedules
+        $schedule1->timeSlots()->create([
+            'start_time' => '09:00',
+            'end_time' => '10:00',
+        ]);
+
+        $schedule2->timeSlots()->create([
+            'start_time' => '09:00',
+            'end_time' => '10:00',
+        ]);
+
+        // Prepare update data that conflicts with schedule1
+        $updateData = [
+            'course_id' => $this->course->id,
+            'lecturer_id' => $this->lecturer->id,
+            'classroom_id' => $this->classroom->id,
+            'semester_id' => $this->semester->id,
+            'study_program_id' => $this->studyProgram->id,
+            'room' => 'A101',
+            'day' => 'Senin',
+            'semester' => 'Ganjil',
+            'time_slots' => ['09:00 - 10:00'], // Conflicting time slot
+            'total_weeks' => 16,
+            'meetings_per_week' => 1,
+        ];
+
+        // Act as admin and try to update schedule1
+        $response = $this->actingAs($this->admin)
+            ->put(route('admin.schedules.update', $schedule1), $updateData);
+
+        $response->assertSessionHasErrors(['time_slots']);
+        $response->assertRedirect();
+    }
+
 
     public function test_admin_can_delete_schedule()
     {

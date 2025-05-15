@@ -7,6 +7,7 @@ use App\Models\Lecturer;
 use App\Models\Student;
 use App\Models\StudyProgram;
 use App\Models\User;
+use App\Services\Interfaces\UserServiceInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Spatie\Permission\Models\Permission;
@@ -447,5 +448,125 @@ class UserManagementTest extends FeatureTestCase
         // Assert both are forbidden
         $indexResponse->assertForbidden();
         $createResponse->assertForbidden();
+    }
+
+    public function test_store_method_catches_exception()
+    {
+        // Mock UserService to throw an exception
+        $this->mock(UserServiceInterface::class, function ($mock) {
+            $mock->shouldReceive('createUser')
+                ->once()
+                ->andThrow(new \Exception('Test error message'));
+        });
+
+        // Create form data
+        $userData = [
+            'name' => 'Test User',
+            'email' => 'test@example.com',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+            'role' => 'student',
+            'student_nim' => '12345678',
+            'study_program_id' => $this->studyProgram->id,
+            'classroom_id' => $this->classroom->id,
+        ];
+
+        // Submit form and test exception handling
+        $response = $this->actingAs($this->admin)
+            ->post(route('admin.users.store'), $userData);
+
+        // Assert: Should redirect back with error and input
+        $response->assertRedirect();
+        $response->assertSessionHas('error', 'Error creating user: Test error message');
+        $response->assertSessionHasInput('name', 'Test User');
+    }
+
+    public function test_update_method_validator_fails()
+    {
+        // Create a user to update
+        $user = User::factory()->create(['role' => 'student']);
+        $user->assignRole('student');
+        $student = Student::factory()->create([
+            'user_id' => $user->id,
+            'nim' => 'ORIGINAL_NIM',
+            'study_program_id' => $this->studyProgram->id,
+            'classroom_id' => $this->classroom->id
+        ]);
+
+        // Create invalid form data (missing required fields)
+        $userData = [
+            'name' => '',  // Empty name should fail validation
+            'email' => 'invalid-email',  // Invalid email format
+            'password' => 'pass',  // Too short
+            'password_confirmation' => 'different-pass',  // Doesn't match
+        ];
+
+        // Submit form and test validation failure
+        $response = $this->actingAs($this->admin)
+            ->put(route('admin.users.update', ['user' => $user->id]), $userData);
+
+        // Assert: Should redirect back with validator errors
+        $response->assertRedirect();
+        $response->assertSessionHasErrors(['name', 'email']);
+    }
+
+    public function test_update_method_catches_exception()
+    {
+        // Create a user to update
+        $user = User::factory()->create(['role' => 'student']);
+        $user->assignRole('student');
+        $student = Student::factory()->create([
+            'user_id' => $user->id,
+            'nim' => 'ORIGINAL_NIM',
+            'study_program_id' => $this->studyProgram->id,
+            'classroom_id' => $this->classroom->id
+        ]);
+
+        // Mock UserService to throw an exception
+        $this->mock(UserServiceInterface::class, function ($mock) {
+            $mock->shouldReceive('updateUser')
+                ->once()
+                ->andThrow(new \Exception('Update error message'));
+        });
+
+        // Create form data
+        $userData = [
+            'name' => 'Updated Name',
+            'email' => 'updated@example.com',
+            'nim' => 'UPDATED_NIM',
+            'study_program_id' => $this->studyProgram->id,
+            'classroom_id' => $this->classroom->id
+        ];
+
+        // Submit form and test exception handling
+        $response = $this->actingAs($this->admin)
+            ->put(route('admin.users.update', ['user' => $user->id]), $userData);
+
+        // Assert: Should redirect back with error and input
+        $response->assertRedirect();
+        $response->assertSessionHas('error', 'Error updating user: Update error message');
+        $response->assertSessionHasInput('name', 'Updated Name');
+    }
+
+    public function test_destroy_method_catches_exception()
+    {
+        // Create a user to delete
+        $user = User::factory()->create(['role' => 'student']);
+        $user->assignRole('student');
+
+        // Mock UserService to throw an exception
+        $this->mock(UserServiceInterface::class, function ($mock) {
+            $mock->shouldReceive('deleteUser')
+                ->once()
+                ->andThrow(new \Exception('Deletion error message'));
+        });
+
+        // Submit delete request and test exception handling
+        $response = $this->actingAs($this->admin)
+            ->delete(route('admin.users.destroy', ['user' => $user->id]));
+
+        // Assert: Should redirect to index with error
+        $response->assertRedirect(route('admin.users.index'));
+        $response->assertSessionHas('error', 'Error deleting user: Deletion error message');
     }
 }

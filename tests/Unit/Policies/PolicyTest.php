@@ -84,18 +84,31 @@ class PolicyTest extends TestCase
         $lecturerUser->assignRole('lecturer');
         $lecturer = \App\Models\Lecturer::factory()->create(['user_id' => $lecturerUser->id]);
 
+        $otherLecturerUser = User::factory()->create(['role' => 'lecturer']);
+        $otherLecturerUser->assignRole('lecturer');
+        $otherLecturer = \App\Models\Lecturer::factory()->create(['user_id' => $otherLecturerUser->id]);
+
         $studentUser = User::factory()->create(['role' => 'student']);
         $studentUser->assignRole('student');
 
         // Create class schedule with lecturer
         $classSchedule = ClassSchedule::factory()->create(['lecturer_id' => $lecturer->id]);
+        $otherClassSchedule = ClassSchedule::factory()->create(['lecturer_id' => $otherLecturer->id]);
 
         // Create attendance
         $attendance = Attendance::factory()->create([
             'class_schedule_id' => $classSchedule->id
         ]);
 
+        //assert false for view for ather attendance
+        $otherAttendance = Attendance::factory()->create([
+            'class_schedule_id' => $otherClassSchedule->id
+        ]);
+
         $policy = new AttendancePolicy();
+
+        $this->assertFalse($policy->view($studentUser, $otherAttendance));
+        $this->assertFalse($policy->view($lecturerUser, $otherAttendance));
 
         // Admin can update any attendance
         $this->assertTrue($policy->update($adminUser, $attendance));
@@ -105,6 +118,12 @@ class PolicyTest extends TestCase
 
         // Student cannot update attendance
         $this->assertFalse($policy->update($studentUser, $attendance));
+
+        //manageStudentAttendance permission
+        $this->assertTrue($policy->manageStudentAttendance($adminUser, $attendance));
+        $this->assertTrue($policy->manageStudentAttendance($lecturerUser, $attendance));
+        $this->assertFalse($policy->manageStudentAttendance($studentUser, $attendance));
+        $this->assertFalse($policy->manageStudentAttendance($lecturerUser, $otherAttendance));
     }
 
     // ===== CLASS SCHEDULE POLICY TESTS =====
@@ -126,6 +145,9 @@ class PolicyTest extends TestCase
         $studentUser->assignRole('student');
         $student = Student::factory()->create(['user_id' => $studentUser->id]);
 
+        $otherStudentUser = User::factory()->create(['role' => 'student']);
+        $otherStudentUser->assignRole('student');
+
         // Create classroom and link to student
         $classroom = \App\Models\ClassRoom::factory()->create();
         $student->classroom_id = $classroom->id;
@@ -144,6 +166,13 @@ class PolicyTest extends TestCase
 
         $policy = new ClassSchedulePolicy();
 
+        // Test view permission
+        $this->assertTrue($policy->view($adminUser, $classSchedule));
+        $this->assertTrue($policy->view($lecturerUser, $classSchedule)); // Own schedule
+        $this->assertFalse($policy->view($lecturerUser, $otherSchedule)); // Not own schedule
+        $this->assertTrue($policy->view($studentUser, $classSchedule)); // Enrolled in class
+        $this->assertFalse($policy->view($otherStudentUser, $classSchedule)); // Not enrolled in class
+
         // Test viewAny permission
         $this->assertTrue($policy->viewAny($adminUser));
         $this->assertTrue($policy->viewAny($lecturerUser));
@@ -159,6 +188,12 @@ class PolicyTest extends TestCase
         $this->assertTrue($policy->create($adminUser));
         $this->assertTrue($policy->create($lecturerUser));
         $this->assertFalse($policy->create($studentUser));
+
+        // Test manage permission
+        $this->assertTrue($policy->manage($adminUser, $classSchedule));
+        $this->assertTrue($policy->manage($lecturerUser, $classSchedule)); // Own schedule
+        $this->assertFalse($policy->manage($lecturerUser, $otherSchedule)); // Not own schedule
+        $this->assertFalse($policy->manage($studentUser, $classSchedule));
 
         // Test update permission
         $this->assertTrue($policy->update($adminUser, $classSchedule));
@@ -203,6 +238,9 @@ class PolicyTest extends TestCase
         $studentUser->assignRole('student');
         $student = Student::factory()->create(['user_id' => $studentUser->id]);
 
+        $otherStudentUser = User::factory()->create(['role' => 'student']);
+        $otherStudentUser->assignRole('student');
+
         // Create classroom and link to student
         $classroom = \App\Models\ClassRoom::factory()->create();
         $student->classroom_id = $classroom->id;
@@ -226,10 +264,12 @@ class PolicyTest extends TestCase
         $this->assertTrue($policy->view($lecturerUser, $sessionAttendance)); // Own class
         $this->assertFalse($policy->view($otherLecturerUser, $sessionAttendance)); // Not own class
         $this->assertTrue($policy->view($studentUser, $sessionAttendance)); // Enrolled in class
+        $this->assertFalse($policy->view($otherStudentUser, $sessionAttendance)); // Not enrolled in class
 
         // Test create permission
         $this->assertTrue($policy->create($adminUser, $classSchedule->id));
         $this->assertTrue($policy->create($lecturerUser, $classSchedule->id)); // Own class
+        $this->assertFalse($policy->create($lecturerUser, null)); // No class schedule id
         $this->assertFalse($policy->create($otherLecturerUser, $classSchedule->id)); // Not own class
         $this->assertFalse($policy->create($studentUser, $classSchedule->id));
 

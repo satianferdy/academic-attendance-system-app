@@ -47,7 +47,7 @@ class LecturerAttendanceController extends Controller
 
         $lecturer = Auth::user()->lecturer;
 
-        if (!$lecturer) {
+        if ($lecturer === null) {
             return redirect()->back()->with('error', 'Lecturer profile not found.');
         }
 
