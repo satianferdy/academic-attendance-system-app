@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\FaceImageController;
 use App\Http\Controllers\Admin\ClassScheduleController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AttendanceDataController;
@@ -15,8 +16,8 @@ use App\Http\Controllers\Lecturer\LecturerScheduleController;
 use App\Http\Controllers\Student\StudentAttendanceController;
 use App\Http\Controllers\Lecturer\LecturerDashboardController;
 use App\Http\Controllers\Lecturer\LecturerAttendanceController;
+use App\Http\Controllers\NonDI\DirectFaceRegistrationController;
 use App\Http\Controllers\Lecturer\LecturerAttendanceDataController;
-use App\Http\Controllers\FaceImageController;
 
 Route::get('/', function () {
     return view('auth.login');
@@ -124,4 +125,7 @@ Route::group(['middleware' => ['auth', 'role:student'], 'prefix' => 'student', '
     Route::post('/face/store-request', [FaceRegistrationController::class, 'storeRequest'])->name('face.store-request');
     Route::get('/face/update/{updateRequestId}', [FaceRegistrationController::class, 'update'])->name('face.update');
     Route::post('/validate-face-quality', [FaceRegistrationController::class, 'validateQuality'])->name('face.validate-quality');
+    //non DI face registration
+    Route::post('/face/store-non-di', [DirectFaceRegistrationController::class, 'store'])
+    ->name('student.face.store-non-di');
 });
