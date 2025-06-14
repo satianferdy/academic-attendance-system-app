@@ -130,7 +130,7 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="classroom_id" class="form-label">>Kelas</label>
+                                            <label for="classroom_id" class="form-label">Kelas</label>
                                             <select class="form-select @error('classroom_id') is-invalid @enderror"
                                                 id="classroom_id" name="classroom_id" required>
                                                 <option value="">Loading classrooms...</option>

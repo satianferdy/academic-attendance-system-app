@@ -30,6 +30,7 @@ class FinalComparisonTest extends TestCase
     protected $student;
     protected $results = [];
     protected $testIterations = 20;
+    protected $tempData;
 
     protected function setUp(): void
     {
@@ -117,7 +118,16 @@ class FinalComparisonTest extends TestCase
         $nonDiMemoryUsage = [];
 
         for ($i = 0; $i < $this->testIterations; $i++) {
+            // Cleanup sebelum setiap iterasi
+            $this->cleanupMocks();
+            $this->tempData = null; // Clear temp data
+
             $diMemoryUsage[] = $this->measureDIMemoryUsage();
+
+            // Cleanup di antara pengukuran
+            $this->cleanupMocks();
+            $this->tempData = null; // Clear temp data
+
             $nonDiMemoryUsage[] = $this->measureNonDIMemoryUsage();
         }
 
@@ -285,26 +295,60 @@ class FinalComparisonTest extends TestCase
 
     private function measureDIMemoryUsage(): int
     {
-        $memoryBefore = memory_get_usage(true);
+        // Baseline memory measurement
+        $memoryBefore = memory_get_peak_usage(true);
 
+        // Setup dan eksekusi dengan beberapa operasi untuk memastikan alokasi memory
         $this->setupDIMocks();
         $service = app(FaceRecognitionServiceInterface::class);
-        $result = $service->registerFace($this->createTestImages(), $this->student->nim);
 
-        $memoryAfter = memory_get_usage(true);
-        return $memoryAfter - $memoryBefore;
+        // Tambahan operasi untuk memastikan memory allocation
+        $images = $this->createTestImages();
+        $additionalData = [];
+        for ($i = 0; $i < 10; $i++) {
+            $additionalData[] = $service->registerFace($images, $this->student->nim . $i);
+        }
+
+        // Biarkan objects exist di memory sejenak
+        usleep(1000); // 1ms delay
+
+        $memoryAfter = memory_get_peak_usage(true);
+
+        $diff = $memoryAfter - $memoryBefore;
+
+        // Store reference to prevent early GC
+        $this->tempData = $additionalData;
+
+        return $diff;
     }
 
     private function measureNonDIMemoryUsage(): int
     {
-        $memoryBefore = memory_get_usage(true);
+        // Baseline memory measurement
+        $memoryBefore = memory_get_peak_usage(true);
 
+        // Setup dan eksekusi dengan beberapa operasi untuk memastikan alokasi memory
         $this->setupNonDIMocks();
         $service = new DirectFaceRecognitionService();
-        $result = $service->registerFace($this->createTestImages(), $this->student->nim);
 
-        $memoryAfter = memory_get_usage(true);
-        return $memoryAfter - $memoryBefore;
+        // Tambahan operasi untuk memastikan memory allocation
+        $images = $this->createTestImages();
+        $additionalData = [];
+        for ($i = 0; $i < 10; $i++) {
+            $additionalData[] = $service->registerFace($images, $this->student->nim . $i);
+        }
+
+        // Biarkan objects exist di memory sejenak
+        usleep(1000); // 1ms delay
+
+        $memoryAfter = memory_get_peak_usage(true);
+
+        $diff = $memoryAfter - $memoryBefore;
+
+        // Store reference to prevent early GC
+        $this->tempData = $additionalData;
+
+        return $diff;
     }
 
     private function measureDITestComplexity(): array
@@ -487,13 +531,15 @@ class FinalComparisonTest extends TestCase
 
     private function setupNonDIMocks(): void
     {
+        // Reset Http fake setiap kali untuk menghindari sequence limit
+        Http::clearResolvedInstances();
+
         Http::fake([
-            "*/api/process-face" => Http::sequence()
-                ->push(['status' => 'success', 'data' => ['embedding' => array_fill(0, 128, 0.1)]], 200)
-                ->push(['status' => 'success', 'data' => ['embedding' => array_fill(0, 128, 0.2)]], 200)
-                ->push(['status' => 'success', 'data' => ['embedding' => array_fill(0, 128, 0.3)]], 200)
-                ->push(['status' => 'success', 'data' => ['embedding' => array_fill(0, 128, 0.4)]], 200)
-                ->push(['status' => 'success', 'data' => ['embedding' => array_fill(0, 128, 0.5)]], 200)
+            "*/api/process-face" => Http::response([
+                'status' => 'success',
+                'message' => 'Face processed successfully',
+                'data' => ['embedding' => array_fill(0, 128, 0.1)]
+            ], 200)
         ]);
     }
 
@@ -763,5 +809,60 @@ class FinalComparisonTest extends TestCase
     echo "\n✅ Comprehensive test validation completed successfully!\n";
     echo "✅ Results demonstrate measurable differences between DI and Non-DI approaches!\n";
     echo "📊 Metrics collected: ({$fase1Count} metrics)\n";
+    $this->generateComparisonReport();
+    echo "📊 Comparison report generated successfully!\n";
+    }
+
+    private function generateComparisonReport(): void
+    {
+        $reportData = $this->prepareReportData();
+        $htmlContent = $this->generateReportHTML($reportData);
+
+        // Save HTML report
+        $reportPath = storage_path('app/public/test-reports');
+        if (!file_exists($reportPath)) {
+            mkdir($reportPath, 0755, true);
+        }
+
+        file_put_contents($reportPath . '/comparison-report.html', $htmlContent);
+
+        echo "\n📊 Report generated: " . $reportPath . "/comparison-report.html\n";
+    }
+
+    private function prepareReportData(): array
+    {
+        return [
+            'timestamp' => now()->format('Y-m-d H:i:s'),
+            'test_iterations' => $this->testIterations,
+            'metrics' => $this->results['fase1'] ?? []
+        ];
+    }
+
+    private function generateReportHTML(array $data): string
+    {
+        $metricsJson = json_encode($data['metrics']);
+
+        // Calculate overall improvement score
+        $improvements = [];
+        if (isset($data['metrics']['setup_time']['improvement_percentage'])) {
+            $improvements[] = $data['metrics']['setup_time']['improvement_percentage'];
+        }
+        if (isset($data['metrics']['execution_time']['improvement_percentage'])) {
+            $improvements[] = $data['metrics']['execution_time']['improvement_percentage'];
+        }
+        if (isset($data['metrics']['memory_usage']['improvement_percentage'])) {
+            $improvements[] = $data['metrics']['memory_usage']['improvement_percentage'];
+        }
+        if (isset($data['metrics']['lines_of_code']['reduction_percentage'])) {
+            $improvements[] = $data['metrics']['lines_of_code']['reduction_percentage'];
+        }
+
+        $overallImprovement = count($improvements) > 0 ? array_sum($improvements) / count($improvements) : 0;
+        $data['overall_improvement'] = $overallImprovement;
+
+        return view('test-reports.comparison-report', [
+            'data' => $data,
+            'metricsJson' => $metricsJson
+        ])->render();
     }
 }

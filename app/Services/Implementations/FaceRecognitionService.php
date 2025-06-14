@@ -11,8 +11,6 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use App\Models\Student;
-use App\Models\FaceData;
 
 class FaceRecognitionService implements FaceRecognitionServiceInterface
 {
