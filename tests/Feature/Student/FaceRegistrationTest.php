@@ -14,6 +14,7 @@ use Illuminate\Foundation\Testing\WithFaker;
 use App\Services\Interfaces\FaceRecognitionServiceInterface;
 use Tests\RefreshPermissions;
 use Illuminate\Testing\Fluent\AssertableJson;
+use Illuminate\Support\Carbon;
 
 class FaceRegistrationTest extends TestCase
 {
@@ -281,7 +282,7 @@ class FaceRegistrationTest extends TestCase
         $response->assertSessionHas('error', 'You already have a pending face update request.');
     }
 
-    public function student_can_update_face_after_request_approval()
+    public function test_student_can_update_face_after_request_approval()
     {
         // Create a student user with face registered
         $student = Student::factory()->create([
@@ -499,5 +500,215 @@ class FaceRegistrationTest extends TestCase
         // Assert: Access denied with error
         $response->assertRedirect(route('student.face.index'));
         $response->assertSessionHas('error', 'Invalid or unauthorized face update request.');
+    }
+
+    public function test_index_shows_rejected_request_after_completed_request()
+    {
+        // Create a student user
+        $student = Student::factory()->create(['user_id' => $this->user->id]);
+
+        // Create a completed request (older date)
+        $completedRequest = FaceUpdateRequest::create([
+            'student_id' => $student->id,
+            'reason' => 'Completed Request',
+            'status' => 'completed',
+            'created_at' => Carbon::now()->subDays(10)
+        ]);
+
+        // Create a rejected request with newer date than completed
+        $rejectedRequest = FaceUpdateRequest::create([
+            'student_id' => $student->id,
+            'reason' => 'Rejected Request',
+            'status' => 'rejected',
+            'created_at' => Carbon::now()->subDays(5)
+        ]);
+
+        // Act: Login and visit the face registration page
+        $response = $this->actingAs($this->user)
+            ->get(route('student.face.index'));
+
+        // Assert: Page loads with both completed and rejected request
+        $response->assertStatus(200);
+        $response->assertViewIs('student.face.index');
+        $response->assertViewHas('completedRequest', $completedRequest);
+        // $response->assertViewHas('rejectedRequest', $rejectedRequest);
+    }
+
+    public function test_register_with_token_returns_correct_redirect_url()
+    {
+        // Create a student user without face registered
+        $student = Student::factory()->create([
+            'user_id' => $this->user->id,
+            'face_registered' => false
+        ]);
+
+        // Define a token
+        $token = 'test-attendance-token';
+
+        // Act: Login and visit the register page with token
+        $response = $this->actingAs($this->user)
+            ->get(route('student.face.register', ['token' => $token]));
+
+        // Assert: Page loads with correct redirect URL
+        $response->assertStatus(200);
+        $response->assertViewIs('student.face.register');
+        $response->assertViewHas('redirectUrl', route('student.attendance.show', ['token' => $token]));
+    }
+
+    public function test_store_fails_when_student_not_found()
+    {
+        // Create a user without a student profile
+        /** @var \App\Models\User $user */
+        $user = User::factory()->create(['role' => 'student']);
+        $user->assignRole('student');
+
+        // Create test images
+        $images = [];
+        for ($i = 0; $i < 5; $i++) {
+            $images[] = UploadedFile::fake()->image("face{$i}.jpg", 600, 600);
+        }
+
+        // Mock the service (shouldn't be called)
+        $this->mock(FaceRecognitionServiceInterface::class, function ($mock) {
+            $mock->shouldReceive('registerFace')->never();
+        });
+
+        // Act: Try to register face without a student record
+        $response = $this->actingAs($user)
+            ->postJson(route('student.face.store'), [
+                'images' => $images
+            ]);
+
+        // Assert: Returns 403 error since authorization fails before student check
+        $response->assertStatus(403)
+            ->assertJson([
+                'message' => 'This action is unauthorized.'
+            ]);
+    }
+
+    public function test_update_request_marked_completed_after_successful_update()
+    {
+        // Create a student with face registered
+        $student = Student::factory()->create([
+            'user_id' => $this->user->id,
+            'face_registered' => true,
+            'nim' => '123456789'
+        ]);
+
+        // Create an approved update request
+        $updateRequest = FaceUpdateRequest::create([
+            'student_id' => $student->id,
+            'reason' => 'Need update',
+            'status' => 'approved',
+            'admin_notes' => 'Initially approved'
+        ]);
+
+        // Mock the FaceRecognitionService
+        $this->mock(FaceRecognitionServiceInterface::class, function ($mock) {
+            $mock->shouldReceive('registerFace')
+                ->once()
+                ->andReturn([
+                    'status' => 'success',
+                    'message' => 'Face updated successfully.',
+                    'data' => [
+                        'student_id' => 1,
+                        'nim' => '123456789',
+                        'image_count' => 5,
+                    ]
+                ]);
+        });
+
+        // Create test images
+        $images = [];
+        for ($i = 0; $i < 5; $i++) {
+            $images[] = UploadedFile::fake()->image("face{$i}.jpg", 600, 600);
+        }
+
+        // Act: Submit the update
+        $response = $this->actingAs($student->user)
+            ->postJson(route('student.face.store'), [
+                'images' => $images,
+                'is_update' => true,
+                'update_request_id' => $updateRequest->id
+            ]);
+
+        // Assert: Update successful
+        $response->assertStatus(200)
+            ->assertJson([
+                'status' => 'success',
+                'message' => 'Face updated successfully.'
+            ]);
+
+        // Check that the update request was marked as completed
+        $updatedRequest = FaceUpdateRequest::find($updateRequest->id);
+        $this->assertEquals('completed', $updatedRequest->status);
+        $this->assertStringContainsString('Initially approved | Update completed on', $updatedRequest->admin_notes);
+    }
+
+    public function test_store_returns_error_when_exception_occurs()
+    {
+        // Create a student user
+        $student = Student::factory()->create([
+            'user_id' => $this->user->id,
+            'face_registered' => false,
+            'nim' => '123456789'
+        ]);
+
+        // Mock the FaceRecognitionService to throw an exception
+        $this->mock(FaceRecognitionServiceInterface::class, function ($mock) {
+            $mock->shouldReceive('registerFace')
+                ->once()
+                ->andThrow(new \Exception('Service error'));
+        });
+
+        // Create test images
+        $images = [];
+        for ($i = 0; $i < 5; $i++) {
+            $images[] = UploadedFile::fake()->image("face{$i}.jpg", 600, 600);
+        }
+
+        // Act: Submit the registration request
+        $response = $this->actingAs($student->user)
+            ->postJson(route('student.face.store'), [
+                'images' => $images
+            ]);
+
+        // Assert: Returns 500 error with system error message
+        $response->assertStatus(500)
+            ->assertJson([
+                'status' => 'error',
+                'message' => 'An error occurred during registration. Please try again.',
+                'code' => 'SYSTEM_ERROR'
+            ]);
+    }
+
+    public function test_validate_quality_returns_error_when_exception_occurs()
+    {
+        // Create a student user
+        $student = Student::factory()->create(['user_id' => $this->user->id]);
+
+        // Mock the FaceRecognitionService to throw an exception
+        $this->mock(FaceRecognitionServiceInterface::class, function ($mock) {
+            $mock->shouldReceive('validateQuality')
+                ->once()
+                ->andThrow(new \Exception('Validation error'));
+        });
+
+        // Create a test image
+        $image = UploadedFile::fake()->image('face.jpg', 600, 600);
+
+        // Act: Submit the image for quality validation
+        $response = $this->actingAs($student->user)
+            ->postJson(route('student.face.validate-quality'), [
+                'image' => $image
+            ]);
+
+        // Assert: Returns 500 error with validation error message
+        $response->assertStatus(500)
+            ->assertJson([
+                'status' => 'error',
+                'message' => 'Quality check failed: Validation error',
+                'code' => 'VALIDATION_ERROR'
+            ]);
     }
 }

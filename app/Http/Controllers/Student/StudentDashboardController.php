@@ -40,7 +40,7 @@ class StudentDashboardController extends Controller
         ));
     }
 
-    private function getAttendanceStatistics($studentId)
+    public function getAttendanceStatistics($studentId)
     {
         // Get all attendance records for the student
         $allAttendances = Attendance::where('student_id', $studentId)->get();
@@ -71,7 +71,7 @@ class StudentDashboardController extends Controller
         ];
     }
 
-    private function getMonthlyAttendanceData($studentId)
+    public function getMonthlyAttendanceData($studentId)
     {
         // Menentukan rentang waktu - 6 bulan terakhir
         $now = Carbon::now();
@@ -154,7 +154,7 @@ class StudentDashboardController extends Controller
         ];
     }
 
-    private function getTodayClasses($student)
+    public function getTodayClasses($student)
     {
         $today = Carbon::now();
         $englishDay = strtolower($today->format('l'));
@@ -179,7 +179,7 @@ class StudentDashboardController extends Controller
             ->get();
     }
 
-    private function getUpcomingClasses($student)
+    public function getUpcomingClasses($student)
     {
         $today = Carbon::now();
         $dayOfWeek = strtolower($today->format('l'));

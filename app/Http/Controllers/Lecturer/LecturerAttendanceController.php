@@ -3,8 +3,6 @@
 namespace App\Http\Controllers\Lecturer;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Attendance\ExtendTimeRequest;
-use App\Http\Requests\Attendance\StoreAttendanceRequest;
 use App\Http\Requests\Attendance\UpdateAttendanceRequest;
 use App\Models\Attendance;
 use App\Models\ClassSchedule;
@@ -51,7 +49,8 @@ class LecturerAttendanceController extends Controller
             return redirect()->back()->with('error', 'Lecturer profile not found.');
         }
 
-        $schedules = $lecturer->classSchedules()->with('course', 'semesters')->get();
+        // $schedules = $lecturer->classSchedules()->with('course', 'semesters')->get();
+        $schedules = $this->classScheduleRepository->getSchedulesByLecturerId($lecturer->id);
         return view('lecturer.attendance.index', compact('schedules'));
     }
 

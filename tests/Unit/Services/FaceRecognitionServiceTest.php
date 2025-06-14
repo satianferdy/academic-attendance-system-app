@@ -319,4 +319,196 @@ class FaceRecognitionServiceTest extends TestCase
         // Assert
         $this->assertEquals('error', $result['status']);
     }
+
+     // Tests for general exceptions in registerFace method (lines 176-184)
+    public function test_register_face_catches_general_exception()
+    {
+        // Arrange
+        $nim = '12345678';
+        $images = [
+            UploadedFile::fake()->image('face1.jpg', 100, 100),
+        ];
+
+        // Setup student mock
+        $student = new Student();
+        $student->id = 1;
+        $student->nim = $nim;
+
+        $this->studentRepository->shouldReceive('findByNim')
+            ->with($nim)
+            ->andReturn($student);
+
+        // Mock HTTP to throw exception
+        Http::fake([
+            "*" => function() {
+                throw new \Exception('Network error');
+            }
+        ]);
+
+        // Assert log is called
+        Log::spy();
+
+        // Act
+        $result = $this->faceRecognitionService->registerFace($images, $nim);
+
+        // Assert
+        $this->assertEquals('error', $result['status']);
+        $this->assertEquals('An error occurred during face registration. Please try again.', $result['message']);
+
+        Log::shouldHaveReceived('error')
+            ->with('Face registration error', Mockery::on(function($argument) use ($nim) {
+                return isset($argument['message']) && $argument['nim'] === $nim;
+            }));
+    }
+
+    // Tests for FaceRecognitionException in validateQuality method (lines 219-227)
+    public function test_validate_quality_catches_face_recognition_exception()
+    {
+        // Arrange
+        $image = UploadedFile::fake()->create('document.pdf', 100);
+
+        // Assert log is called
+        Log::spy();
+
+        // Act
+        $result = $this->faceRecognitionService->validateQuality($image);
+
+        // Assert
+        $this->assertEquals('error', $result['status']);
+        $this->assertEquals('Invalid image format. Only JPEG and PNG are supported', $result['message']);
+        $this->assertEquals('VALIDATION_ERROR', $result['code']);
+
+        Log::shouldHaveReceived('error')
+            ->with('Face quality validation parameter error', Mockery::on(function($argument) {
+                return isset($argument['message']);
+            }));
+    }
+
+    // Tests for general exceptions in validateQuality method (lines 228-236)
+    public function test_validate_quality_catches_general_exception()
+    {
+        // Arrange
+        $image = UploadedFile::fake()->image('face.jpg', 100, 100);
+
+        // Setup HTTP to throw exception
+        Http::fake([
+            "*" => function() {
+                throw new \Exception('Network timeout');
+            }
+        ]);
+
+        // Assert log is called
+        Log::spy();
+
+        // Act
+        $result = $this->faceRecognitionService->validateQuality($image);
+
+        // Assert
+        $this->assertEquals('error', $result['status']);
+        $this->assertEquals('An error occurred during quality validation. Please try again.', $result['message']);
+        $this->assertEquals('SYSTEM_ERROR', $result['code']);
+
+        Log::shouldHaveReceived('error')
+            ->with('Face quality validation error', Mockery::on(function($argument) {
+                return isset($argument['message']);
+            }));
+    }
+
+    // Test for Storage::put failure in storeImage method (lines 254-265)
+    public function test_store_image_handles_storage_failure()
+    {
+        // Arrange
+        $nim = '12345678';
+        $image = UploadedFile::fake()->image('face1.jpg', 100, 100);
+
+        // Mock Storage::put to return false (failure)
+        Storage::shouldReceive('exists')->andReturn(true);
+        Storage::shouldReceive('put')->andReturn(false);
+
+        // Setup logging spy
+        Log::spy();
+
+        // Act & Assert
+        $this->expectException(FaceRecognitionException::class);
+        $this->expectExceptionMessage('Failed to store image. Please try again.');
+
+        // Using reflection to access private method
+        $reflectionMethod = new \ReflectionMethod($this->faceRecognitionService, 'storeImage');
+        $reflectionMethod->setAccessible(true);
+        $reflectionMethod->invoke($this->faceRecognitionService, $image, $nim);
+
+        Log::shouldHaveReceived('error')
+            ->with('Failed to store image', Mockery::on(function($argument) use ($nim) {
+                return isset($argument['error']) && $argument['nim'] === $nim;
+            }));
+    }
+
+    // Test for empty embeddings in averageEmbeddings method (lines 270-272)
+    public function test_average_embeddings_throws_exception_when_empty()
+    {
+        // Act & Assert
+        $this->expectException(FaceRecognitionException::class);
+        $this->expectExceptionMessage('No embeddings to average');
+
+        // Using reflection to access private method
+        $reflectionMethod = new \ReflectionMethod($this->faceRecognitionService, 'averageEmbeddings');
+        $reflectionMethod->setAccessible(true);
+        $reflectionMethod->invoke($this->faceRecognitionService, []);
+    }
+
+    // Test for inconsistent embedding dimensions in averageEmbeddings method (lines 280-282)
+    public function test_average_embeddings_throws_exception_when_inconsistent_dimensions()
+    {
+        // Arrange
+        $embeddings = [
+            [0.1, 0.2, 0.3],  // 3 dimensions
+            [0.4, 0.5]        // 2 dimensions - inconsistent
+        ];
+
+        // Act & Assert
+        $this->expectException(FaceRecognitionException::class);
+        $this->expectExceptionMessage('Inconsistent embedding dimensions');
+
+        // Using reflection to access private method
+        $reflectionMethod = new \ReflectionMethod($this->faceRecognitionService, 'averageEmbeddings');
+        $reflectionMethod->setAccessible(true);
+        $reflectionMethod->invoke($this->faceRecognitionService, $embeddings);
+    }
+
+    // Test for invalid image in validateImage method (lines 298-300)
+    public function test_validate_image_throws_exception_for_invalid_image()
+    {
+        // Arrange
+        $invalidImage = Mockery::mock(UploadedFile::class);
+        $invalidImage->shouldReceive('isValid')->once()->andReturn(false);
+
+        // Act & Assert
+        $this->expectException(FaceRecognitionException::class);
+        $this->expectExceptionMessage('Invalid image file');
+
+        // Using reflection to access private method
+        $reflectionMethod = new \ReflectionMethod($this->faceRecognitionService, 'validateImage');
+        $reflectionMethod->setAccessible(true);
+        $reflectionMethod->invoke($this->faceRecognitionService, $invalidImage);
+    }
+
+    // Test for oversized image in validateImage method (lines 302-304)
+    public function test_validate_image_throws_exception_for_oversized_image()
+    {
+        // Arrange
+        $maxSize = Config::get('services.face_recognition.max_image_size');
+
+        $oversizedImage = Mockery::mock(UploadedFile::class);
+        $oversizedImage->shouldReceive('isValid')->once()->andReturn(true);
+        $oversizedImage->shouldReceive('getSize')->once()->andReturn(($maxSize + 1) * 1024); // Larger than max
+
+        // Act & Assert
+        $this->expectException(FaceRecognitionException::class);
+        $this->expectExceptionMessage("Image size exceeds maximum allowed ({$maxSize}KB)");
+
+        // Using reflection to access private method
+        $reflectionMethod = new \ReflectionMethod($this->faceRecognitionService, 'validateImage');
+        $reflectionMethod->setAccessible(true);
+        $reflectionMethod->invoke($this->faceRecognitionService, $oversizedImage);
+    }
 }

@@ -1,36 +1,103 @@
 <?php
+// app/Services/NonDI/DirectFaceRecognitionService.php
 
-namespace App\Services\Implementations;
+namespace App\Services\NonDI;
 
-use App\Services\Interfaces\FaceRecognitionServiceInterface;
-use App\Repositories\Interfaces\StudentRepositoryInterface;
-use App\Repositories\Interfaces\FaceDataRepositoryInterface;
-use App\Exceptions\FaceRecognitionException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use App\Models\Student;
+use App\Models\FaceData;
+use App\Exceptions\FaceRecognitionException;
 
-class FaceRecognitionService implements FaceRecognitionServiceInterface
+class DirectFaceRecognitionService
 {
     protected $apiUrl;
     protected $apiKey;
     protected $imageFolderPath;
-    protected $studentRepository;
-    protected $faceDataRepository;
 
-    public function __construct(
-        // Inject repositories if needed
-        StudentRepositoryInterface $studentRepository,
-        FaceDataRepositoryInterface $faceDataRepository
-    )
+    public function __construct()
     {
         $this->apiUrl = config('services.face_recognition.url');
         $this->apiKey = config('services.face_recognition.key');
         $this->imageFolderPath = config('services.face_recognition.storage_path', 'face_images');
-        $this->studentRepository = $studentRepository;
-        $this->faceDataRepository = $faceDataRepository;
+    }
+
+    public function registerFace(array $images, string $nim): array
+    {
+        try {
+            $embeddings = [];
+            $imagePaths = null;
+
+            // Direct database access - no repository pattern
+            $student = Student::where('nim', $nim)->firstOrFail();
+
+            foreach ($images as $index => $image) {
+                $this->validateImage($image);
+
+                // Direct HTTP call - no interface abstraction
+                $response = Http::withHeaders([
+                    'X-API-Key' => $this->apiKey,
+                ])
+                ->timeout(30)
+                ->attach('image', $image->get(), $image->getClientOriginalName())
+                ->post("{$this->apiUrl}/api/process-face", [
+                    'nim' => $nim,
+                ]);
+
+                if (!$response->successful()) {
+                    throw new FaceRecognitionException("Failed to process image: " . $response->body());
+                }
+
+                $responseData = $response->json();
+                if (!isset($responseData['data']['embedding'])) {
+                    throw new FaceRecognitionException("Invalid response from face recognition service");
+                }
+
+                $embeddings[] = $responseData['data']['embedding'];
+
+                if ($index === 0) {
+                    $imagePaths = $this->storeImage($image, $nim);
+                }
+            }
+
+            $averageEmbedding = $this->averageEmbeddings($embeddings);
+
+            // Direct database access - no repository
+            FaceData::updateOrCreate(
+                ['student_id' => $student->id],
+                [
+                    'face_embedding' => json_encode($averageEmbedding),
+                    'image_path' => json_encode($imagePaths),
+                    'is_active' => true
+                ]
+            );
+
+            // Direct database update - no repository
+            $student->update(['face_registered' => true]);
+
+            return [
+                'status' => 'success',
+                'message' => 'Face registered successfully',
+                'data' => [
+                    'student_id' => $student->id,
+                    'nim' => $nim,
+                    'image_count' => 1,
+                ]
+            ];
+
+        } catch (\Exception $e) {
+            Log::error('Face registration error', [
+                'message' => $e->getMessage(),
+                'nim' => $nim
+            ]);
+            return [
+                'status' => 'error',
+                'message' => 'An error occurred during face registration. Please try again.'
+            ];
+        }
     }
 
     public function verifyFace(UploadedFile $image, int $classId, string $nim): array
@@ -38,43 +105,28 @@ class FaceRecognitionService implements FaceRecognitionServiceInterface
         try {
             $this->validateImage($image);
 
+            // Direct HTTP call - no abstraction
             $response = Http::withHeaders([
                 'X-API-Key' => $this->apiKey,
-            ])->attach(
-                'image',
-                $image->get(),
-                $image->getClientOriginalName()
-            )->post("{$this->apiUrl}/api/verify-face", [
+            ])->attach('image', $image->get(), $image->getClientOriginalName())
+            ->post("{$this->apiUrl}/api/verify-face", [
                 'class_id' => $classId,
                 'nim' => $nim,
             ]);
 
-            // If successful, just return the response
             if ($response->successful() && $response->json('status') === 'success') {
                 return $response->json();
             }
 
-            // For errors, map error codes to user-friendly messages
             $errorData = $response->json();
             $errorCode = $errorData['code'] ?? 'UNKNOWN_ERROR';
             $errorMessage = $this->mapErrorCodeToMessage($errorCode, $errorData['message'] ?? 'Face verification failed');
 
-            // Handle unsuccessful responses or invalid JSON
             Log::error('Face verification API error: ' . $response->body());
             return [
                 'status' => 'error',
                 'message' => $errorMessage,
                 'code' => $errorCode
-            ];
-        } catch (FaceRecognitionException $e) {
-            Log::error('Face verification validation error', [
-                'message' => $e->getMessage(),
-                'nim' => $nim
-            ]);
-            return [
-                'status' => 'error',
-                'message' => $e->getMessage(),
-                'code' => 'VALIDATION_ERROR'
             ];
         } catch (\Exception $e) {
             Log::error('Face recognition verification error', [
@@ -89,139 +141,30 @@ class FaceRecognitionService implements FaceRecognitionServiceInterface
         }
     }
 
-   // FaceRecognitionService.php
-   public function registerFace(array $images, string $nim): array
-   {
-       try {
-           $embeddings = [];
-           $imagePaths = null;
-
-           // Process each image
-           foreach ($images as $index => $image) {
-               $this->validateImage($image);
-
-               // Send to Flask for embedding extraction
-               $response = Http::withHeaders([
-                   'X-API-Key' => $this->apiKey,
-               ])
-               ->timeout(30)
-               ->attach(
-                   'image',
-                   $image->get(),
-                   $image->getClientOriginalName()
-               )
-               ->post("{$this->apiUrl}/api/process-face", [
-                   'nim' => $nim,
-               ]);
-
-               if (!$response->successful()) {
-                   throw new FaceRecognitionException("Failed to process image: " . $response->body());
-               }
-
-               // Validate response from face recognition service
-               $responseData = $response->json();
-               if (!isset($responseData['data']['embedding'])) {
-                   throw new FaceRecognitionException("Invalid response from face recognition service");
-               }
-
-               // Store embedding
-               $embeddings[] = $responseData['data']['embedding'];
-
-               // Store image to storage
-               if ($index === 0) {
-                   $imagePaths = $this->storeImage($image, $nim);
-               }
-           }
-
-           // Calculate average embedding
-           $averageEmbedding = $this->averageEmbeddings($embeddings);
-
-           // Save to database
-           $student = $this->studentRepository->findByNim($nim);
-
-            if (!$student) {
-                throw new FaceRecognitionException("Student with NIM {$nim} not found");
-            }
-
-           $this->faceDataRepository->createOrUpdate(
-                $student->id,
-                [
-                    'face_embedding' => json_encode($averageEmbedding),
-                    'image_path' => json_encode($imagePaths),
-                    'is_active' => true
-                ]
-           );
-
-           return [
-               'status' => 'success',
-               'message' => 'Face registered successfully',
-               'data' => [
-                   'student_id' => $student->id,
-                   'nim' => $nim,
-                   'image_count' => 1,
-               ]
-           ];
-
-       } catch (FaceRecognitionException $e) {
-           Log::error('Face registration validation error', [
-               'message' => $e->getMessage(),
-               'nim' => $nim
-           ]);
-           return [
-               'status' => 'error',
-               'message' => $e->getMessage()
-           ];
-       } catch (\Exception $e) {
-           Log::error('Face registration error', [
-               'message' => $e->getMessage(),
-               'nim' => $nim
-           ]);
-           return [
-               'status' => 'error',
-               'message' => 'An error occurred during face registration. Please try again.'
-           ];
-       }
-   }
-
     public function validateQuality(UploadedFile $image): array
     {
         try {
             $this->validateImage($image);
 
-            // Kirim gambar ke Flask untuk validasi kualitas
+            // Direct HTTP call
             $response = Http::withHeaders([
                 'X-API-Key' => $this->apiKey,
-            ])->attach(
-                'image',
-                $image->get(),
-                $image->getClientOriginalName()
-            )->post("{$this->apiUrl}/api/validate-quality");
+            ])->attach('image', $image->get(), $image->getClientOriginalName())
+            ->post("{$this->apiUrl}/api/validate-quality");
 
-            // Handle response
             if ($response->successful() && $response->json('status') === 'success') {
                 return $response->json();
             }
 
-             // For errors, map error codes to user-friendly messages
             $errorData = $response->json();
             $errorCode = $errorData['code'] ?? 'UNKNOWN_ERROR';
             $errorMessage = $this->mapErrorCodeToMessage($errorCode, $errorData['message'] ?? 'Unknown error occurred');
 
-            // Handle error response
             Log::error('Face quality validation failed: ' . $response->body());
             return [
                 'status' => 'error',
                 'message' => $errorMessage,
                 'code' => $errorCode
-            ];
-        } catch (FaceRecognitionException $e) {
-            Log::error('Face quality validation parameter error', [
-                'message' => $e->getMessage()
-            ]);
-            return [
-                'status' => 'error',
-                'message' => $e->getMessage(),
-                'code' => 'VALIDATION_ERROR'
             ];
         } catch (\Exception $e) {
             Log::error('Face quality validation error', [
@@ -238,17 +181,14 @@ class FaceRecognitionService implements FaceRecognitionServiceInterface
     private function storeImage(UploadedFile $image, string $nim): string
     {
         try {
-            // Create folder if it doesn't exist
             $folderPath = "{$this->imageFolderPath}/{$nim}";
             if (!Storage::exists($folderPath)) {
                 Storage::makeDirectory($folderPath);
             }
 
-            // Store image
             $fileName = Str::uuid() . '.jpg';
             $filePath = "{$folderPath}/{$fileName}";
 
-            // Use Laravel's storage mechanisms rather than raw file_get_contents
             if (!Storage::put($filePath, $image->get())) {
                 throw new FaceRecognitionException("Failed to store image");
             }
@@ -271,7 +211,6 @@ class FaceRecognitionService implements FaceRecognitionServiceInterface
 
         $embeddingCount = count($embeddings);
         $embeddingLength = count($embeddings[0]);
-
         $sum = array_fill(0, $embeddingLength, 0);
 
         foreach ($embeddings as $embedding) {
@@ -291,7 +230,7 @@ class FaceRecognitionService implements FaceRecognitionServiceInterface
 
     private function validateImage(UploadedFile $image): void
     {
-        $maxSize = config('services.face_recognition.max_image_size', 5 * 1024); // 5MB default
+        $maxSize = config('services.face_recognition.max_image_size', 5 * 1024);
 
         if (!$image->isValid()) {
             throw new FaceRecognitionException('Invalid image file');
