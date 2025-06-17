@@ -119,7 +119,7 @@
 @section('content')
     <div class="login-container">
         <div class="logo">
-            <img src="{{ asset('assets/images/logo.png') }}" alt="Logo">
+            <img src="{{ asset('assets/images/logo.jpg') }}" alt="Logo">
         </div>
 
         <h2>Lupa Kata Sandi</h2>
