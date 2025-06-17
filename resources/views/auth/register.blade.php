@@ -196,7 +196,7 @@
     <div class="container">
         <div class="register-container">
             <div class="logo-container">
-                <img src="{{ asset('assets/images/logo.png') }}" alt="Logo">
+                <img src="{{ asset('assets/images/logo.jpg') }}" alt="Logo">
             </div>
 
             <h2>Create Account</h2>
